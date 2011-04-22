@@ -49,12 +49,35 @@ namespace pilar
 
 	Strand::Strand(int numParticles, float mass, float k, float length, Vector3f root=Vector3f())
 	{
+		numEdges = numParticles - 1;
+		numBend = numParticles - 2;
+		numTwist = numTwist - 3;
+		
 		//TODO
 	}
 	
-	void Strand::buildSprings()
+	void Strand::buildSprings(float k, float length, float damping)
 	{
-		//TODO
+		edge = new Spring*[numEdges];
+		
+		for(int i = 0; i < numEdges; i++)
+		{
+			edge[i] = new Spring(particle[i], particle[i+1], k, length, damping, EDGE);
+		}
+		
+		bend = new Spring*[numBend];
+		
+		for(int i = 0; i < numBend; i++)
+		{
+			bend[i] = new Spring(particle[i], particle[i+2], k, length, damping, BEND);
+		}
+		
+		twist = new Spring*[numTwist];
+		
+		for(int i = 0; i < numTwist; i++)
+		{
+			twist[i] = new Spring(particle[i], particle[i+3], k, length, damping, TWIST);
+		}
 	}
 	
 	void Strand::resetParticles()

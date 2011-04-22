@@ -26,8 +26,8 @@ namespace pilar
 	enum SpringType
 	{
 		EDGE,
-		BENDING,
-		TORSION,
+		BEND,
+		TWIST,
 		EXTRA
 	};
 	
@@ -49,14 +49,20 @@ namespace pilar
 	{
 	private:
 		int numParticles;
-		int numSprings;
+		int numEdges;
+		int numBend;
+		int numTwist;
+		
 		
 		Vector3f root;
 		
 		Particle** particle;
-		Spring** spring;
+		Spring** edge;
+		Spring** bend;
+		Spring** twist;
 		
-		void buildSprings();
+		
+		void buildSprings(float k, float length, float damping);
 		void resetParticles();
 		void updateSprings(float dt);
 		void updateParticles(float dt);
