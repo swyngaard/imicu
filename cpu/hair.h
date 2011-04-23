@@ -83,7 +83,7 @@ namespace pilar
 		Vector3f gravity;
 		
 	public:
-		Hair(int numParticles, float mass, float k, float length, std::vector<Vector3f> &roots);
+		Hair(int numStrands, float mass, float k, float length, std::vector<Vector3f> &roots);
 		void update(float dt);
 		void release();
 	};

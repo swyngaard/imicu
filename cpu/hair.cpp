@@ -51,11 +51,20 @@ namespace pilar
 	{
 		numEdges = numParticles - 1;
 		numBend = numParticles - 2;
-		numTwist = numTwist - 3;
+		numTwist = numParticles - 3;
 		
-		//TODO
+		this->numParticles = numParticles;
+		
+		//Initialise particles
+		for(int i = 0; i < numParticles; i++)
+		{
+			particle[i] = new Particle(mass);
+			
+			//TODO set the intial particle positions
+		}
 	}
 	
+	//Build the three types of spring connections between particles
 	void Strand::buildSprings(float k, float length, float damping)
 	{
 		edge = new Spring*[numEdges];
@@ -90,30 +99,83 @@ namespace pilar
 	
 	void Strand::updateSprings(float dt)
 	{
-		//TODO
-		dt++;
+		for(int i = 0; i < numEdges; i++)
+		{
+			edge[i]->update(dt);
+		}
+		
+		for(int i = 0; i < numBend; i++)
+		{
+			bend[i]->update(dt);
+		}
+		
+		for(int i = 0; i < numTwist; i++)
+		{
+			twist[i]->update(dt);
+		}
 	}
 	
 	void Strand::updateParticles(float dt)
 	{
-		//TODO
-		dt++;
+		//TODO update velocity
+		//TODO update position
+		//TODO update velocity
 	}
 	
 	void Strand::update(float dt)
 	{
-		//TODO
-		dt++;
+		resetParticles();
+		updateSprings(dt);
+		
+		//TODO apply gravity force
+		
+		updateParticles(dt);
+		
 	}
 	
+	//Clean up
 	void Strand::release()
 	{
-		//TODO
+		//Edge springs
+		for(int i = 0; i < numEdges; i++)
+		{
+			delete edge[i];
+			edge[i] = NULL;
+		}
+		
+		delete [] edge;
+		
+		//Bending springs
+		for(int i = 0; i < numBend; i++)
+		{
+			delete bend[i];
+			bend[i] = NULL;
+		}
+		
+		delete [] bend;
+		
+		//Torsion springs
+		for(int i = 0; i < numTwist; i++)
+		{
+			delete twist[i];
+			twist[i] = NULL;
+		}
+		
+		delete [] twist;
+		
+		//Particles
+		for(int i = 0; i < numParticles; i++)
+		{
+			delete particle[i];
+			particle[i] = NULL;
+		}
+		
+		delete [] particle;
 	}
 	
 	void Strand::applyForce(Vector3f force)
 	{
-		//TODO
+		//TODO apply external forces like gravity here
 		force = Vector3f();
 	}
 	
@@ -125,19 +187,35 @@ namespace pilar
 
 /////////////////////////// Hair Class /////////////////////////////////////////
 	
-	Hair::Hair(int numParticles, float mass, float k, float length, std::vector<Vector3f> &roots)
+	Hair::Hair(int numStrands, float mass, float k, float length, std::vector<Vector3f> &roots)
 	{
-		//TODO
+		strand = new Strand*[numStrands];
+	
+		for(int i = 0; i < numStrands; i++)
+		{
+			strand[i] = new Strand(numStrands, mass, k, length, roots[i]);
+		}
 	}
 	
 	void Hair::update(float dt)
 	{
-		//TODO
+		for(int i = 0; i < numStrands; i++)
+		{
+			strand[i]->update(dt);
+		}
 	}
 	
+	//Clean up
 	void Hair::release()
 	{
-		//TODO
+		for(int i = 0; i < numStrands; i++)
+		{
+			strand[i]->release();
+			delete strand[i];
+			strand[i] = NULL;
+		}
+		
+		delete [] strand;
 	}
 }
 
