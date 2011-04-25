@@ -26,6 +26,7 @@ namespace pilar
 		Vector3f& operator*= (float value);
 		Vector3f& operator/= (float value);
 		Vector3f operator- ();
+		//TODO add dot product operator
 		
 		float length();
 		void unitize();

@@ -9,13 +9,13 @@ namespace pilar
 {
 	class Particle
 	{
-	private:
+	public:
 		float mass;
 		Vector3f position;
 		Vector3f velocity;
 		Vector3f force;
+		Vector3f vn;
 		
-	public:
 		Particle(float mass);
 		
 		void clearForces();

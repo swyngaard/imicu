@@ -42,7 +42,17 @@ namespace pilar
 	
 	void Spring::update(float dt)
 	{
-		dt++; //TODO
+		Vector3f force;
+		
+		Vector3f xn = particle[0]->position - particle[1]->position;
+		Vector3f vn = particle[0]->velocity - particle[1]->velocity;
+		Vector3f dn = xn.unit();
+		
+		force += dn * ((k / length) * (xn.x * dn.x + xn.y * dn.y + xn.z * dn.z - length));
+		force += dn * ((dt * k / length) * (vn.x * dn.x + vn.y * dn.y + vn.z * dn.z - length));
+		
+		particle[0]->applyForce(force);
+		particle[1]->applyForce(-force);
 	}
 	
 ////////////////////////////// Strand Class ////////////////////////////////////
