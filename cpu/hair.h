@@ -11,15 +11,22 @@ namespace pilar
 	{
 	public:
 		float mass;
+		
+		Vector3f xn;
+		Vector3f xh;
+		Vector3f xn1;
 		Vector3f position;
+		
+		Vector3f vn
 		Vector3f velocity;
+		
 		Vector3f force;
-		Vector3f vn;
 		
 		Particle(float mass);
 		
 		void clearForces();
-		void applyForce(Vector3f force);	
+		void applyForce(Vector3f force);
+		void updateVelocity(float dt);
 		void update(float dt);
 	};
 	
@@ -33,7 +40,7 @@ namespace pilar
 	
 	class Spring
 	{
-	private:
+	protected:
 		Particle** particle;
 		float k;
 		float length;
@@ -47,7 +54,7 @@ namespace pilar
 	
 	class Strand
 	{
-	private:
+	protected:
 		int numParticles;
 		int numEdges;
 		int numBend;
@@ -77,7 +84,7 @@ namespace pilar
 	
 	class Hair
 	{
-	private:
+	protected:
 		Strand** strand;
 		int numStrands;
 		Vector3f gravity;

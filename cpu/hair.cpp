@@ -135,7 +135,20 @@ namespace pilar
 	void Strand::update(float dt)
 	{
 		resetParticles();
+		
+		//Solve half velocity for each particle and store it
+		//Calculate and apply spring forces between appropriate particles
 		updateSprings(dt);
+		
+		
+		//Calculate and store the new half velocity
+		//Calculate and store the new position
+		//Calculate and store the new half position
+		
+		//Calculate and store the new half velocity
+		//Calculate and store the new velocity
+		
+		
 		
 		//TODO apply gravity force
 		
