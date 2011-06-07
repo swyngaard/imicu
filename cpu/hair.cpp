@@ -55,6 +55,73 @@ namespace pilar
 		particle[1]->applyForce(-force);
 	}
 	
+	void Spring::conjugate(float* A, float* b, float* x)
+	{
+		float r[6];
+		float p[6];
+		
+		//r = b - A * x
+		r[0] = b[0] - (A[0]*x[0] +A[1]*x[1] +A[2]*x[2] +A[3]*x[3] +A[4]*x[4] +A[5]*x[5]);
+		r[1] = b[1] - (A[6]*x[0] +A[7]*x[1] +A[8]*x[2] +A[9]*x[3] +A[10]*x[4]+A[11]*x[5]);
+		r[2] = b[2] - (A[12]*x[0]+A[13]*x[1]+A[14]*x[2]+A[15]*x[3]+A[16]*x[4]+A[17]*x[5]);
+		r[3] = b[3] - (A[18]*x[0]+A[19]*x[1]+A[20]*x[2]+A[21]*x[3]+A[22]*x[4]+A[23]*x[5]);
+		r[4] = b[4] - (A[24]*x[0]+A[25]*x[1]+A[26]*x[2]+A[27]*x[3]+A[28]*x[4]+A[29]*x[5]);
+		r[5] = b[5] - (A[30]*x[0]+A[31]*x[1]+A[32]*x[2]+A[33]*x[3]+A[34]*x[4]+A[35]*x[5]);
+		
+		//p = r
+		p[0] = r[0];
+		p[1] = r[1];
+		p[2] = r[2];
+		p[3] = r[3];
+		p[4] = r[4];
+		p[5] = r[5];
+		
+		//rsold = r dot r
+		float rsold = r[0]*r[0]+r[1]*r[1]+r[2]*r[2]+r[3]*r[3]+r[4]*r[4]+r[5]*r[5];
+		float rsnew = rsold;
+		
+		float Ap[6];
+		
+		for(int i = 0; i < 6; i++)
+		{
+			Ap[0] = A[0]*p[0] +A[1]*p[1] +A[2]*p[2] +A[3]*p[3] +A[4]*p[4] +A[5]*p[5];
+			Ap[1] = A[6]*p[0] +A[7]*p[1] +A[8]*p[2] +A[9]*p[3] +A[10]*p[4]+A[11]*p[5];
+			Ap[2] = A[12]*p[0]+A[13]*p[1]+A[14]*p[2]+A[15]*p[3]+A[16]*p[4]+A[17]*p[5];
+			Ap[3] = A[18]*p[0]+A[19]*p[1]+A[20]*p[2]+A[21]*p[3]+A[22]*p[4]+A[23]*p[5];
+			Ap[4] = A[24]*p[0]+A[25]*p[1]+A[26]*p[2]+A[27]*p[3]+A[28]*p[4]+A[29]*p[5];
+			Ap[5] = A[30]*p[0]+A[31]*p[1]+A[32]*p[2]+A[33]*p[3]+A[34]*p[4]+A[35]*p[5];
+			
+			float alpha = rsold / (p[0]*Ap[0]+p[1]*Ap[1]+p[2]*Ap[2]+p[3]*Ap[3]+p[4]*Ap[4]+p[5]*Ap[5]);
+			
+			x[0] += alpha * p[0];
+			x[1] += alpha * p[1];
+			x[2] += alpha * p[2];
+			x[3] += alpha * p[3];
+			x[4] += alpha * p[4];
+			x[5] += alpha * p[5];
+			
+			r[0] -= alpha * Ap[0];
+			r[1] -= alpha * Ap[1];
+			r[2] -= alpha * Ap[2];
+			r[3] -= alpha * Ap[3];
+			r[4] -= alpha * Ap[4];
+			r[5] -= alpha * Ap[5];
+			
+			rsnew = r[0]*r[0]+r[1]*r[1]+r[2]*r[2]+r[3]*r[3]+r[4]*r[4]+r[5]*r[5];
+			
+			if(rsnew < 1e-20f) break;
+			
+			p[0] = r[0] + rsnew / rsold * p[0];
+			p[1] = r[1] + rsnew / rsold * p[1];
+			p[2] = r[2] + rsnew / rsold * p[2];
+			p[3] = r[3] + rsnew / rsold * p[3];
+			p[4] = r[4] + rsnew / rsold * p[4];
+			p[5] = r[5] + rsnew / rsold * p[5];
+			
+			rsold = rsnew;
+		}
+	}
+	
 ////////////////////////////// Strand Class ////////////////////////////////////
 
 	Strand::Strand(int numParticles, float mass, float k, float length, Vector3f root=Vector3f())

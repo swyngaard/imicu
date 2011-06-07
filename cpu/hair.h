@@ -17,7 +17,7 @@ namespace pilar
 		Vector3f xn1;
 		Vector3f position;
 		
-		Vector3f vn
+		Vector3f vn;
 		Vector3f velocity;
 		
 		Vector3f force;
@@ -46,6 +46,8 @@ namespace pilar
 		float length;
 		float damping;
 		SpringType type;
+		
+		void conjugate(float* A, float* b, float* x);
 		
 	public:
 		Spring(Particle* particle1, Particle* particle2, float k, float length, float damping, SpringType type);
