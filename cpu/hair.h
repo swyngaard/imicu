@@ -12,12 +12,10 @@ namespace pilar
 	public:
 		float mass;
 		
-		Vector3f xn;
-		Vector3f xh;
-		Vector3f xn1;
+		Vector3f posh;
 		Vector3f position;
 		
-		Vector3f vn;
+		Vector3f velh;
 		Vector3f velocity;
 		
 		Vector3f force;
@@ -27,7 +25,9 @@ namespace pilar
 		void clearForces();
 		void applyForce(Vector3f force);
 		void updateVelocity(float dt);
+		void updatePosition(float dt);
 		void update(float dt);
+		void halfUpdate(float dt);
 	};
 	
 	enum SpringType
@@ -51,7 +51,8 @@ namespace pilar
 		
 	public:
 		Spring(Particle* particle1, Particle* particle2, float k, float length, float damping, SpringType type);
-		void update(float dt);
+		void update1(float dt);
+		void update2(float dt);
 	};
 	
 	class Strand
@@ -62,7 +63,6 @@ namespace pilar
 		int numBend;
 		int numTwist;
 		
-		
 		Vector3f root;
 		
 		Particle** particle;
@@ -70,11 +70,12 @@ namespace pilar
 		Spring** bend;
 		Spring** twist;
 		
-		
 		void buildSprings(float k, float length, float damping);
 		void resetParticles();
-		void updateSprings(float dt);
-		void updateParticles(float dt);
+		void updateSprings1(float dt);
+		void updateSprings2(float dt);
+		void updateParticles1(float dt);
+		void updateParticles2(float dt);
 		
 	public:
 		Strand(int numParticles, float mass, float k, float length, Vector3f root);
