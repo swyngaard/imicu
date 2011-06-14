@@ -27,7 +27,6 @@ namespace pilar
 		void updateVelocity(float dt);
 		void updatePosition(float dt);
 		void update(float dt);
-		void halfUpdate(float dt);
 	};
 	
 	enum SpringType
@@ -53,31 +52,32 @@ namespace pilar
 		Spring(Particle* particle1, Particle* particle2, float k, float length, float damping, SpringType type);
 		void update1(float dt);
 		void update2(float dt);
+		void release();
 	};
 	
 	class Strand
 	{
 	protected:
-		int numParticles;
 		int numEdges;
 		int numBend;
 		int numTwist;
-		
 		Vector3f root;
 		
-		Particle** particle;
 		Spring** edge;
 		Spring** bend;
 		Spring** twist;
 		
 		void buildSprings(float k, float length, float damping);
-		void resetParticles();
+		void clearForces();
 		void updateSprings1(float dt);
 		void updateSprings2(float dt);
 		void updateParticles1(float dt);
 		void updateParticles2(float dt);
 		
 	public:
+		int numParticles;
+		Particle** particle;
+		
 		Strand(int numParticles, float mass, float k, float length, Vector3f root);
 		void update(float dt);
 		void release();
@@ -88,11 +88,12 @@ namespace pilar
 	class Hair
 	{
 	protected:
-		Strand** strand;
-		int numStrands;
 		Vector3f gravity;
 		
 	public:
+		int numStrands;
+		Strand** strand;
+		
 		Hair(int numStrands, float mass, float k, float length, std::vector<Vector3f> &roots);
 		void update(float dt);
 		void release();

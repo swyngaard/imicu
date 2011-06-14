@@ -13,5 +13,5 @@ $(EXE): $(OBJ)
 .PHONY: clean
 	
 clean:
-	rm -f *.o core $(EXE)
+	rm -rf *.o core $(EXE) output
 

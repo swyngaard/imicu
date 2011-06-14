@@ -1,4 +1,3 @@
-
 #include "hair.h"
 
 namespace pilar
@@ -30,8 +29,6 @@ namespace pilar
 	void Particle::updateVelocity(float dt)
 	{
 		velh = velocity + force * (dt / 2.0f);
-		
-		//TODO Apply gravity
 	}
 	
 	void Particle::updatePosition(float dt)
@@ -48,6 +45,8 @@ namespace pilar
 		this->k = k;
 		this->length = length;
 		this->damping = damping;
+		
+		particle = new Particle*[2];
 		
 		this->particle[0] = particle1;
 		this->particle[1] = particle2;
@@ -224,6 +223,14 @@ namespace pilar
 		}
 	}
 	
+	void Spring::release()
+	{
+		particle[0] = NULL;
+		particle[1] = NULL;
+		
+		delete [] particle;
+	}
+	
 ////////////////////////////// Strand Class ////////////////////////////////////
 	
 	Strand::Strand(int numParticles, float mass, float k, float length, Vector3f root=Vector3f())
@@ -234,25 +241,34 @@ namespace pilar
 		
 		this->numParticles = numParticles;
 		
+		particle = new Particle*[numParticles];
+		
 		//Initialise particles
 		for(int i = 0; i < numParticles; i++)
 		{
 			particle[i] = new Particle(mass);
 			
 			//TODO set the intial particle positions
+			particle[i]->position = (root + Vector3f(length*i, 0.0f, 0.0f));
 		}
+		
+//		std::cout << "particles init" << std::endl;
+		
+		buildSprings(k, length, 0.05f);
 	}
 	
 	//Build the three types of spring connections between particles
 	void Strand::buildSprings(float k, float length, float damping)
 	{
 		edge = new Spring*[numEdges];
+//		std::cout << numEdges << std::endl;
 		
 		for(int i = 0; i < numEdges; i++)
 		{
+//			std::cout << i << std::endl;
 			edge[i] = new Spring(particle[i], particle[i+1], k, length, damping, EDGE);
 		}
-		
+//		std::cout << "edge" << std::endl;
 		bend = new Spring*[numBend];
 		
 		for(int i = 0; i < numBend; i++)
@@ -268,7 +284,7 @@ namespace pilar
 		}
 	}
 	
-	void Strand::resetParticles()
+	void Strand::clearForces()
 	{
 		for(int i = 0; i < numParticles; i++)
 		{
@@ -314,7 +330,7 @@ namespace pilar
 	
 	void Strand::updateParticles1(float dt)
 	{
-		for(int i = 0; i < numParticles; i++)
+		for(int i = 1; i < numParticles; i++)
 		{
 			particle[i]->updateVelocity(dt);
 			particle[i]->updatePosition(dt);
@@ -323,26 +339,43 @@ namespace pilar
 	
 	void Strand::updateParticles2(float dt)
 	{
-		for(int i = 0; i < numParticles; i++)
+		for(int i = 1; i < numParticles; i++)
 		{
 			particle[i]->updateVelocity(dt);
 			particle[i]->update(dt);
 		}
 	}
 	
+	void Strand::applyForce(Vector3f force)
+	{
+		//Apply external forces like gravity here
+		for(int i = 0; i < numParticles; i++)
+		{
+			particle[i]->force += force;
+		}
+	}
+	
+	void Strand::applyStrainLimiting(float dt)
+	{
+		//TODO
+		dt++;
+	}
+	
 	void Strand::update(float dt)
 	{
-		resetParticles();
+		clearForces();
 		
-		//Solve half velocity for each particle and store it
-		//Calculate and apply spring forces between appropriate particles
 		updateSprings1(dt);
+		
+		//Apply gravity
+		applyForce(Vector3f(0.0f, 0.0f, 9.8f));
 		
 		updateParticles1(dt);
 		
 		updateSprings2(dt);
 		
-		//TODO apply gravity force
+		//Apply gravity
+		applyForce(Vector3f(0.0f, 0.0f, 9.8f));
 		
 		updateParticles2(dt);
 	}
@@ -353,6 +386,7 @@ namespace pilar
 		//Edge springs
 		for(int i = 0; i < numEdges; i++)
 		{
+			edge[i]->release();
 			delete edge[i];
 			edge[i] = NULL;
 		}
@@ -362,6 +396,7 @@ namespace pilar
 		//Bending springs
 		for(int i = 0; i < numBend; i++)
 		{
+			bend[i]->release();
 			delete bend[i];
 			bend[i] = NULL;
 		}
@@ -371,6 +406,7 @@ namespace pilar
 		//Torsion springs
 		for(int i = 0; i < numTwist; i++)
 		{
+			twist[i]->release();
 			delete twist[i];
 			twist[i] = NULL;
 		}
@@ -387,27 +423,18 @@ namespace pilar
 		delete [] particle;
 	}
 	
-	void Strand::applyForce(Vector3f force)
-	{
-		//TODO apply external forces like gravity here
-		force = Vector3f();
-	}
-	
-	void Strand::applyStrainLimiting(float dt)
-	{
-		//TODO
-		dt++;
-	}
-
 /////////////////////////// Hair Class /////////////////////////////////////////
 	
 	Hair::Hair(int numStrands, float mass, float k, float length, std::vector<Vector3f> &roots)
 	{
+		this->numStrands = numStrands;
+		
 		strand = new Strand*[numStrands];
-	
+		
 		for(int i = 0; i < numStrands; i++)
 		{
-			strand[i] = new Strand(numStrands, mass, k, length, roots[i]);
+			strand[i] = new Strand(50, mass, k, length, roots[i]);
+//			std::cout << i << std::endl;
 		}
 	}
 	
