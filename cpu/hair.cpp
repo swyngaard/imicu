@@ -368,14 +368,14 @@ namespace pilar
 		updateSprings1(dt);
 		
 		//Apply gravity
-		applyForce(Vector3f(0.0f, 0.0f, 9.8f));
+		applyForce(Vector3f(0.0f, -9.8f, 0.0f));
 		
 		updateParticles1(dt);
 		
 		updateSprings2(dt);
 		
 		//Apply gravity
-		applyForce(Vector3f(0.0f, 0.0f, 9.8f));
+		applyForce(Vector3f(0.0f, -9.8f, 0.0f));
 		
 		updateParticles2(dt);
 	}
