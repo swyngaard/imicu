@@ -81,7 +81,7 @@ int main()
 	
 	roots.push_back(root);
 	std::cout << "Strands: " << roots.size() << std::endl;
-	hair = new pilar::Hair(roots.size(), 0.0001f, 10000.0f, 0.05, roots);
+	hair = new pilar::Hair(roots.size(), 0.0001f, 10000.0f, 0.05f, roots);
 	
 	while(elapsed < 10.0f)
 	{
