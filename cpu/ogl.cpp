@@ -1,12 +1,24 @@
-#include <GL/glut.h>
+//#include <GL/glut.h>
+#include <GL/freeglut.h>
 #include "hair.h"
+#include <iostream>
+
+#ifndef GLUT_KEY_ESCAPE
+#define GLUT_KEY_ESCAPE 27
+#endif
 
 //float angle = 0.0f;
 pilar::Hair* hair = NULL;
+int prevTime;
 
 void animate(int milli);
 void reshape(int w, int h);
 void render(void);
+void keyboard(unsigned char key, int x, int y);
+
+void init();
+void update(float dt);
+void cleanup();
 
 int main(int argc, char **argv) {
 
@@ -16,25 +28,50 @@ int main(int argc, char **argv) {
 	glutInitWindowPosition(100,100);
 	glutInitWindowSize(640,480);
 	glutCreateWindow("Simulation");
-
+	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
+	
 	// register callbacks
 	glutDisplayFunc(render);
 	glutReshapeFunc(reshape);
+	glutKeyboardFunc(keyboard);
 //	glutIdleFunc(render);
-	glutTimerFunc(50, animate, 50);
+	glutTimerFunc(20, animate, 20);
+	
+	glPointSize(10.0f);
+	
+	prevTime = glutGet(GLUT_ELAPSED_TIME);
 	
 	//Initialise hair simulation
+	init();
+	
+	// enter GLUT event processing cycle
+	glutMainLoop();
+	
+	//Release hair memory
+	cleanup();	
+	
+	std::cout << "Exiting cleanly..." << std::endl;
+	
+	return 0;
+}
+
+void init()
+{
 	pilar::Vector3f root;
 	std::vector<pilar::Vector3f> roots;
 	
 	roots.push_back(root);
 	
-	hair = new pilar::Hair(roots.size, 0.0001f, 10000.0f, 0.05f, roots);
+	hair = new pilar::Hair(roots.size(), 0.00005f, 5.0f, 0.005f, roots);
+}
+
+void cleanup()
+{
+	hair->release();
 	
-	//TODO release hair memory
+	delete hair;
 	
-	// enter GLUT event processing cycle
-	glutMainLoop();
+	hair = NULL;
 }
 
 void reshape(int w, int h)
@@ -72,7 +109,7 @@ void render(void) {
 	// Reset transformations
 	glLoadIdentity();
 	// Set the camera
-	gluLookAt(	0.0f, 0.0f, -35.0f,
+	gluLookAt(	0.0f, 0.0f, -55.0f,
 				0.0f, 0.0f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 
@@ -83,8 +120,22 @@ void render(void) {
 //		glVertex3f( 2.0f, 0.0f, 0.0);
 //		glVertex3f( 0.0f, 2.0f, 0.0);
 //	glEnd();
+	
 	//TODO Draw hair
 	
+	glBegin(GL_POINTS);
+	
+	for(int i = 0; i < hair->numStrands; i++)
+	{
+		for(int j = 0; j < hair->strand[i]->numParticles; j++)
+		{
+			pilar::Particle* particle = hair->strand[i]->particle[j];
+			
+			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
+		}
+	}
+	
+	glEnd();
 	
 	
 	glutSwapBuffers();
@@ -97,7 +148,22 @@ void animate(int milli)
 	//TODO update hair
 
 //	angle+=2.0f;
+	int currentTime = glutGet(GLUT_ELAPSED_TIME);
+	
+	float dt =  (currentTime - prevTime)/1000.0f;
+	
+	hair->update(dt);
 		
 	glutPostRedisplay();
+	
+	prevTime = currentTime;
+}
+
+void keyboard(unsigned char key, int x, int y)
+{
+	if(key == GLUT_KEY_ESCAPE)
+	{
+		glutLeaveMainLoop();
+	}
 }
 
