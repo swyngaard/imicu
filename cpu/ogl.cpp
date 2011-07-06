@@ -62,7 +62,7 @@ void init()
 	
 	roots.push_back(root);
 	
-	hair = new pilar::Hair(roots.size(), 0.00005f, 5.0f, 0.005f, roots);
+	hair = new pilar::Hair(roots.size(), 0.000000012f, 0.005f, 0.005f, roots);
 }
 
 void cleanup()

@@ -261,14 +261,12 @@ namespace pilar
 	void Strand::buildSprings(float k, float length, float damping)
 	{
 		edge = new Spring*[numEdges];
-//		std::cout << numEdges << std::endl;
 		
 		for(int i = 0; i < numEdges; i++)
 		{
-//			std::cout << i << std::endl;
 			edge[i] = new Spring(particle[i], particle[i+1], k, length, damping, EDGE);
 		}
-//		std::cout << "edge" << std::endl;
+		
 		bend = new Spring*[numBend];
 		
 		for(int i = 0; i < numBend; i++)
