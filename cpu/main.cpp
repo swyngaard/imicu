@@ -6,9 +6,9 @@
 #include <iomanip>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include "hair.h"
 
-//TODO declare constants to use
+#include "hair.h"
+#include "constants.h"
 
 pilar::Hair* hair = NULL;
 
@@ -81,7 +81,8 @@ int main()
 	
 	roots.push_back(root);
 	std::cout << "Strands: " << roots.size() << std::endl;
-	hair = new pilar::Hair(roots.size(), 0.0001f, 10000.0f, 0.05f, roots);
+	
+	hair = new pilar::Hair(roots.size(), NUMPARTICLES, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, LENGTH, roots);
 	
 	while(elapsed < 10.0f)
 	{

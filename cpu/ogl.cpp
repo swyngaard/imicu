@@ -1,7 +1,9 @@
 //#include <GL/glut.h>
 #include <GL/freeglut.h>
-#include "hair.h"
 #include <iostream>
+
+#include "hair.h"
+#include "constants.h"
 
 #ifndef GLUT_KEY_ESCAPE
 #define GLUT_KEY_ESCAPE 27
@@ -62,7 +64,7 @@ void init()
 	
 	roots.push_back(root);
 	
-	hair = new pilar::Hair(roots.size(), 0.000000012f, 0.005f, 0.005f, roots);
+	hair = new pilar::Hair(roots.size(), NUMPARTICLES, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, LENGTH, roots);
 }
 
 void cleanup()
@@ -145,9 +147,6 @@ void animate(int milli)
 {
 	glutTimerFunc(milli, animate, milli);
 	
-	//TODO update hair
-
-//	angle+=2.0f;
 	int currentTime = glutGet(GLUT_ELAPSED_TIME);
 	
 	float dt =  (currentTime - prevTime)/1000.0f;

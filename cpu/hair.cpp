@@ -233,7 +233,7 @@ namespace pilar
 	
 ////////////////////////////// Strand Class ////////////////////////////////////
 	
-	Strand::Strand(int numParticles, float mass, float k, float length, Vector3f root=Vector3f())
+	Strand::Strand(int numParticles, float mass, float edge, float bend, float twist, float extra, float length, Vector3f root=Vector3f())
 	{
 		numEdges = numParticles - 1;
 		numBend  = numParticles - 2;
@@ -254,32 +254,34 @@ namespace pilar
 		
 //		std::cout << "particles init" << std::endl;
 		
-		buildSprings(k, length, 0.05f);
+		buildSprings(edge, bend, twist, extra, length, 0.05f);
 	}
 	
 	//Build the three types of spring connections between particles
-	void Strand::buildSprings(float k, float length, float damping)
+	void Strand::buildSprings(float k_edge, float k_bend, float k_twist, float k_extra, float length, float damping)
 	{
 		edge = new Spring*[numEdges];
 		
 		for(int i = 0; i < numEdges; i++)
 		{
-			edge[i] = new Spring(particle[i], particle[i+1], k, length, damping, EDGE);
+			edge[i] = new Spring(particle[i], particle[i+1], k_edge, length, damping, EDGE);
 		}
 		
 		bend = new Spring*[numBend];
 		
 		for(int i = 0; i < numBend; i++)
 		{
-			bend[i] = new Spring(particle[i], particle[i+2], k, length, damping, BEND);
+			bend[i] = new Spring(particle[i], particle[i+2], k_bend, length, damping, BEND);
 		}
 		
 		twist = new Spring*[numTwist];
 		
 		for(int i = 0; i < numTwist; i++)
 		{
-			twist[i] = new Spring(particle[i], particle[i+3], k, length, damping, TWIST);
+			twist[i] = new Spring(particle[i], particle[i+3], k_twist, length, damping, TWIST);
 		}
+		
+		//TODO add extra springs
 	}
 	
 	void Strand::clearForces()
@@ -423,7 +425,7 @@ namespace pilar
 	
 /////////////////////////// Hair Class /////////////////////////////////////////
 	
-	Hair::Hair(int numStrands, float mass, float k, float length, std::vector<Vector3f> &roots)
+	Hair::Hair(int numStrands, int numParticles, float mass, float k_edge, float k_bend, float k_twist, float k_extra, float length, std::vector<Vector3f> &roots)
 	{
 		this->numStrands = numStrands;
 		
@@ -431,8 +433,7 @@ namespace pilar
 		
 		for(int i = 0; i < numStrands; i++)
 		{
-			strand[i] = new Strand(50, mass, k, length, roots[i]);
-//			std::cout << i << std::endl;
+			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, length, roots[i]);
 		}
 	}
 	
