@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100,100);
-	glutInitWindowSize(640,480);
+	glutInitWindowSize(800,600);
 	glutCreateWindow("Simulation");
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 	

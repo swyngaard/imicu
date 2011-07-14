@@ -269,6 +269,7 @@ namespace pilar
 		
 		bend = new Spring*[numBend];
 		
+		/*
 		for(int i = 0; i < numBend; i++)
 		{
 			bend[i] = new Spring(particle[i], particle[i+2], k_bend, length, damping, BEND);
@@ -280,6 +281,8 @@ namespace pilar
 		{
 			twist[i] = new Spring(particle[i], particle[i+3], k_twist, length, damping, TWIST);
 		}
+		
+		*/
 		
 		//TODO add extra springs
 	}
@@ -299,6 +302,7 @@ namespace pilar
 			edge[i]->update1(dt);
 		}
 		
+		/*
 		for(int i = 0; i < numBend; i++)
 		{
 			bend[i]->update1(dt);
@@ -308,6 +312,7 @@ namespace pilar
 		{
 			twist[i]->update1(dt);
 		}
+		*/
 	}
 	
 	void Strand::updateSprings2(float dt)
@@ -317,6 +322,7 @@ namespace pilar
 			edge[i]->update2(dt);
 		}
 		
+		/*
 		for(int i = 0; i < numBend; i++)
 		{
 			bend[i]->update2(dt);
@@ -326,6 +332,7 @@ namespace pilar
 		{
 			twist[i]->update2(dt);
 		}
+		*/
 	}
 	
 	void Strand::updateParticles1(float dt)
