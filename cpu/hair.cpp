@@ -400,6 +400,7 @@ namespace pilar
 		
 		delete [] edge;
 		
+		/*
 		//Bending springs
 		for(int i = 0; i < numBend; i++)
 		{
@@ -419,7 +420,7 @@ namespace pilar
 		}
 		
 		delete [] twist;
-		
+		*/
 		//Particles
 		for(int i = 0; i < numParticles; i++)
 		{

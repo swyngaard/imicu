@@ -125,7 +125,7 @@ void render(void) {
 	
 	//TODO Draw hair
 	
-	glBegin(GL_POINTS);
+	glBegin(GL_LINES);
 	
 	for(int i = 0; i < hair->numStrands; i++)
 	{
