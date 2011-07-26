@@ -9,7 +9,7 @@
 #define K_BEND				0.004905f
 #define K_TWIST				0.004905f
 #define K_EXTRA				0.004905f
-#define LENGTH				0.005f
+#define LENGTH				0.000000000005f //5 millmetres separation between particles
 #define DAMPING				0.05f
 
 #endif

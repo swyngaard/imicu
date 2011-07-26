@@ -111,7 +111,7 @@ void render(void) {
 	// Reset transformations
 	glLoadIdentity();
 	// Set the camera
-	gluLookAt(	0.0f, 0.0f, -55.0f,
+	gluLookAt(	0.0f, 0.0f, -35.0f,
 				0.0f, 0.0f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 
@@ -129,14 +129,21 @@ void render(void) {
 	
 	for(int i = 0; i < hair->numStrands; i++)
 	{
-		for(int j = 0; j < hair->strand[i]->numParticles; j++)
+		for(int j = 1; j < hair->strand[i]->numParticles; j++)
 		{
 			pilar::Particle* particle = hair->strand[i]->particle[j];
+			pilar::Particle* p0 = hair->strand[i]->particle[j-1];
 			
+			glVertex3f(p0->position.x, p0->position.y, p0->position.z);
 			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
 		}
 	}
 	
+	glEnd();
+	
+	glBegin(GL_POINTS);
+		glVertex3f(0.0f, 0.0f, 0.0f);
+		glVertex3f(0.0f, -5.0f, 0.0f);
 	glEnd();
 	
 	
