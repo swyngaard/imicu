@@ -111,8 +111,8 @@ void render(void) {
 	// Reset transformations
 	glLoadIdentity();
 	// Set the camera
-	gluLookAt(	0.0f, 0.0f, -35.0f,
-				0.0f, 0.0f,  0.0f,
+	gluLookAt(	0.0f, -12.5f, -35.0f,
+				0.0f, -12.5f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 
 //	glRotatef(angle, 0.0f, 1.0f, 0.0f);

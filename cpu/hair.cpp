@@ -71,6 +71,7 @@ namespace pilar
 		float h = dt * dt * k / (4.0f * particle[0]->mass * length);
 		float g = dt * k / (2.0f * particle[0]->mass * length);
 		float f = k / length * particle[0]->mass;
+		float damp = dt * k / length + damping;
 		
 		//Build Matrix A
 		A[0] = h*d.x*d.x+1; A[1] = h*d.x*d.y;   A[2] = h*d.x*d.z;   A[3] =-h*d.x*d.x;   A[4] =-h*d.x*d.y;   A[5] =-h*d.x*d.z;
@@ -96,9 +97,14 @@ namespace pilar
 		x[4] = f * d.y * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
 		x[5] = f * d.z * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
 		
+		conjugate(A, b, x);
+		
 		Vector3f v1(x[3]-x[0],x[4]-x[1],x[5]-x[2]);
+		Vector3f friction(damp, damp, damp);
 		
 		force += d * (f * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt*(v1.x*d.x + v1.y*d.y + v1.z*d.z)));
+		
+//		force += friction;
 		
 		particle[0]->applyForce(force);
 		particle[1]->applyForce(-force);
@@ -123,6 +129,7 @@ namespace pilar
 		float h = dt * dt * k / (4.0f * particle[0]->mass * length);
 		float g = dt * k / (2.0f * particle[0]->mass * length);
 		float f = k / length * particle[0]->mass;
+		float damp = dt * k / length + damping;
 		
 		//Build Matrix A
 		A[0] = h*d.x*d.x+1; A[1] = h*d.x*d.y;   A[2] = h*d.x*d.z;   A[3] =-h*d.x*d.x;   A[4] =-h*d.x*d.y;   A[5] =-h*d.x*d.z;
@@ -148,15 +155,20 @@ namespace pilar
 		x[4] = f * d.y * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
 		x[5] = f * d.z * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
 		
+		conjugate(A, b, x);
+		
 		Vector3f v1(x[3]-x[0],x[4]-x[1],x[5]-x[2]);
+		Vector3f friction(damp, damp, damp);
 		
 		force += d * (f * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt*(v1.x*d.x + v1.y*d.y + v1.z*d.z)));
+		
+//		force += friction;
 		
 		particle[0]->applyForce(force);
 		particle[1]->applyForce(-force);
 	}
 	
-	void Spring::conjugate(float* A, float* b, float* x)
+	void Spring::conjugate(float *A, float *b, float *x)
 	{
 		float r[6];
 		float p[6];
@@ -269,7 +281,7 @@ namespace pilar
 		
 		bend = new Spring*[numBend];
 		
-		/*
+		
 		for(int i = 0; i < numBend; i++)
 		{
 			bend[i] = new Spring(particle[i], particle[i+2], k_bend, length, damping, BEND);
@@ -281,8 +293,6 @@ namespace pilar
 		{
 			twist[i] = new Spring(particle[i], particle[i+3], k_twist, length, damping, TWIST);
 		}
-		
-		*/
 		
 		//TODO add extra springs
 	}
@@ -302,7 +312,7 @@ namespace pilar
 			edge[i]->update1(dt);
 		}
 		
-		/*
+		
 		for(int i = 0; i < numBend; i++)
 		{
 			bend[i]->update1(dt);
@@ -312,7 +322,7 @@ namespace pilar
 		{
 			twist[i]->update1(dt);
 		}
-		*/
+		
 	}
 	
 	void Strand::updateSprings2(float dt)
@@ -322,7 +332,7 @@ namespace pilar
 			edge[i]->update2(dt);
 		}
 		
-		/*
+		
 		for(int i = 0; i < numBend; i++)
 		{
 			bend[i]->update2(dt);
@@ -332,7 +342,6 @@ namespace pilar
 		{
 			twist[i]->update2(dt);
 		}
-		*/
 	}
 	
 	void Strand::updateParticles1(float dt)
@@ -400,7 +409,7 @@ namespace pilar
 		
 		delete [] edge;
 		
-		/*
+		
 		//Bending springs
 		for(int i = 0; i < numBend; i++)
 		{
@@ -420,7 +429,7 @@ namespace pilar
 		}
 		
 		delete [] twist;
-		*/
+		
 		//Particles
 		for(int i = 0; i < numParticles; i++)
 		{
