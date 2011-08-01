@@ -73,6 +73,7 @@ int main()
 	
 	float elapsed = 0.0f;
 	float dt = 1.0f/50.0f; //50 Frames per second
+	float total = 1.0f * dt; //total time of the simulation
 	int fileCount = 0;
 	
 	pilar::Vector3f root;
@@ -84,11 +85,11 @@ int main()
 	
 	hair = new pilar::Hair(roots.size(), NUMPARTICLES, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, LENGTH, roots);
 	
-	while(elapsed < 10.0f)
+	while(elapsed < total)
 	{
 		hair->update(dt);
 		
-		writeToFile(fileCount);
+//		writeToFile(fileCount);
 		
 		elapsed += dt;
 		fileCount++;

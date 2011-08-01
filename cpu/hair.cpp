@@ -1,5 +1,7 @@
 #include "hair.h"
 
+#include <iostream>
+
 namespace pilar
 {
 
@@ -50,6 +52,10 @@ namespace pilar
 		
 		this->particle[0] = particle1;
 		this->particle[1] = particle2;
+		
+		A = new float[36];
+		b = new float[6];
+		x = new float[6];
 	}
 	
 	void Spring::update1(float dt)
@@ -64,9 +70,9 @@ namespace pilar
 		Vector3f d = xn.unit();
 		
 		//Calculate velocity
-		float A[36];
-		float x[6];
-		float b[6];
+//		float A[36];
+//		float x[6];
+//		float b[6];
 		
 		float h = dt * dt * k / (4.0f * particle[0]->mass * length);
 		float g = dt * k / (2.0f * particle[0]->mass * length);
@@ -122,9 +128,9 @@ namespace pilar
 		Vector3f d = xn.unit();
 		
 		//Calculate velocity
-		float A[36];
-		float x[6];
-		float b[6];
+//		float A[36];
+//		float x[6];
+//		float b[6];
 		
 		float h = dt * dt * k / (4.0f * particle[0]->mass * length);
 		float g = dt * k / (2.0f * particle[0]->mass * length);
@@ -155,6 +161,8 @@ namespace pilar
 		x[4] = f * d.y * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
 		x[5] = f * d.z * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
 		
+		
+		
 		conjugate(A, b, x);
 		
 		Vector3f v1(x[3]-x[0],x[4]-x[1],x[5]-x[2]);
@@ -168,8 +176,9 @@ namespace pilar
 		particle[1]->applyForce(-force);
 	}
 	
-	void Spring::conjugate(float *A, float *b, float *x)
+	void Spring::conjugate(const float *A, const float *b, float *x)
 	{
+		
 		float r[6];
 		float p[6];
 		
@@ -192,6 +201,8 @@ namespace pilar
 		//rsold = r dot r
 		float rsold = r[0]*r[0]+r[1]*r[1]+r[2]*r[2]+r[3]*r[3]+r[4]*r[4]+r[5]*r[5];
 		float rsnew = rsold;
+		
+//		std::cout << rsnew << std::endl;
 		
 		float Ap[6];
 		
@@ -237,6 +248,10 @@ namespace pilar
 	
 	void Spring::release()
 	{
+		delete [] A;
+		delete [] b;
+		delete [] x;
+	
 		particle[0] = NULL;
 		particle[1] = NULL;
 		
