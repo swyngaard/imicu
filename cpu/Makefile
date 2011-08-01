@@ -11,8 +11,6 @@ EXE = pilar
 
 $(EXE): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
-
-ogl:
 	$(CC) $(LIBS) -o gl $(OGL)
 
 .PHONY: clean
