@@ -111,8 +111,8 @@ void render(void) {
 	// Reset transformations
 	glLoadIdentity();
 	// Set the camera
-	gluLookAt(	0.0f, -12.5f, -35.0f,
-				0.0f, -12.5f,  0.0f,
+	gluLookAt(	0.0f, -3.5f, -10.0f,
+				0.0f, -3.5f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 
 //	glRotatef(angle, 0.0f, 1.0f, 0.0f);
@@ -134,13 +134,28 @@ void render(void) {
 			pilar::Particle* particle = hair->strand[i]->particle[j];
 			pilar::Particle* p0 = hair->strand[i]->particle[j-1];
 			
+			//Set the colour of the spring
+			
+			switch(j%4)
+			{
+				case 0: glColor3f(1.0f, 1.0f, 1.0f); break; //WHITE
+				case 1: glColor3f(1.0f, 0.0f, 0.0f); break; //RED
+				case 2: glColor3f(0.0f, 1.0f, 0.0f); break; //GREEN
+				case 3: glColor3f(0.0f, 0.0f, 1.0f); break; //BLUE
+			}
+			
+			
 			glVertex3f(p0->position.x, p0->position.y, p0->position.z);
 			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
+			
+//			if(j==1)
+//				std::cout << particle->position.x << " " << particle->position.y << " " << particle->position.z << std::endl;
 		}
 	}
 	
 	glEnd();
 	
+	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_POINTS);
 		glVertex3f(0.0f, 0.0f, 0.0f);
 		glVertex3f(0.0f, -5.0f, 0.0f);

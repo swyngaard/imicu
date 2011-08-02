@@ -161,8 +161,6 @@ namespace pilar
 		x[4] = f * d.y * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
 		x[5] = f * d.z * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
 		
-		
-		
 		conjugate(A, b, x);
 		
 		Vector3f v1(x[3]-x[0],x[4]-x[1],x[5]-x[2]);
@@ -399,14 +397,14 @@ namespace pilar
 		updateSprings1(dt);
 		
 		//Apply gravity
-		applyForce(Vector3f(0.0f, -9.8f, 0.0f));
+//		applyForce(Vector3f(0.0f, -0.8f, 0.0f));
 		
 		updateParticles1(dt);
 		
 		updateSprings2(dt);
 		
 		//Apply gravity
-		applyForce(Vector3f(0.0f, -9.8f, 0.0f));
+//		applyForce(Vector3f(0.0f, -0.8f, 0.0f));
 		
 		updateParticles2(dt);
 	}

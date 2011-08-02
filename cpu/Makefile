@@ -6,7 +6,7 @@ LIBS = -lglut -lGL -lGLU
 OBJ = main.o tools.o hair.o
 EXE = pilar
 
-%.o: %.cpp $(DEPS)
+%.o: %.cpp $(DEPS) $(OGL)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 $(EXE): $(OBJ)
