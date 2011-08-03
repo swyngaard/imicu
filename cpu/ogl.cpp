@@ -111,8 +111,8 @@ void render(void) {
 	// Reset transformations
 	glLoadIdentity();
 	// Set the camera
-	gluLookAt(	0.0f, -3.5f, -10.0f,
-				0.0f, -3.5f,  0.0f,
+	gluLookAt(	0.0f, -0.125f, -0.5f,
+				0.0f, -0.125f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 
 //	glRotatef(angle, 0.0f, 1.0f, 0.0f);
@@ -158,7 +158,7 @@ void render(void) {
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_POINTS);
 		glVertex3f(0.0f, 0.0f, 0.0f);
-		glVertex3f(0.0f, -5.0f, 0.0f);
+		glVertex3f(0.0f, -0.25f, 0.0f);
 	glEnd();
 	
 	

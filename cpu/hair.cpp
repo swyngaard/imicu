@@ -113,7 +113,7 @@ namespace pilar
 //		force += friction;
 		
 		particle[0]->applyForce(force);
-		particle[1]->applyForce(-force);
+		particle[1]->applyForce(force*-1.0f);
 	}
 	
 	void Spring::update2(float dt)
@@ -171,7 +171,7 @@ namespace pilar
 //		force += friction;
 		
 		particle[0]->applyForce(force);
-		particle[1]->applyForce(-force);
+		particle[1]->applyForce(force*-1.0f);
 	}
 	
 	void Spring::conjugate(const float *A, const float *b, float *x)
@@ -325,7 +325,6 @@ namespace pilar
 			edge[i]->update1(dt);
 		}
 		
-		
 		for(int i = 0; i < numBend; i++)
 		{
 			bend[i]->update1(dt);
@@ -335,7 +334,6 @@ namespace pilar
 		{
 			twist[i]->update1(dt);
 		}
-		
 	}
 	
 	void Strand::updateSprings2(float dt)
@@ -397,14 +395,14 @@ namespace pilar
 		updateSprings1(dt);
 		
 		//Apply gravity
-//		applyForce(Vector3f(0.0f, -0.8f, 0.0f));
+		applyForce(Vector3f(0.0f, -0.01f, 0.0f));
 		
 		updateParticles1(dt);
 		
 		updateSprings2(dt);
 		
 		//Apply gravity
-//		applyForce(Vector3f(0.0f, -0.8f, 0.0f));
+		applyForce(Vector3f(0.0f, -0.01f, 0.0f));
 		
 		updateParticles2(dt);
 	}
@@ -419,9 +417,7 @@ namespace pilar
 			delete edge[i];
 			edge[i] = NULL;
 		}
-		
 		delete [] edge;
-		
 		
 		//Bending springs
 		for(int i = 0; i < numBend; i++)
@@ -430,7 +426,6 @@ namespace pilar
 			delete bend[i];
 			bend[i] = NULL;
 		}
-		
 		delete [] bend;
 		
 		//Torsion springs
@@ -440,7 +435,6 @@ namespace pilar
 			delete twist[i];
 			twist[i] = NULL;
 		}
-		
 		delete [] twist;
 		
 		//Particles
@@ -449,7 +443,6 @@ namespace pilar
 			delete particle[i];
 			particle[i] = NULL;
 		}
-		
 		delete [] particle;
 	}
 	
