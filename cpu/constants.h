@@ -5,9 +5,9 @@
 #define NUMSTRANDS			100000
 #define NUMPARTICLES		50
 #define MASS				0.000000001f //particle mass is 0.01mg, total strand weight is 1mg
-#define K_EDGE				0.004905f
-#define K_BEND				0.04905f
-#define K_TWIST				0.04905f
+#define K_EDGE				-10000000.0f
+#define K_BEND				-10000000.0f
+#define K_TWIST				-10000000.0f
 #define K_EXTRA				0.004905f
 #define LENGTH				0.005f //5 millmetres separation between particles
 #define DAMPING				0.0f

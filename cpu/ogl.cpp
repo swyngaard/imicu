@@ -148,7 +148,7 @@ void render(void) {
 			glVertex3f(p0->position.x, p0->position.y, p0->position.z);
 			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
 			
-//			if(j==1)
+//			if(j==(hair->strand[i]->numParticles-1))
 //				std::cout << particle->position.x << " " << particle->position.y << " " << particle->position.z << std::endl;
 		}
 	}

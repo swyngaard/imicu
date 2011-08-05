@@ -1,4 +1,9 @@
 #include "hair.h"
+#include <boost/numeric/ublas/lu.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/io.hpp>
+#include <Eigen/Dense>
 
 #include <iostream>
 
@@ -53,9 +58,9 @@ namespace pilar
 		this->particle[0] = particle1;
 		this->particle[1] = particle2;
 		
-		A = new float[36];
-		b = new float[6];
-		x = new float[6];
+//		A = new float[36];
+//		b = new float[6];
+//		x = new float[6];
 	}
 	
 	void Spring::update1(float dt)
@@ -70,46 +75,38 @@ namespace pilar
 		Vector3f d = xn.unit();
 		
 		//Calculate velocity
-//		float A[36];
-//		float x[6];
-//		float b[6];
 		
 		float h = dt * dt * k / (4.0f * particle[0]->mass * length);
 		float g = dt * k / (2.0f * particle[0]->mass * length);
 		float f = k / length * particle[0]->mass;
 		float damp = dt * k / length + damping;
 		
-		//Build Matrix A
-		A[0] = h*d.x*d.x+1; A[1] = h*d.x*d.y;   A[2] = h*d.x*d.z;   A[3] =-h*d.x*d.x;   A[4] =-h*d.x*d.y;   A[5] =-h*d.x*d.z;
-		A[6] = h*d.x*d.y;   A[7] = h*d.y*d.y+1; A[8] = h*d.y*d.z;   A[9] =-h*d.x*d.y;   A[10]=-h*d.y*d.y;   A[11]=-h*d.y*d.z;
-		A[12]= h*d.x*d.z;   A[13]= h*d.y*d.z;   A[14]= h*d.z*d.z+1; A[15]=-h*d.x*d.z;   A[16]=-h*d.y*d.z;   A[17]=-h*d.z*d.z;
-		A[18]=-h*d.x*d.x;   A[19]=-h*d.x*d.y;   A[20]=-h*d.x*d.z;   A[21]= h*d.x*d.x+1; A[22]= h*d.x*d.y;   A[23]= h*d.x*d.z;
-		A[24]=-h*d.x*d.y;   A[25]=-h*d.y*d.y;   A[26]=-h*d.y*d.z;   A[27]= h*d.x*d.y;   A[28]= h*d.y*d.y+1; A[29]= h*d.y*d.z;
-		A[30]=-h*d.x*d.z;   A[31]=-h*d.y*d.z;   A[32]=-h*d.z*d.z;   A[33]= h*d.x*d.z;   A[34]= h*d.y*d.z;   A[35]= h*d.z*d.z+1;
+		Eigen::MatrixXf A(6,6);
+		Eigen::VectorXf x(6);
+		Eigen::VectorXf b(6);
 		
-		//Store known values in vector b
-		b[0] = particle[0]->velocity.x + g*d.x*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length);
-		b[1] = particle[0]->velocity.y + g*d.y*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length);
-		b[2] = particle[0]->velocity.z + g*d.z*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length);
-		b[3] = particle[1]->velocity.x + g*d.x*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length);
-		b[4] = particle[1]->velocity.y + g*d.y*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length);
-		b[5] = particle[1]->velocity.z + g*d.z*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length);
+		A <<  h*d.x*d.x+1.0f,  h*d.x*d.y,       h*d.x*d.z,      -h*d.x*d.x,      -h*d.x*d.y,      -h*d.x*d.z,
+			  h*d.x*d.y,       h*d.y*d.y+1.0f,  h*d.y*d.z,      -h*d.x*d.y,      -h*d.y*d.y,      -h*d.y*d.z,
+			  h*d.x*d.z,	   h*d.y*d.z,       h*d.z*d.z+1.0f, -h*d.x*d.z,      -h*d.y*d.z,      -h*d.z*d.z,
+			 -h*d.x*d.x,      -h*d.x*d.y,      -h*d.x*d.z,       h*d.x*d.x+1.0f,  h*d.x*d.y,       h*d.x*d.z,
+			 -h*d.x*d.y,   	  -h*d.y*d.y,      -h*d.y*d.z,       h*d.x*d.y,       h*d.y*d.y+1.0f,  h*d.y*d.z,
+			 -h*d.x*d.z,	  -h*d.y*d.z,      -h*d.z*d.z,       h*d.x*d.z,       h*d.y*d.z,       h*d.z*d.z+1.0f;
 		
-		//Predict a solution and store in x
-		x[0] = f * d.x * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
-		x[1] = f * d.y * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
-		x[2] = f * d.z * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
-		x[3] = f * d.x * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
-		x[4] = f * d.y * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
-		x[5] = f * d.z * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
+		b << particle[0]->velocity.x + g*d.x*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length),
+			 particle[0]->velocity.y + g*d.y*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length),
+			 particle[0]->velocity.z + g*d.z*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length),
+			 particle[1]->velocity.x + g*d.x*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length),
+			 particle[1]->velocity.y + g*d.y*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length),
+			 particle[1]->velocity.z + g*d.z*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length);
 		
-		conjugate(A, b, x);
+		x = A.colPivHouseholderQr().solve(b);
 		
-		Vector3f v1(x[3]-x[0],x[4]-x[1],x[5]-x[2]);
-		Vector3f friction(damp, damp, damp);
+		Vector3f v1(x(3)-x(0),x(4)-x(1),x(5)-x(2));
 		
 		force += d * (f * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt*(v1.x*d.x + v1.y*d.y + v1.z*d.z)));
 		
+//		float damp = dt * k / length + damping;
+//		Vector3f friction(damp, damp, damp);		
 //		force += friction;
 		
 		particle[0]->applyForce(force);
@@ -128,128 +125,47 @@ namespace pilar
 		Vector3f d = xn.unit();
 		
 		//Calculate velocity
-//		float A[36];
-//		float x[6];
-//		float b[6];
 		
 		float h = dt * dt * k / (4.0f * particle[0]->mass * length);
 		float g = dt * k / (2.0f * particle[0]->mass * length);
 		float f = k / length * particle[0]->mass;
-		float damp = dt * k / length + damping;
+
+		Eigen::MatrixXf A(6,6);
+		Eigen::VectorXf x(6);
+		Eigen::VectorXf b(6);
 		
-		//Build Matrix A
-		A[0] = h*d.x*d.x+1; A[1] = h*d.x*d.y;   A[2] = h*d.x*d.z;   A[3] =-h*d.x*d.x;   A[4] =-h*d.x*d.y;   A[5] =-h*d.x*d.z;
-		A[6] = h*d.x*d.y;   A[7] = h*d.y*d.y+1; A[8] = h*d.y*d.z;   A[9] =-h*d.x*d.y;   A[10]=-h*d.y*d.y;   A[11]=-h*d.y*d.z;
-		A[12]= h*d.x*d.z;   A[13]= h*d.y*d.z;   A[14]= h*d.z*d.z+1; A[15]=-h*d.x*d.z;   A[16]=-h*d.y*d.z;   A[17]=-h*d.z*d.z;
-		A[18]=-h*d.x*d.x;   A[19]=-h*d.x*d.y;   A[20]=-h*d.x*d.z;   A[21]= h*d.x*d.x+1; A[22]= h*d.x*d.y;   A[23]= h*d.x*d.z;
-		A[24]=-h*d.x*d.y;   A[25]=-h*d.y*d.y;   A[26]=-h*d.y*d.z;   A[27]= h*d.x*d.y;   A[28]= h*d.y*d.y+1; A[29]= h*d.y*d.z;
-		A[30]=-h*d.x*d.z;   A[31]=-h*d.y*d.z;   A[32]=-h*d.z*d.z;   A[33]= h*d.x*d.z;   A[34]= h*d.y*d.z;   A[35]= h*d.z*d.z+1;
+		A <<  h*d.x*d.x+1.0f,  h*d.x*d.y,       h*d.x*d.z,      -h*d.x*d.x,      -h*d.x*d.y,      -h*d.x*d.z,
+			  h*d.x*d.y,       h*d.y*d.y+1.0f,  h*d.y*d.z,      -h*d.x*d.y,      -h*d.y*d.y,      -h*d.y*d.z,
+			  h*d.x*d.z,	   h*d.y*d.z,       h*d.z*d.z+1.0f, -h*d.x*d.z,      -h*d.y*d.z,      -h*d.z*d.z,
+			 -h*d.x*d.x,      -h*d.x*d.y,      -h*d.x*d.z,       h*d.x*d.x+1.0f,  h*d.x*d.y,       h*d.x*d.z,
+			 -h*d.x*d.y,   	  -h*d.y*d.y,      -h*d.y*d.z,       h*d.x*d.y,       h*d.y*d.y+1.0f,  h*d.y*d.z,
+			 -h*d.x*d.z,	  -h*d.y*d.z,      -h*d.z*d.z,       h*d.x*d.z,       h*d.y*d.z,       h*d.z*d.z+1.0f;
 		
-		//Store known values in vector b
-		b[0] = particle[0]->velocity.x + g*d.x*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length);
-		b[1] = particle[0]->velocity.y + g*d.y*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length);
-		b[2] = particle[0]->velocity.z + g*d.z*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length);
-		b[3] = particle[1]->velocity.x + g*d.x*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length);
-		b[4] = particle[1]->velocity.y + g*d.y*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length);
-		b[5] = particle[1]->velocity.z + g*d.z*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length);
+		b << particle[0]->velocity.x + g*d.x*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length),
+			 particle[0]->velocity.y + g*d.y*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length),
+			 particle[0]->velocity.z + g*d.z*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length),
+			 particle[1]->velocity.x + g*d.x*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length),
+			 particle[1]->velocity.y + g*d.y*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length),
+			 particle[1]->velocity.z + g*d.z*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length);
 		
-		//Predict a solution and store in x
-		x[0] = f * d.x * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
-		x[1] = f * d.y * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
-		x[2] = f * d.z * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
-		x[3] = f * d.x * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
-		x[4] = f * d.y * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
-		x[5] = f * d.z * (-xn.x*d.x - xn.y*d.y - xn.z*d.z - length - dt * (vn.x*d.x + vn.y*d.y + vn.z*d.z));
+		x = A.colPivHouseholderQr().solve(b);
 		
-		conjugate(A, b, x);
-		
-		Vector3f v1(x[3]-x[0],x[4]-x[1],x[5]-x[2]);
-		Vector3f friction(damp, damp, damp);
+		Vector3f v1(x(3)-x(0),x(4)-x(1),x(5)-x(2));
 		
 		force += d * (f * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt*(v1.x*d.x + v1.y*d.y + v1.z*d.z)));
-		
+
+//		float damp = dt * k / length + damping;
+//		Vector3f friction(damp, damp, damp);		
 //		force += friction;
+		
+//		std::cout << force.x << " " << force.y << " " << force.z << std::endl;
 		
 		particle[0]->applyForce(force);
 		particle[1]->applyForce(force*-1.0f);
 	}
 	
-	void Spring::conjugate(const float *A, const float *b, float *x)
-	{
-		
-		float r[6];
-		float p[6];
-		
-		//r = b - A * x
-		r[0] = b[0] - (A[0]*x[0] +A[1]*x[1] +A[2]*x[2] +A[3]*x[3] +A[4]*x[4] +A[5]*x[5]);
-		r[1] = b[1] - (A[6]*x[0] +A[7]*x[1] +A[8]*x[2] +A[9]*x[3] +A[10]*x[4]+A[11]*x[5]);
-		r[2] = b[2] - (A[12]*x[0]+A[13]*x[1]+A[14]*x[2]+A[15]*x[3]+A[16]*x[4]+A[17]*x[5]);
-		r[3] = b[3] - (A[18]*x[0]+A[19]*x[1]+A[20]*x[2]+A[21]*x[3]+A[22]*x[4]+A[23]*x[5]);
-		r[4] = b[4] - (A[24]*x[0]+A[25]*x[1]+A[26]*x[2]+A[27]*x[3]+A[28]*x[4]+A[29]*x[5]);
-		r[5] = b[5] - (A[30]*x[0]+A[31]*x[1]+A[32]*x[2]+A[33]*x[3]+A[34]*x[4]+A[35]*x[5]);
-		
-		//p = r
-		p[0] = r[0];
-		p[1] = r[1];
-		p[2] = r[2];
-		p[3] = r[3];
-		p[4] = r[4];
-		p[5] = r[5];
-		
-		//rsold = r dot r
-		float rsold = r[0]*r[0]+r[1]*r[1]+r[2]*r[2]+r[3]*r[3]+r[4]*r[4]+r[5]*r[5];
-		float rsnew = rsold;
-		
-//		std::cout << rsnew << std::endl;
-		
-		float Ap[6];
-		
-		for(int i = 0; i < 6; i++)
-		{
-			Ap[0] = A[0]*p[0] +A[1]*p[1] +A[2]*p[2] +A[3]*p[3] +A[4]*p[4] +A[5]*p[5];
-			Ap[1] = A[6]*p[0] +A[7]*p[1] +A[8]*p[2] +A[9]*p[3] +A[10]*p[4]+A[11]*p[5];
-			Ap[2] = A[12]*p[0]+A[13]*p[1]+A[14]*p[2]+A[15]*p[3]+A[16]*p[4]+A[17]*p[5];
-			Ap[3] = A[18]*p[0]+A[19]*p[1]+A[20]*p[2]+A[21]*p[3]+A[22]*p[4]+A[23]*p[5];
-			Ap[4] = A[24]*p[0]+A[25]*p[1]+A[26]*p[2]+A[27]*p[3]+A[28]*p[4]+A[29]*p[5];
-			Ap[5] = A[30]*p[0]+A[31]*p[1]+A[32]*p[2]+A[33]*p[3]+A[34]*p[4]+A[35]*p[5];
-			
-			float alpha = rsold / (p[0]*Ap[0]+p[1]*Ap[1]+p[2]*Ap[2]+p[3]*Ap[3]+p[4]*Ap[4]+p[5]*Ap[5]);
-			
-			x[0] += alpha * p[0];
-			x[1] += alpha * p[1];
-			x[2] += alpha * p[2];
-			x[3] += alpha * p[3];
-			x[4] += alpha * p[4];
-			x[5] += alpha * p[5];
-			
-			r[0] -= alpha * Ap[0];
-			r[1] -= alpha * Ap[1];
-			r[2] -= alpha * Ap[2];
-			r[3] -= alpha * Ap[3];
-			r[4] -= alpha * Ap[4];
-			r[5] -= alpha * Ap[5];
-			
-			rsnew = r[0]*r[0]+r[1]*r[1]+r[2]*r[2]+r[3]*r[3]+r[4]*r[4]+r[5]*r[5];
-			
-			if(rsnew < 1e-20f) break;
-			
-			p[0] = r[0] + rsnew / rsold * p[0];
-			p[1] = r[1] + rsnew / rsold * p[1];
-			p[2] = r[2] + rsnew / rsold * p[2];
-			p[3] = r[3] + rsnew / rsold * p[3];
-			p[4] = r[4] + rsnew / rsold * p[4];
-			p[5] = r[5] + rsnew / rsold * p[5];
-			
-			rsold = rsnew;
-		}
-	}
-	
 	void Spring::release()
 	{
-		delete [] A;
-		delete [] b;
-		delete [] x;
-	
 		particle[0] = NULL;
 		particle[1] = NULL;
 		
@@ -277,8 +193,6 @@ namespace pilar
 			particle[i]->position = (root + Vector3f(length*i, 0.0f, 0.0f));
 		}
 		
-//		std::cout << "particles init" << std::endl;
-		
 		buildSprings(edge, bend, twist, extra, length, 0.05f);
 	}
 	
@@ -291,6 +205,7 @@ namespace pilar
 		{
 			edge[i] = new Spring(particle[i], particle[i+1], k_edge, length, damping, EDGE);
 		}
+		
 		
 		bend = new Spring*[numBend];
 		
@@ -306,6 +221,7 @@ namespace pilar
 		{
 			twist[i] = new Spring(particle[i], particle[i+3], k_twist, length, damping, TWIST);
 		}
+		
 		
 		//TODO add extra springs
 	}
@@ -325,6 +241,7 @@ namespace pilar
 			edge[i]->update1(dt);
 		}
 		
+		
 		for(int i = 0; i < numBend; i++)
 		{
 			bend[i]->update1(dt);
@@ -334,6 +251,7 @@ namespace pilar
 		{
 			twist[i]->update1(dt);
 		}
+		
 	}
 	
 	void Strand::updateSprings2(float dt)
@@ -353,6 +271,7 @@ namespace pilar
 		{
 			twist[i]->update2(dt);
 		}
+		
 	}
 	
 	void Strand::updateParticles1(float dt)
@@ -378,7 +297,7 @@ namespace pilar
 		//Apply external forces like gravity here
 		for(int i = 0; i < numParticles; i++)
 		{
-			particle[i]->force += force;
+			particle[i]->applyForce(force);
 		}
 	}
 	
@@ -395,14 +314,16 @@ namespace pilar
 		updateSprings1(dt);
 		
 		//Apply gravity
-		applyForce(Vector3f(0.0f, -0.01f, 0.0f));
+		applyForce(Vector3f(0.0f, -0.000981f, 0.0f));
 		
 		updateParticles1(dt);
+		
+		clearForces();
 		
 		updateSprings2(dt);
 		
 		//Apply gravity
-		applyForce(Vector3f(0.0f, -0.01f, 0.0f));
+		applyForce(Vector3f(0.0f, -0.00981f, 0.0f));
 		
 		updateParticles2(dt);
 	}
@@ -418,6 +339,7 @@ namespace pilar
 			edge[i] = NULL;
 		}
 		delete [] edge;
+		
 		
 		//Bending springs
 		for(int i = 0; i < numBend; i++)
@@ -436,6 +358,7 @@ namespace pilar
 			twist[i] = NULL;
 		}
 		delete [] twist;
+		
 		
 		//Particles
 		for(int i = 0; i < numParticles; i++)

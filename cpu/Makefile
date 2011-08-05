@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-I.
+CFLAGS=-I.:$(HOME)/local/include/boost -I$(HOME)/local/include
 DEPS = main.cpp tools.h tools.cpp hair.h hair.cpp constants.h
 OGL = ogl.cpp hair.cpp tools.cpp
 LIBS = -lglut -lGL -lGLU
@@ -11,7 +11,7 @@ EXE = pilar
 
 $(EXE): $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
-	$(CC) $(LIBS) -o gl $(OGL)
+	$(CC) $(LIBS) $(CFLAGS) -o gl $(OGL)
 
 .PHONY: clean
 	

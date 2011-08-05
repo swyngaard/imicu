@@ -45,9 +45,9 @@ namespace pilar
 		float length;
 		float damping;
 		SpringType type;
-		float *A, *b, *x;
+//		float *A, *b, *x;
 		
-		void conjugate(const float* A, const float* b, float* x);
+//		void conjugate(const float* A, const float* b, float* x);
 		
 	public:
 		Spring(Particle* particle1, Particle* particle2, float k, float length, float damping, SpringType type);
