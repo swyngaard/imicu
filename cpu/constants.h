@@ -10,9 +10,9 @@
 #define K_TWIST				10000000.0f
 #define K_EXTRA				0.004905f
 #define LENGTH				0.005f //5 millmetres separation between particles
-#define D_EDGE				0.0000002f
-#define D_BEND				0.0000002f
-#define D_TWIST				0.0000002f
+#define D_EDGE				0.025f
+#define D_BEND				0.0125f
+#define D_TWIST				0.0125f
 #define D_EXTRA				0.0000002f
 
 #endif

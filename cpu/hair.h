@@ -67,7 +67,7 @@ namespace pilar
 		Spring** bend;
 		Spring** twist;
 		
-		buildSprings(k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length);
+		void buildSprings(float k_edge, float k_bend, float k_twist, float k_extra, float d_edge, float d_bend, float d_twist, float d_extra, float length);
 		void clearForces();
 		void updateSprings1(float dt);
 		void updateSprings2(float dt);

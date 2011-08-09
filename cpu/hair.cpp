@@ -104,9 +104,9 @@ namespace pilar
 		
 		force += d * (f * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt*(v1.x*d.x + v1.y*d.y + v1.z*d.z)));
 
-//		float damp = dt * k / length + damping;
-//		Vector3f friction(damp, damp, damp);		
-//		force += friction;
+		float damp = /*dt * k / length +*/ damping;
+		Vector3f friction(damp, damp, damp);		
+		force += friction;
 		
 		particle[0]->applyForce(force*-1.0f);
 		particle[1]->applyForce(force);
@@ -170,23 +170,22 @@ namespace pilar
 		
 		for(int i = 0; i < numEdges; i++)
 		{
-			edge[i] = new Spring(particle[i], particle[i+1], k_edge, length, damping, EDGE);
+			edge[i] = new Spring(particle[i], particle[i+1], k_edge, length, d_edge, EDGE);
 		}
 		
 		
 		bend = new Spring*[numBend];
 		
-		
 		for(int i = 0; i < numBend; i++)
 		{
-			bend[i] = new Spring(particle[i], particle[i+2], k_bend, length, damping, BEND);
+			bend[i] = new Spring(particle[i], particle[i+2], k_bend, length, d_bend, BEND);
 		}
 		
 		twist = new Spring*[numTwist];
 		
 		for(int i = 0; i < numTwist; i++)
 		{
-			twist[i] = new Spring(particle[i], particle[i+3], k_twist, length, damping, TWIST);
+			twist[i] = new Spring(particle[i], particle[i+3], k_twist, length, d_twist, TWIST);
 		}
 		
 		
