@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-I.:$(HOME)/local/include/boost -I$(HOME)/local/include
+CFLAGS=-I. -I$(HOME)/local/include
 DEPS = main.cpp tools.h tools.cpp hair.h hair.cpp constants.h
 OGL = ogl.cpp hair.cpp tools.cpp
 LIBS = -lglut -lGL -lGLU

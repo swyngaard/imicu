@@ -45,9 +45,8 @@ namespace pilar
 		float length;
 		float damping;
 		SpringType type;
-//		float *A, *b, *x;
 		
-//		void conjugate(const float* A, const float* b, float* x);
+		void updateForce(Vector3f p0, Vector3f p1, float dt);
 		
 	public:
 		Spring(Particle* particle1, Particle* particle2, float k, float length, float damping, SpringType type);
@@ -68,7 +67,7 @@ namespace pilar
 		Spring** bend;
 		Spring** twist;
 		
-		void buildSprings(float k_edge, float k_bend, float k_twist, float k_extra, float length, float damping);
+		buildSprings(k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length);
 		void clearForces();
 		void updateSprings1(float dt);
 		void updateSprings2(float dt);
@@ -79,7 +78,18 @@ namespace pilar
 		int numParticles;
 		Particle** particle;
 		
-		Strand(int numParticles, float mass, float k_edge, float k_bend, float k_twist, float k_extra, float length, Vector3f root);
+		Strand(int numParticles,
+			   float mass,
+			   float k_edge,
+			   float k_bend,
+			   float k_twist,
+			   float k_extra,
+			   float d_edge,
+			   float d_bend,
+			   float d_twist,
+			   float d_extra,
+			   float length,
+			   Vector3f root);
 		void update(float dt);
 		void release();
 		void applyForce(Vector3f force);
@@ -95,7 +105,19 @@ namespace pilar
 		int numStrands;
 		Strand** strand;
 		
-		Hair(int numStrands, int numParticles, float mass, float k_edge, float k_bend, float k_twist, float k_extra, float length, std::vector<Vector3f> &roots);
+		Hair(int numStrands,
+			 int numParticles,
+			 float mass, 
+			 float k_edge, 
+			 float k_bend,
+			 float k_twist,
+			 float k_extra,
+			 float d_edge,
+			 float d_bend,
+			 float d_twist,
+			 float d_extra,
+			 float length,
+			 std::vector<Vector3f> &roots);
 		void update(float dt);
 		void release();
 	};

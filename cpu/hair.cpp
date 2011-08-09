@@ -1,8 +1,4 @@
 #include "hair.h"
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/io.hpp>
 #include <Eigen/Dense>
 
 #include <iostream>
@@ -57,75 +53,29 @@ namespace pilar
 		
 		this->particle[0] = particle1;
 		this->particle[1] = particle2;
-		
-//		A = new float[36];
-//		b = new float[6];
-//		x = new float[6];
 	}
 	
 	void Spring::update1(float dt)
 	{
-		Vector3f force;
-		
-		Vector3f p0 = particle[0]->position;
-		Vector3f p1 = particle[1]->position;
-		
-		Vector3f xn = p1 - p0;
-		Vector3f vn = particle[1]->velocity - particle[0]->velocity;
-		Vector3f d = xn.unit();
-		
-		//Calculate velocity
-		
-		float h = dt * dt * k / (4.0f * particle[0]->mass * length);
-		float g = dt * k / (2.0f * particle[0]->mass * length);
-		float f = k / length * particle[0]->mass;
-		float damp = dt * k / length + damping;
-		
-		Eigen::MatrixXf A(6,6);
-		Eigen::VectorXf x(6);
-		Eigen::VectorXf b(6);
-		
-		A <<  h*d.x*d.x+1.0f,  h*d.x*d.y,       h*d.x*d.z,      -h*d.x*d.x,      -h*d.x*d.y,      -h*d.x*d.z,
-			  h*d.x*d.y,       h*d.y*d.y+1.0f,  h*d.y*d.z,      -h*d.x*d.y,      -h*d.y*d.y,      -h*d.y*d.z,
-			  h*d.x*d.z,	   h*d.y*d.z,       h*d.z*d.z+1.0f, -h*d.x*d.z,      -h*d.y*d.z,      -h*d.z*d.z,
-			 -h*d.x*d.x,      -h*d.x*d.y,      -h*d.x*d.z,       h*d.x*d.x+1.0f,  h*d.x*d.y,       h*d.x*d.z,
-			 -h*d.x*d.y,   	  -h*d.y*d.y,      -h*d.y*d.z,       h*d.x*d.y,       h*d.y*d.y+1.0f,  h*d.y*d.z,
-			 -h*d.x*d.z,	  -h*d.y*d.z,      -h*d.z*d.z,       h*d.x*d.z,       h*d.y*d.z,       h*d.z*d.z+1.0f;
-		
-		b << particle[0]->velocity.x + g*d.x*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length),
-			 particle[0]->velocity.y + g*d.y*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length),
-			 particle[0]->velocity.z + g*d.z*((p1.x*d.x + p1.y*d.y + p1.z*d.z) - (p0.x*d.x + p0.y*d.y + p0.z*d.z) - length),
-			 particle[1]->velocity.x + g*d.x*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length),
-			 particle[1]->velocity.y + g*d.y*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length),
-			 particle[1]->velocity.z + g*d.z*((p0.x*d.x + p0.y*d.y + p0.z*d.z) - (p1.x*d.x + p1.y*d.y + p1.z*d.z) - length);
-		
-		x = A.colPivHouseholderQr().solve(b);
-		
-		Vector3f v1(x(3)-x(0),x(4)-x(1),x(5)-x(2));
-		
-		force += d * (f * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt*(v1.x*d.x + v1.y*d.y + v1.z*d.z)));
-		
-//		float damp = dt * k / length + damping;
-//		Vector3f friction(damp, damp, damp);		
-//		force += friction;
-		
-		particle[0]->applyForce(force);
-		particle[1]->applyForce(force*-1.0f);
+		//update spring forces using previous position 
+		updateForce(particle[0]->position, particle[1]->position, dt);
 	}
 	
 	void Spring::update2(float dt)
 	{
+		//Update spring forces using half positions
+		updateForce(particle[0]->posh, particle[1]->posh, dt);
+	}
+	
+	void Spring::updateForce(Vector3f p0, Vector3f p1, float dt)
+	{
 		Vector3f force;
-		
-		Vector3f p0 = particle[0]->posh;
-		Vector3f p1 = particle[1]->posh;
 		
 		Vector3f xn = p1 - p0;
 		Vector3f vn = particle[1]->velocity - particle[0]->velocity;
 		Vector3f d = xn.unit();
 		
 		//Calculate velocity
-		
 		float h = dt * dt * k / (4.0f * particle[0]->mass * length);
 		float g = dt * k / (2.0f * particle[0]->mass * length);
 		float f = k / length * particle[0]->mass;
@@ -158,10 +108,8 @@ namespace pilar
 //		Vector3f friction(damp, damp, damp);		
 //		force += friction;
 		
-//		std::cout << force.x << " " << force.y << " " << force.z << std::endl;
-		
-		particle[0]->applyForce(force);
-		particle[1]->applyForce(force*-1.0f);
+		particle[0]->applyForce(force*-1.0f);
+		particle[1]->applyForce(force);
 	}
 	
 	void Spring::release()
@@ -174,7 +122,18 @@ namespace pilar
 	
 ////////////////////////////// Strand Class ////////////////////////////////////
 	
-	Strand::Strand(int numParticles, float mass, float edge, float bend, float twist, float extra, float length, Vector3f root=Vector3f())
+	Strand::Strand(int numParticles, 
+				   float mass,
+				   float k_edge,
+				   float k_bend,
+				   float k_twist,
+				   float k_extra,
+				   float d_edge,
+				   float d_bend,
+				   float d_twist,
+				   float d_extra,
+				   float length,
+				   Vector3f root=Vector3f())
 	{
 		numEdges = numParticles - 1;
 		numBend  = numParticles - 2;
@@ -193,11 +152,19 @@ namespace pilar
 			particle[i]->position = (root + Vector3f(length*i, 0.0f, 0.0f));
 		}
 		
-		buildSprings(edge, bend, twist, extra, length, 0.05f);
+		buildSprings(k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length);
 	}
 	
 	//Build the three types of spring connections between particles
-	void Strand::buildSprings(float k_edge, float k_bend, float k_twist, float k_extra, float length, float damping)
+	void Strand::buildSprings(float k_edge,
+							  float k_bend,
+							  float k_twist,
+							  float k_extra,
+							  float d_edge,
+							  float d_bend,
+							  float d_twist,
+							  float d_extra,
+							  float length)
 	{
 		edge = new Spring*[numEdges];
 		
@@ -326,6 +293,8 @@ namespace pilar
 		applyForce(Vector3f(0.0f, -0.00981f, 0.0f));
 		
 		updateParticles2(dt);
+		
+//		applyStrainLimiting(dt);		
 	}
 	
 	//Clean up
@@ -371,7 +340,19 @@ namespace pilar
 	
 /////////////////////////// Hair Class /////////////////////////////////////////
 	
-	Hair::Hair(int numStrands, int numParticles, float mass, float k_edge, float k_bend, float k_twist, float k_extra, float length, std::vector<Vector3f> &roots)
+	Hair::Hair(int numStrands,
+			   int numParticles,
+			   float mass,
+			   float k_edge,
+			   float k_bend,
+			   float k_twist,
+			   float k_extra,
+			   float d_edge,
+			   float d_bend,
+			   float d_twist,
+			   float d_extra,
+			   float length,
+			   std::vector<Vector3f> &roots)
 	{
 		this->numStrands = numStrands;
 		
@@ -379,7 +360,7 @@ namespace pilar
 		
 		for(int i = 0; i < numStrands; i++)
 		{
-			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, length, roots[i]);
+			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]);
 		}
 	}
 	
