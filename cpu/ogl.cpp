@@ -111,17 +111,18 @@ void render(void) {
 	// Reset transformations
 	glLoadIdentity();
 	// Set the camera
-	gluLookAt(	0.0f, -0.125f, -0.5f,
-				0.0f, -0.125f,  0.0f,
+	//Ideal camera closeup
+//	gluLookAt(	0.0f, -0.125f, -0.5f,
+//				0.0f, -0.125f,  0.0f,
+//				0.0f, 1.0f,  0.0f);
+	//closeup with damping
+//	gluLookAt(	0.0f, -0.25f, -0.65f,
+//				0.0f, -0.25f,  0.0f,
+//				0.0f, 1.0f,  0.0f);
+	//Closeup without damping, lots of stretching
+	gluLookAt(	0.0f, -0.4f, -1.0f,
+				0.0f, -0.4f,  0.0f,
 				0.0f, 1.0f,  0.0f);
-
-//	glRotatef(angle, 0.0f, 1.0f, 0.0f);
-
-//	glBegin(GL_TRIANGLES);
-//		glVertex3f(-2.0f,-2.0f, 0.0f);
-//		glVertex3f( 2.0f, 0.0f, 0.0);
-//		glVertex3f( 0.0f, 2.0f, 0.0);
-//	glEnd();
 	
 	//TODO Draw hair
 	
@@ -141,7 +142,7 @@ void render(void) {
 				case 0: glColor3f(1.0f, 1.0f, 1.0f); break; //WHITE
 				case 1: glColor3f(1.0f, 0.0f, 0.0f); break; //RED
 				case 2: glColor3f(0.0f, 1.0f, 0.0f); break; //GREEN
-				case 3: glColor3f(0.0f, 0.0f, 1.0f); break; //BLUE
+				case 3: glColor3f(1.0f, 0.0f, 1.0f); break; //BLUE
 			}
 			
 			

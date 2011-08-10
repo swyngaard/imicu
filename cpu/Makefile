@@ -1,17 +1,30 @@
-CC=g++
-CFLAGS=-I. -I$(HOME)/local/include
-DEPS = main.cpp tools.h tools.cpp hair.h hair.cpp constants.h
-OGL = ogl.cpp hair.cpp tools.cpp
-LIBS = -lglut -lGL -lGLU
-OBJ = main.o tools.o hair.o
+CC = g++
+
+CPP = main.cpp hair.cpp tools.cpp
+HEADERS = hair.h tools.h constants.h
+OBJF = hair.o tools.o
+OBJ = main.o $(OBJF)
+FLAGS = -I$(HOME)/local/include
 EXE = pilar
 
-%.o: %.cpp $(DEPS) $(OGL)
-	$(CC) -c -o $@ $< $(CFLAGS)
+OCPP = ogl.cpp
+OOBJ = ogl.o $(OBJF)
+OEXE = gl
+LIBS = -lglut -lGL -lGLU
 
-$(EXE): $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
-	$(CC) $(LIBS) $(CFLAGS) -o gl $(OGL)
+all: pilar ogl
+
+obj_pilar: $(HEADERS)
+	$(CC) $(FLAGS) -c $(CPP)
+
+pilar: obj_pilar
+	$(CC) $(OBJ) -o $(EXE) 
+
+obj_ogl: $(HEADERS)
+	$(CC) -c $(OCPP)
+
+ogl: obj_ogl
+	$(CC) $(OOBJ) $(LIBS) -o $(OEXE)
 
 .PHONY: clean
 	

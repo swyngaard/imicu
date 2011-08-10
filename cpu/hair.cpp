@@ -1,5 +1,7 @@
 #include "hair.h"
-#include <Eigen/Dense>
+#include "constants.h"
+
+#include <Eigen/QR>
 
 #include <iostream>
 
@@ -63,10 +65,11 @@ namespace pilar
 	
 	void Spring::update2(float dt)
 	{
-		//Update spring forces using half positions
+		//Update spring forces using new calculated half positions
 		updateForce(particle[0]->posh, particle[1]->posh, dt);
 	}
 	
+	//Calculates the current velocities and applies the spring forces
 	void Spring::updateForce(Vector3f p0, Vector3f p1, float dt)
 	{
 		Vector3f force;
@@ -104,9 +107,9 @@ namespace pilar
 		
 		force += d * (f * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt*(v1.x*d.x + v1.y*d.y + v1.z*d.z)));
 
-		float damp = /*dt * k / length +*/ damping;
-		Vector3f friction(damp, damp, damp);		
-		force += friction;
+//		float damp = /*dt * k / length +*/ damping;
+//		Vector3f friction(damp, damp, damp);		
+//		force += friction;
 		
 		particle[0]->applyForce(force*-1.0f);
 		particle[1]->applyForce(force);
@@ -172,7 +175,6 @@ namespace pilar
 		{
 			edge[i] = new Spring(particle[i], particle[i+1], k_edge, length, d_edge, EDGE);
 		}
-		
 		
 		bend = new Spring*[numBend];
 		
@@ -280,7 +282,7 @@ namespace pilar
 		updateSprings1(dt);
 		
 		//Apply gravity
-		applyForce(Vector3f(0.0f, -0.000981f, 0.0f));
+		applyForce(Vector3f(0.0f, GRAVITY, 0.0f));
 		
 		updateParticles1(dt);
 		
@@ -289,7 +291,7 @@ namespace pilar
 		updateSprings2(dt);
 		
 		//Apply gravity
-		applyForce(Vector3f(0.0f, -0.00981f, 0.0f));
+		applyForce(Vector3f(0.0f, GRAVITY, 0.0f));
 		
 		updateParticles2(dt);
 		
