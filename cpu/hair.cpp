@@ -107,7 +107,7 @@ namespace pilar
 		
 		force += d * (f * (xn.x*d.x + xn.y*d.y + xn.z*d.z - length + dt*(v1.x*d.x + v1.y*d.y + v1.z*d.z)));
 
-//		float damp = /*dt * k / length +*/ damping;
+//		float damp = (dt * k / (length + damping))/particle[0]->mass;
 //		Vector3f friction(damp, damp, damp);		
 //		force += friction;
 		
@@ -125,7 +125,7 @@ namespace pilar
 	
 ////////////////////////////// Strand Class ////////////////////////////////////
 	
-	Strand::Strand(int numParticles, 
+	Strand::Strand(int numParticles,
 				   float mass,
 				   float k_edge,
 				   float k_bend,
@@ -229,7 +229,6 @@ namespace pilar
 			edge[i]->update2(dt);
 		}
 		
-		
 		for(int i = 0; i < numBend; i++)
 		{
 			bend[i]->update2(dt);
@@ -277,22 +276,28 @@ namespace pilar
 	
 	void Strand::update(float dt)
 	{
+		//Reset forces on particles
 		clearForces();
 		
+		//Calculate and apply spring forces using previous position
 		updateSprings1(dt);
 		
 		//Apply gravity
 		applyForce(Vector3f(0.0f, GRAVITY, 0.0f));
 		
+		//Calculate half velocity, half position and new position
 		updateParticles1(dt);
 		
+		//Reset forces on particles
 		clearForces();
 		
+		//Calculate and apply spring forces using half position
 		updateSprings2(dt);
 		
 		//Apply gravity
 		applyForce(Vector3f(0.0f, GRAVITY, 0.0f));
 		
+		//Calculate half velocity and new velocity
 		updateParticles2(dt);
 		
 //		applyStrainLimiting(dt);		
@@ -386,4 +391,3 @@ namespace pilar
 		delete [] strand;
 	}
 }
-
