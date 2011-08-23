@@ -16,5 +16,8 @@
 #define D_EXTRA				0.0000002f
 #define GRAVITY				-0.00981f //(stable value) -0.00981f
 
+#define MAX_LENGTH			0.0055 //Maximum length of a spring
+#define SQUARE_MAX_LENGTH	0.00003025 //Maximum length of a spring squared
+
 #endif
 

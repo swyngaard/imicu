@@ -241,11 +241,18 @@ namespace pilar
 		
 	}
 	
-	void Strand::updateParticles1(float dt)
+	void Strand::updateVelocities(float dt)
 	{
 		for(int i = 1; i < numParticles; i++)
 		{
 			particle[i]->updateVelocity(dt);
+		}
+	}
+	
+	void Strand::updateParticles1(float dt)
+	{
+		for(int i = 1; i < numParticles; i++)
+		{
 			particle[i]->updatePosition(dt);
 		}
 	}
@@ -271,7 +278,22 @@ namespace pilar
 	void Strand::applyStrainLimiting(float dt)
 	{
 		//TODO
-		dt++;
+		for(int i = 1; i < numParticles; i++)
+		{
+			Vector3f candidate = particle[i]->position + particle[i]->velh * dt;
+			//TODO get candidate position of previous particle
+			Vector3f dir = candidate - particle[i-1]->position;
+			float length = dir.length();
+			
+			if(length > MAX_LENGTH)
+			{
+				float factor = length/MAX_LENGTH;
+				
+				candidate = particle[i-1]->position + (dir * (length/MAX_LENGTH));
+				
+				particle[i]->velh = (candidate - particle[i]->position)/dt;
+			}
+		}
 	}
 	
 	void Strand::update(float dt)
@@ -284,6 +306,8 @@ namespace pilar
 		
 		//Apply gravity
 		applyForce(Vector3f(0.0f, GRAVITY, 0.0f));
+		
+		updateVelocities(dt);		
 		
 //		applyStrainLimiting(dt);
 		

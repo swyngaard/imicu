@@ -71,6 +71,7 @@ namespace pilar
 		void clearForces();
 		void updateSprings1(float dt);
 		void updateSprings2(float dt);
+		void updateVelocities(float dt);
 		void updateParticles1(float dt);
 		void updateParticles2(float dt);
 		
