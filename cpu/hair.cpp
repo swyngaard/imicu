@@ -285,6 +285,8 @@ namespace pilar
 		//Apply gravity
 		applyForce(Vector3f(0.0f, GRAVITY, 0.0f));
 		
+//		applyStrainLimiting(dt);
+		
 		//Calculate half velocity, half position and new position
 		updateParticles1(dt);
 		
@@ -299,8 +301,6 @@ namespace pilar
 		
 		//Calculate half velocity and new velocity
 		updateParticles2(dt);
-		
-//		applyStrainLimiting(dt);		
 	}
 	
 	//Clean up
