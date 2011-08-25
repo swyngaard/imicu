@@ -87,7 +87,12 @@ namespace pilar
 	float Vector3f::length()								// length() returns the length of this Vector3f
 	{
 		return sqrtf(x*x + y*y + z*z);
-	};
+	}
+	
+	float Vector3f::length_sqr()							//length_sqr()return the squared length of this Vector3f
+	{
+		return x*x + y*y + z*z;
+	}
 
 	void Vector3f::unitize()								// unitize() normalizes this Vector3f that its direction remains the same but its length is 1.
 	{

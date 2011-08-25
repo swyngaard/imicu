@@ -29,6 +29,7 @@ namespace pilar
 		//TODO add dot product operator
 		
 		float length();
+		float length_sqr();
 		void unitize();
 		Vector3f unit();
 	};

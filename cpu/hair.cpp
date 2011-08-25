@@ -153,6 +153,7 @@ namespace pilar
 			
 			//TODO set the intial particle positions
 			particle[i]->position = (root + Vector3f(length*i, 0.0f, 0.0f));
+			particle[i]->posc = particle[i]->position;
 		}
 		
 		buildSprings(k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length);
@@ -277,21 +278,21 @@ namespace pilar
 	
 	void Strand::applyStrainLimiting(float dt)
 	{
-		//TODO
 		for(int i = 1; i < numParticles; i++)
 		{
-			Vector3f candidate = particle[i]->position + particle[i]->velh * dt;
-			//TODO get candidate position of previous particle
-			Vector3f dir = candidate - particle[i-1]->position;
-			float length = dir.length();
+			//Calculate candidate position using half velocity
+			particle[i]->posc = particle[i]->position + particle[i]->velh * dt;
 			
-			if(length > MAX_LENGTH)
+			//Determine the direction of the spring between the particles
+			Vector3f dir = particle[i]->posc - particle[i-1]->posc;
+			
+			if(dir.length_sqr() > MAX_LENGTH_SQUARED)
 			{
-				float factor = length/MAX_LENGTH;
+				std::cout << "here" << std::endl;
+				particle[i]->posc = particle[i-1]->posc + (dir * (dir.length()/MAX_LENGTH));
 				
-				candidate = particle[i-1]->position + (dir * (length/MAX_LENGTH));
-				
-				particle[i]->velh = (candidate - particle[i]->position)/dt;
+				//TODO candidate position of previous particle
+				particle[i]->velh = (particle[i]->posc - particle[i]->position)/dt;
 			}
 		}
 	}
@@ -309,7 +310,7 @@ namespace pilar
 		
 		updateVelocities(dt);		
 		
-//		applyStrainLimiting(dt);
+		applyStrainLimiting(dt);
 		
 		//Calculate half velocity, half position and new position
 		updateParticles1(dt);

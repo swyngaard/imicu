@@ -13,7 +13,9 @@ namespace pilar
 		float mass;
 		
 		Vector3f posh;
+		Vector3f posc;
 		Vector3f position;
+		
 		
 		Vector3f velh;
 		Vector3f velocity;
