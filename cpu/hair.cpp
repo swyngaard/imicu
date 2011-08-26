@@ -152,7 +152,7 @@ namespace pilar
 			particle[i] = new Particle(mass);
 			
 			//TODO set the intial particle positions
-			particle[i]->position = (root + Vector3f(length*i, 0.0f, 0.0f));
+			particle[i]->position = (root + Vector3f(length/2.0f*i, 0.0f, 0.0f));
 			particle[i]->posc = particle[i]->position;
 		}
 		
@@ -288,11 +288,19 @@ namespace pilar
 			
 			if(dir.length_sqr() > MAX_LENGTH_SQUARED)
 			{
-				std::cout << "here" << std::endl;
+				std::cout << i << " " << dir.length() << std::endl;
+				
+				std::cout << "prev " << particle[i-1]->posc.x << " " << particle[i-1]->posc.y << " " << particle[i-1]->posc.z << std::endl;
+				std::cout << "dir " << dir.x << " " << dir.y << " " << dir.z << std::endl;
+				std::cout << "bf " << particle[i]->posc.x << " " << particle[i]->posc.y << " " << particle[i]->posc.z << std::endl;
+				
 				particle[i]->posc = particle[i-1]->posc + (dir * (dir.length()/MAX_LENGTH));
 				
+				std::cout << "af " << particle[i]->posc.x << " " << particle[i]->posc.y << " " << particle[i]->posc.z << std::endl;
+				
+				
 				//TODO candidate position of previous particle
-				particle[i]->velh = (particle[i]->posc - particle[i]->position)/dt;
+//				particle[i]->velh = (particle[i]->posc - particle[i]->position)/dt;
 			}
 		}
 	}
