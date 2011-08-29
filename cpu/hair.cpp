@@ -288,19 +288,21 @@ namespace pilar
 			
 			if(dir.length_sqr() > MAX_LENGTH_SQUARED)
 			{
-				std::cout << i << " " << dir.length() << std::endl;
+//				std::cout << i << " " << dir.length() << std::endl;
 				
-				std::cout << "prev " << particle[i-1]->posc.x << " " << particle[i-1]->posc.y << " " << particle[i-1]->posc.z << std::endl;
-				std::cout << "dir " << dir.x << " " << dir.y << " " << dir.z << std::endl;
-				std::cout << "bf " << particle[i]->posc.x << " " << particle[i]->posc.y << " " << particle[i]->posc.z << std::endl;
+//				std::cout << "prev " << particle[i-1]->posc.x << " " << particle[i-1]->posc.y << " " << particle[i-1]->posc.z << std::endl;
+//				std::cout << "posc " << particle[i]->posc.x << " " << particle[i]->posc.y << " " << particle[i]->posc.z << std::endl;
+//				std::cout << "dir " << dir.x << " " << dir.y << " " << dir.z << std::endl;
 				
-				particle[i]->posc = particle[i-1]->posc + (dir * (dir.length()/MAX_LENGTH));
+				particle[i]->posc = particle[i-1]->posc + (dir * (MAX_LENGTH/dir.length()));
 				
-				std::cout << "af " << particle[i]->posc.x << " " << particle[i]->posc.y << " " << particle[i]->posc.z << std::endl;
+				dir = particle[i]->posc - particle[i-1]->posc;
 				
+//				std::cout << "after " << particle[i]->posc.x << " " << particle[i]->posc.y << " " << particle[i]->posc.z << std::endl;
+//				std::cout << "df " << dir.length() << std::endl;
 				
 				//TODO candidate position of previous particle
-//				particle[i]->velh = (particle[i]->posc - particle[i]->position)/dt;
+				particle[i]->velh = (particle[i]->posc - particle[i]->position)/dt;
 			}
 		}
 	}
