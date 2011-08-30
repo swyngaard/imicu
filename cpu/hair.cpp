@@ -280,6 +280,7 @@ namespace pilar
 	{
 		bool strained = true;
 		
+		//TODO faster iterative strain limiting!!!
 		while(strained)
 		{
 			strained = false;
@@ -294,7 +295,7 @@ namespace pilar
 			
 				if(dir.length_sqr() > MAX_LENGTH_SQUARED)
 				{
-//					strained = true;
+					strained = true;
 					
 					//Find a valid candidate position
 					particle[i]->posc = particle[i-1]->posc + (dir * (MAX_LENGTH*dir.length_inverse())); //fast length calculation
