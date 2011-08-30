@@ -278,31 +278,31 @@ namespace pilar
 	
 	void Strand::applyStrainLimiting(float dt)
 	{
-		for(int i = 1; i < numParticles; i++)
+		bool strained = true;
+		
+		while(strained)
 		{
-			//Calculate candidate position using half velocity
-			particle[i]->posc = particle[i]->position + particle[i]->velh * dt;
+			strained = false;
 			
-			//Determine the direction of the spring between the particles
-			Vector3f dir = particle[i]->posc - particle[i-1]->posc;
-			
-			if(dir.length_sqr() > MAX_LENGTH_SQUARED)
+			for(int i = 1; i < numParticles; i++)
 			{
-//				std::cout << i << " " << dir.length() << std::endl;
-				
-//				std::cout << "prev " << particle[i-1]->posc.x << " " << particle[i-1]->posc.y << " " << particle[i-1]->posc.z << std::endl;
-//				std::cout << "posc " << particle[i]->posc.x << " " << particle[i]->posc.y << " " << particle[i]->posc.z << std::endl;
-//				std::cout << "dir " << dir.x << " " << dir.y << " " << dir.z << std::endl;
-				
-				particle[i]->posc = particle[i-1]->posc + (dir * (MAX_LENGTH/dir.length()));
-				
-				dir = particle[i]->posc - particle[i-1]->posc;
-				
-//				std::cout << "after " << particle[i]->posc.x << " " << particle[i]->posc.y << " " << particle[i]->posc.z << std::endl;
-//				std::cout << "df " << dir.length() << std::endl;
-				
-				//TODO candidate position of previous particle
-				particle[i]->velh = (particle[i]->posc - particle[i]->position)/dt;
+				//Calculate candidate position using half velocity
+				particle[i]->posc = particle[i]->position + particle[i]->velh * dt;
+			
+				//Determine the direction of the spring between the particles
+				Vector3f dir = particle[i]->posc - particle[i-1]->posc;
+			
+				if(dir.length_sqr() > MAX_LENGTH_SQUARED)
+				{
+//					strained = true;
+					
+					//Find a valid candidate position
+					particle[i]->posc = particle[i-1]->posc + (dir * (MAX_LENGTH*dir.length_inverse())); //fast length calculation
+//					particle[i]->posc = particle[i-1]->posc + (dir * (MAX_LENGTH/dir.length())); //slower length calculation
+
+					//Calculate new half velocity based on valid candidate position, i.e. add a velocity impulse
+					particle[i]->velh = (particle[i]->posc - particle[i]->position)/dt;
+				}
 			}
 		}
 	}

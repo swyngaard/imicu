@@ -86,12 +86,25 @@ namespace pilar
 
 	float Vector3f::length()								// length() returns the length of this Vector3f
 	{
-		return sqrtf(x*x + y*y + z*z);
+		return sqrtf(length_sqr());
 	}
 	
 	float Vector3f::length_sqr()							//length_sqr()return the squared length of this Vector3f
 	{
 		return x*x + y*y + z*z;
+	}
+	
+	float Vector3f::length_inverse()
+	{
+		float number = length_sqr();
+		
+		float xhalf = 0.5f*number;
+		int i = *(int*)&number; // get bits for floating value
+		i = 0x5f375a86- (i>>1); // gives initial guess y0
+		number = *(float*)&i; // convert bits back to float
+		number = number*(1.5f-xhalf*number*number); // Newton step, repeating increases accuracy
+		
+  		return number;
 	}
 
 	void Vector3f::unitize()								// unitize() normalizes this Vector3f that its direction remains the same but its length is 1.
