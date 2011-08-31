@@ -112,8 +112,8 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.125f, -0.5f,
-				0.0f, -0.125f,  0.0f,
+	gluLookAt(	0.0f, -0.13f, -0.35f,
+				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	//closeup with damping
 //	gluLookAt(	0.0f, -0.25f, -0.65f,
