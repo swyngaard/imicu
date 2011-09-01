@@ -39,7 +39,8 @@ int main(int argc, char **argv) {
 //	glutIdleFunc(render);
 	glutTimerFunc(20, animate, 20);
 	
-	glPointSize(10.0f);
+	glPointSize(3.0f);
+	glShadeModel(GL_FLAT);
 	
 	prevTime = glutGet(GLUT_ELAPSED_TIME);
 	
@@ -124,16 +125,17 @@ void render(void) {
 //				0.0f, -0.4f,  0.0f,
 //				0.0f, 1.0f,  0.0f);
 	
-	//TODO Draw hair
+	//Draw hair
+	glBegin(GL_LINE_STRIP);
 	
-	glBegin(GL_LINES);
+//	glVertex3f(0.0f, 0.0f, 0.0f);
 	
 	for(int i = 0; i < hair->numStrands; i++)
 	{
-		for(int j = 1; j < hair->strand[i]->numParticles; j++)
+		for(int j = 0; j < hair->strand[i]->numParticles; j++)
 		{
 			pilar::Particle* particle = hair->strand[i]->particle[j];
-			pilar::Particle* p0 = hair->strand[i]->particle[j-1];
+//			pilar::Particle* p0 = hair->strand[i]->particle[j-1];
 			
 			//Set the colour of the spring
 			
@@ -146,7 +148,7 @@ void render(void) {
 			}
 			
 			
-			glVertex3f(p0->position.x, p0->position.y, p0->position.z);
+//			glVertex3f(p0->position.x, p0->position.y, p0->position.z);
 			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
 			
 //			if(j==(hair->strand[i]->numParticles-1))
