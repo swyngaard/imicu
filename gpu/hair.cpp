@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+extern "C" void updateStrands();
+
 namespace pilar
 {
 
@@ -415,6 +417,8 @@ namespace pilar
 		{
 			strand[i]->update(dt);
 		}
+		
+		updateStrands();
 	}
 	
 	//Clean up

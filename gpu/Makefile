@@ -1,33 +1,55 @@
-CC = g++
+################################################################################
+#
+# Copyright 1993-2006 NVIDIA Corporation.  All rights reserved.
+#
+# NOTICE TO USER:   
+#
+# This source code is subject to NVIDIA ownership rights under U.S. and 
+# international Copyright laws.  
+#
+# NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOURCE 
+# CODE FOR ANY PURPOSE.  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR 
+# IMPLIED WARRANTY OF ANY KIND.  NVIDIA DISCLAIMS ALL WARRANTIES WITH 
+# REGARD TO THIS SOURCE CODE, INCLUDING ALL IMPLIED WARRANTIES OF 
+# MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE.   
+# IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL, 
+# OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS 
+# OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE 
+# OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE 
+# OR PERFORMANCE OF THIS SOURCE CODE.  
+#
+# U.S. Government End Users.  This source code is a "commercial item" as 
+# that term is defined at 48 C.F.R. 2.101 (OCT 1995), consisting  of 
+# "commercial computer software" and "commercial computer software 
+# documentation" as such terms are used in 48 C.F.R. 12.212 (SEPT 1995) 
+# and is provided to the U.S. Government only as a commercial end item.  
+# Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through 
+# 227.7202-4 (JUNE 1995), all U.S. Government End Users acquire the 
+# source code with only those rights set forth herein.
+#
+################################################################################
+#
+# Build script for project
+#
+################################################################################
 
-CPP = main.cpp hair.cpp tools.cpp
-HEADERS = hair.h tools.h constants.h
-OBJF = hair.o tools.o
-OBJ = main.o $(OBJF)
-FLAGS = -I$(HOME)/local/include
-EXE = pilar
+# Add source files here
+EXECUTABLE	:= gl
+#EXECUTABLE	:= pilar
 
-OCPP = ogl.cpp
-OOBJ = ogl.o $(OBJF)
-OEXE = gl
-LIBS = -lglut -lGL -lGLU
+# Cuda source files (compiled with cudacc)
+CUFILES		:= hair.cu
 
-all: pilar ogl
+# C/C++ source files (compiled with gcc / c++)
+CCFILES		:= ogl.cpp hair.cpp tools.cpp
+#CCFILES		:= main.cpp hair.cpp tools.cpp
 
-obj_pilar: $(HEADERS)
-	$(CC) $(FLAGS) -c $(CPP)
+INCLUDES	+= -I$(HOME)/local/include
 
-pilar: obj_pilar
-	$(CC) $(OBJ) -o $(EXE) 
+USEGLLIB 	 := 1
+USEGLUT		 := 1
 
-obj_ogl: $(HEADERS)
-	$(CC) -c $(OCPP)
+################################################################################
+# Rules and targets
 
-ogl: obj_ogl
-	$(CC) $(OOBJ) $(LIBS) -o $(OEXE)
-
-.PHONY: clean
-	
-clean:
-	rm -rf *.o core $(EXE) gl output
-
+include common.mk
