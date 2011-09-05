@@ -4,6 +4,7 @@
 
 #include "tools.h"
 #include <vector>
+#include <vector_types.h>
 
 namespace pilar
 {
@@ -28,15 +29,7 @@ namespace pilar
 		void applyForce(Vector3f force);
 		void updateVelocity(float dt);
 		void updatePosition(float dt);
-		void update(float dt);
-	};
-	
-	enum SpringType
-	{
-		EDGE,
-		BEND,
-		TWIST,
-		EXTRA
+		void update();
 	};
 	
 	class Spring
@@ -46,12 +39,11 @@ namespace pilar
 		float k;
 		float length;
 		float damping;
-		SpringType type;
 		
 		void updateForce(Vector3f p0, Vector3f p1, float dt);
 		
 	public:
-		Spring(Particle* particle1, Particle* particle2, float k, float length, float damping, SpringType type);
+		Spring(Particle* particle1, Particle* particle2, float k, float length, float damping);
 		void update1(float dt);
 		void update2(float dt);
 		void release();
@@ -104,8 +96,23 @@ namespace pilar
 	protected:
 		Vector3f gravity;
 		
+		float3 *position;
+		float3 *posc;
+		float3 *posh;
+		
+		float3 *velocity;
+		float3 *velh;
+		
+		float3 *force;
+		
+		float4 mlgt; //Mass of particle, maximum length of a spring, gravity and change in time (dt)
+		float4 k;  //Spring constants
+		float4 d;  //Dampening constants
+		
 	public:
 		int numStrands;
+		int numParticles;
+		
 		Strand** strand;
 		
 		Hair(int numStrands,

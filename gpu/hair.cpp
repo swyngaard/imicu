@@ -5,7 +5,36 @@
 
 #include <iostream>
 
-extern "C" void updateStrands();
+extern "C" void initStrands(int numStrands,
+							int numParticles,
+							float length,
+							const float3 *root,
+				 			float3* &position,
+				 			float3* &posc,
+							float3* &posh,
+							float3* &velocity,
+							float3* &velh,
+							float3* &force);
+				 
+extern "C" void updateStrands(const int numParticles,
+				   			  float4 &mlgt,
+				   			  const float4 k,
+				   			  const float4 d,
+				   			  float3* &position,
+				   			  float3* &posc,
+				   			  float3* &posh,
+				   			  float3* &velocity,
+				   			  float3* &velh,
+				   			  float3* &force);
+
+extern "C" void releaseStrands(float3* &position,
+				 			   float3* &posc,
+				 			   float3* &posh,
+				 			   float3* &velocity,
+				 			   float3* &velh,
+				 			   float3* &force,
+				 			   int numStrands,
+				 			   int numParticles);
 
 namespace pilar
 {
@@ -28,7 +57,7 @@ namespace pilar
 		this->force += force;
 	}
 	
-	void Particle::update(float dt)
+	void Particle::update()
 	{
 		velocity = velh * 2 - velocity;
 	}
@@ -47,7 +76,7 @@ namespace pilar
 
 ////////////////////////////// Spring Class ////////////////////////////////////
 
-	Spring::Spring(Particle* particle1, Particle* particle2, float k, float length, float damping, SpringType type)
+	Spring::Spring(Particle* particle1, Particle* particle2, float k, float length, float damping)
 	{
 		this->k = k;
 		this->length = length;
@@ -178,21 +207,21 @@ namespace pilar
 		
 		for(int i = 0; i < numEdges; i++)
 		{
-			edge[i] = new Spring(particle[i], particle[i+1], k_edge, length, d_edge, EDGE);
+			edge[i] = new Spring(particle[i], particle[i+1], k_edge, length, d_edge);
 		}
 		
 		bend = new Spring*[numBend];
 		
 		for(int i = 0; i < numBend; i++)
 		{
-			bend[i] = new Spring(particle[i], particle[i+2], k_bend, length, d_bend, BEND);
+			bend[i] = new Spring(particle[i], particle[i+2], k_bend, length, d_bend);
 		}
 		
 		twist = new Spring*[numTwist];
 		
 		for(int i = 0; i < numTwist; i++)
 		{
-			twist[i] = new Spring(particle[i], particle[i+3], k_twist, length, d_twist, TWIST);
+			twist[i] = new Spring(particle[i], particle[i+3], k_twist, length, d_twist);
 		}
 		
 		
@@ -267,7 +296,7 @@ namespace pilar
 		for(int i = 1; i < numParticles; i++)
 		{
 			particle[i]->updateVelocity(dt);
-			particle[i]->update(dt);
+			particle[i]->update();
 		}
 	}
 	
@@ -401,6 +430,22 @@ namespace pilar
 			   std::vector<Vector3f> &roots)
 	{
 		this->numStrands = numStrands;
+		this->numParticles = numParticles;
+		
+		mlgt.x = mass;
+		mlgt.y = length;
+		mlgt.z = GRAVITY;
+		
+		
+		k.x = k_edge;
+		k.y = k_bend;
+		k.z = k_twist;
+		k.w = k_extra;
+		
+		d.x = d_edge;
+		d.y = d_bend;
+		d.z = d_twist;
+		d.w = d_extra;
 		
 		strand = new Strand*[numStrands];
 		
@@ -408,17 +453,31 @@ namespace pilar
 		{
 			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]);
 		}
+		
+		float3* r = (float3*) calloc(numStrands, sizeof(float3));
+		
+		//TODO change roots to float3* vector
+		for(unsigned int i = 0; i < roots.size(); i++)
+		{
+			r[i].x = roots[i].x;
+			r[i].y = roots[i].y;
+			r[i].z = roots[i].z;
+		}
+		
+		//TODO initialise strand data on GPU
+		initStrands(numStrands, numParticles, length, r, position, posc, posh, velocity, velh, force);
 	}
 	
 	void Hair::update(float dt)
 	{
-		//TODO Put onto GPU
 		for(int i = 0; i < numStrands; i++)
 		{
 			strand[i]->update(dt);
 		}
 		
-		updateStrands();
+		//TODO update strands on GPU
+		mlgt.w = dt;
+//		updateStrands();
 	}
 	
 	//Clean up
@@ -432,5 +491,10 @@ namespace pilar
 		}
 		
 		delete [] strand;
+		
+		//TODO Release strand data from GPU
+		releaseStrands(position,posc,posh,velocity,velh,force,numStrands,numParticles);
 	}
 }
+
+
