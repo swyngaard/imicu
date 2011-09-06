@@ -32,9 +32,7 @@ extern "C" void releaseStrands(float3* &position,
 				 			   float3* &posh,
 				 			   float3* &velocity,
 				 			   float3* &velh,
-				 			   float3* &force,
-				 			   int numStrands,
-				 			   int numParticles);
+				 			   float3* &force);
 
 namespace pilar
 {
@@ -494,7 +492,7 @@ namespace pilar
 		delete [] strand;
 		
 		//TODO Release strand data from GPU
-		releaseStrands(position,posc,posh,velocity,velh,force,numStrands,numParticles);
+		releaseStrands(position,posc,posh,velocity,velh,force);
 	}
 }
 

@@ -7,6 +7,7 @@
 #include <cutil_inline.h>
 #include <cutil_gl_inline.h>
 #include <cutil_gl_error.h>
+#include <cuda_gl_interop.h>
 
 #include "hair.h"
 #include "constants.h"
@@ -52,6 +53,10 @@ int main(int argc, char **argv) {
 //	glutIdleFunc(render);
 	glutTimerFunc(20, animate, 20);
 	
+	glewInit();
+	
+	cudaGLSetGLDevice( cutGetMaxGflopsDeviceId() );
+	
 	glPointSize(3.0f);
 	glShadeModel(GL_FLAT);
 	
@@ -59,13 +64,6 @@ int main(int argc, char **argv) {
 	
 	//Initialise hair simulation
 	init();
-	
-	std::cout << "before" << std::endl;
-	// create vertex buffers and register with CUDA
-    createVBO(&vbo, NUMSTRANDS*NUMPARTICLES*sizeof(float3));
-    std::cout << "middle" << std::endl;
-    cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_vbo_resource, vbo, cudaGraphicsMapFlagsWriteDiscard));
-    std::cout << "after" << std::endl;
 	
 	// enter GLUT event processing cycle
 	glutMainLoop();
@@ -81,17 +79,12 @@ int main(int argc, char **argv) {
 void createVBO(GLuint* v, int size)
 {
     // create buffer object
-    std::cout << "here" << std::endl;
     glGenBuffers(1, v);
-    std::cout << "here" << std::endl;
     glBindBuffer(GL_ARRAY_BUFFER, *v);
-    std::cout << "here" << std::endl;
     glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
-    std::cout << "here" << std::endl;
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-	std::cout << "here" << std::endl;
+    
     CUT_CHECK_ERROR_GL();
-    std::cout << "here" << std::endl;
 }
 
 void deleteVBO(GLuint* v)
@@ -102,6 +95,12 @@ void deleteVBO(GLuint* v)
 
 void init()
 {
+	std::cout << "before" << std::endl;
+	// create vertex buffers and register with CUDA
+    createVBO(&vbo, NUMSTRANDS*NUMPARTICLES*sizeof(float3));
+    cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_vbo_resource, vbo, cudaGraphicsMapFlagsWriteDiscard));
+    std::cout << "after" << std::endl;
+	
 	pilar::Vector3f root;
 	std::vector<pilar::Vector3f> roots;
 	
@@ -216,12 +215,12 @@ void render(void) {
     glVertexPointer(3, GL_FLOAT, 0, 0);
     glEnableClientState(GL_VERTEX_ARRAY);
 	
-	for(int i = 0; i < hair->numStrands; i++)
-	{
-		int start = i * NUMPARTICLES;
-		int end = start + NUMPARTICLES;
-		glDrawArrays(GL_LINE_STRIP, start, end);
-	}
+//	for(int i = 0; i < hair->numStrands; i++)
+//	{
+//		int start = i * NUMPARTICLES;
+//		int end = start + NUMPARTICLES;
+		glDrawArrays(GL_LINE_STRIP, 0, NUMPARTICLES);
+//	}
 	
 	glDisableClientState(GL_VERTEX_ARRAY);
 	

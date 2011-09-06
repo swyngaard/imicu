@@ -50,7 +50,7 @@ void initStrands(int numStrands,
 	}
 	
 	cutilSafeCall(cudaMemcpy(position, position_h, size, cudaMemcpyHostToDevice));
-	cutilSafeCall(cudaMemcpy(posc, position_h, size, cudaMemcpyHostToDevice));
+	cutilSafeCall(cudaMemcpy(posc, position, size, cudaMemcpyDeviceToDevice));
 	
 	free(position_h);
 }
@@ -62,8 +62,6 @@ void releaseStrands(float3* &position,
 				 	float3* &velocity,
 				 	float3* &velh,
 				 	float3* &force)
-//				 	int numStrands,
-//				 	int numParticles)
 {
 	/*
 	float3* position_h = (float3*) calloc(numStrands*numParticles, sizeof(float3));
@@ -83,12 +81,12 @@ void releaseStrands(float3* &position,
 	free(position_h);
 	*/
 	
-	cutilSafeCall(cudaFree(position));
 	cutilSafeCall(cudaFree(posc));
 	cutilSafeCall(cudaFree(posh));
 	cutilSafeCall(cudaFree(velocity));
 	cutilSafeCall(cudaFree(velh));
 	cutilSafeCall(cudaFree(force));
+	cutilSafeCall(cudaFree(position));
 }
 
 extern "C"
