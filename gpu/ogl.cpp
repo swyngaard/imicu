@@ -1,6 +1,12 @@
 //#include <GL/glut.h>
+
+#include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <iostream>
+
+#include <cutil_inline.h>
+#include <cutil_gl_inline.h>
+#include <cutil_gl_error.h>
 
 #include "hair.h"
 #include "constants.h"
@@ -13,6 +19,10 @@
 pilar::Hair* hair = NULL;
 int prevTime;
 
+// vbo variables
+GLuint vbo;
+struct cudaGraphicsResource *cuda_vbo_resource;
+
 void animate(int milli);
 void reshape(int w, int h);
 void render(void);
@@ -21,6 +31,9 @@ void keyboard(unsigned char key, int x, int y);
 void init();
 void update(float dt);
 void cleanup();
+
+void createVBO(GLuint* v, int size);
+void deleteVBO(GLuint* v);
 
 int main(int argc, char **argv) {
 
@@ -47,6 +60,13 @@ int main(int argc, char **argv) {
 	//Initialise hair simulation
 	init();
 	
+	std::cout << "before" << std::endl;
+	// create vertex buffers and register with CUDA
+    createVBO(&vbo, NUMSTRANDS*NUMPARTICLES*sizeof(float3));
+    std::cout << "middle" << std::endl;
+    cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_vbo_resource, vbo, cudaGraphicsMapFlagsWriteDiscard));
+    std::cout << "after" << std::endl;
+	
 	// enter GLUT event processing cycle
 	glutMainLoop();
 	
@@ -56,6 +76,28 @@ int main(int argc, char **argv) {
 	std::cout << "Exiting cleanly..." << std::endl;
 	
 	return 0;
+}
+
+void createVBO(GLuint* v, int size)
+{
+    // create buffer object
+    std::cout << "here" << std::endl;
+    glGenBuffers(1, v);
+    std::cout << "here" << std::endl;
+    glBindBuffer(GL_ARRAY_BUFFER, *v);
+    std::cout << "here" << std::endl;
+    glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
+    std::cout << "here" << std::endl;
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+	std::cout << "here" << std::endl;
+    CUT_CHECK_ERROR_GL();
+    std::cout << "here" << std::endl;
+}
+
+void deleteVBO(GLuint* v)
+{
+    glDeleteBuffers(1, v);
+    *v = 0;
 }
 
 void init()
@@ -76,6 +118,10 @@ void cleanup()
 	delete hair;
 	
 	hair = NULL;
+	
+	//Delete VBO
+	cutilSafeCall(cudaGraphicsUnregisterResource(cuda_vbo_resource));
+	deleteVBO(&vbo);
 }
 
 void reshape(int w, int h)
@@ -165,6 +211,19 @@ void render(void) {
 		glVertex3f(0.0f, -0.25f, 0.0f);
 	glEnd();
 	
+	// render from the vbo
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glVertexPointer(3, GL_FLOAT, 0, 0);
+    glEnableClientState(GL_VERTEX_ARRAY);
+	
+	for(int i = 0; i < hair->numStrands; i++)
+	{
+		int start = i * NUMPARTICLES;
+		int end = start + NUMPARTICLES;
+		glDrawArrays(GL_LINE_STRIP, start, end);
+	}
+	
+	glDisableClientState(GL_VERTEX_ARRAY);
 	
 	glutSwapBuffers();
 }
@@ -177,8 +236,14 @@ void animate(int milli)
 	
 	float dt =  (currentTime - prevTime)/1000.0f;
 	
+	size_t num_bytes;
+	cutilSafeCall(cudaGraphicsMapResources(1, &cuda_vbo_resource, 0));
+	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&hair->position, &num_bytes, cuda_vbo_resource));
+	
 	hair->update(dt);
-		
+	
+	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_vbo_resource, 0));
+	
 	glutPostRedisplay();
 	
 	prevTime = currentTime;

@@ -96,7 +96,7 @@ namespace pilar
 	protected:
 		Vector3f gravity;
 		
-		float3 *position;
+		
 		float3 *posc;
 		float3 *posh;
 		
@@ -112,6 +112,7 @@ namespace pilar
 	public:
 		int numStrands;
 		int numParticles;
+		float3 *position;
 		
 		Strand** strand;
 		
