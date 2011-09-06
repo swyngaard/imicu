@@ -59,7 +59,7 @@ namespace pilar
 	
 	void Particle::update()
 	{
-		velocity = velh * 2 - velocity;
+		velocity = velh * 2.0f - velocity;
 	}
 	
 	void Particle::updateVelocity(float dt)
@@ -352,7 +352,8 @@ namespace pilar
 		//Apply gravity
 		applyForce(Vector3f(0.0f, GRAVITY, 0.0f));
 		
-		updateVelocities(dt);		
+		//Calculate half velocities
+		updateVelocities(dt);
 		
 		applyStrainLimiting(dt);
 		

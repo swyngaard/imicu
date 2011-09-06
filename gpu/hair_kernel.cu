@@ -26,21 +26,20 @@ float inv_sqrt(float number)
 }
 
 __device__
-void updateEdgeSprings(int numParticles,
-					   float mass,
-					   float length,
-					   float dt,
-					   float k,
-					   float3* position,
-					   float3* velocity,
-					   float3* force)
+void updateSprings(int numSprings,
+				   int stride,
+				   float mass,
+				   float length,
+				   float dt,
+				   float k,
+				   float3* position,
+				   float3* velocity,
+				   float3* force)
 {
-	int numEdges = numParticles - 1;
-	
-	for(int i = 0; i < numEdges; i++)
+	for(int i = 0; i < numSprings; i++)
 	{
-		float3 xn = make_float3(position[i+1].x-position[i].x, position[i+1].y-position[i].y, position[i+1].z-position[i].z);
-		float3 vn = make_float3(velocity[i+1].x-velocity[i].x, velocity[i+1].y-velocity[i].y, velocity[i+1].z-velocity[i].z);
+		float3 xn = make_float3(position[i+stride].x-position[i].x, position[i+stride].y-position[i].y, position[i+stride].z-position[i].z);
+		float3 vn = make_float3(velocity[i+stride].x-velocity[i].x, velocity[i+stride].y-velocity[i].y, velocity[i+stride].z-velocity[i].z);
 		
 		float inv_length = inv_sqrt(xn.x*xn.x + xn.y*xn.y + xn.z*xn.z);
 		float3 d = make_float3(xn.x*inv_length, xn.y*inv_length, xn.z*inv_length);
@@ -64,9 +63,73 @@ void updateEdgeSprings(int numParticles,
 		force[i].x += result.x * -1.0f; 
 		force[i].y += result.y * -1.0f;
 		force[i].z += result.z * -1.0f;
-		force[i+1].x += result.x; 
-		force[i+1].y += result.y;
-		force[i+1].z += result.z;
+		force[i+stride].x += result.x; 
+		force[i+stride].y += result.y;
+		force[i+stride].z += result.z;
+	}
+}
+
+__device__
+void applyForce(int numParticles, float3 f, float3* force)
+{
+	for(int i = 0; i < numParticles; i++)
+	{
+		force[i].x += f.x;
+		force[i].y += f.y;
+		force[i].z += f.z;
+	}
+}
+
+__device__
+void updateVelocities(int numParticles,
+					  float dt,
+					  float3* velocity,
+					  float3* velh,
+					  float3* force)
+{
+	for(int i = 0; i < numParticles; i++)
+	{
+		velh[i].x = velocity[i].x + force[i].x * (dt / 2.0f);
+		velh[i].y = velocity[i].y + force[i].y * (dt / 2.0f);
+		velh[i].z = velocity[i].z + force[i].z * (dt / 2.0f);
+	}
+}
+
+__device__
+void updatePositions(int numParticles,
+					 float dt,
+					 float3* position,
+					 float3* posh,
+					 float3* velh)
+{
+	for(int i = 0; i < numParticles; i++)
+	{
+		float3 newPosition = make_float3(position[i].x + velh[i].x * dt,
+										 position[i].y + velh[i].y * dt,
+										 position[i].z + velh[i].z * dt);
+		
+		posh[i].x = (position[i].x + newPosition.x)/2.0f;
+		posh[i].y = (position[i].y + newPosition.y)/2.0f;
+		posh[i].z = (position[i].z + newPosition.z)/2.0f;
+		
+		position[i].x = newPosition.x;
+		position[i].y = newPosition.y;
+		position[i].z = newPosition.z;
+	}
+}
+
+__device__
+void updateParticles(int numParticles, float dt, float3* velocity, float3* velh, float3* force)
+{
+	for(int i = 0; i < numParticles; i++)
+	{
+		velh[i].x = velocity[i].x + force[i].x * (dt / 2.0f);
+		velh[i].y = velocity[i].y + force[i].y * (dt / 2.0f);
+		velh[i].z = velocity[i].z + force[i].z * (dt / 2.0f);
+		
+		velocity[i].x = velh[i].x * 2.0f - velocity[i].x;
+		velocity[i].y = velh[i].y * 2.0f - velocity[i].y;
+		velocity[i].z = velh[i].z * 2.0f - velocity[i].z;
 	}
 }
 
@@ -90,20 +153,44 @@ void update(const int numParticles,
 	clearForces(numParticles, force+start);
 	
 	//Update edge springs
-	updateEdgeSprings(numParticles,
-					  mlgt.x,
-					  mlgt.y,
-					  mlgt.w,
-					  k.x,
-					  position+start,
-					  velocity+start,
-					  force+start);
+	updateSprings(numParticles-1, 1, mlgt.x, mlgt.y, mlgt.w, k.x, position+start, velocity+start, force+start);
 	
 	//Update bend springs
+	updateSprings(numParticles-2, 2, mlgt.x, mlgt.y, mlgt.w, k.y, position+start, velocity+start, force+start);
+	
 	//Update twist springs
+	updateSprings(numParticles-3, 3, mlgt.x, mlgt.y, mlgt.w, k.z, position+start, velocity+start, force+start);
 	
+	//TODO Update extra springs
 	
+	//Apply gravity
+	applyForce(numParticles, make_float3(0.0f,mlgt.z, 0.0f), force+start);
+	
+	updateVelocities(numParticles, mlgt.w, velocity+start, velh+start, force+start);
+	
+	//TODO apply strain limiting
+	
+	//Calculate half position and new position
+	updatePositions(numParticles, mlgt.w, position+start, posh+start, velh+start);
+	
+	//Reset forces on particles
 	clearForces(numParticles, force+start);
+	
+	//Calculate and apply spring forces using half position
+	//Update edge springs
+	updateSprings(numParticles-1, 1, mlgt.x, mlgt.y, mlgt.w, k.x, posh+start, velocity+start, force+start);
+	
+	//Update bend springs
+	updateSprings(numParticles-2, 2, mlgt.x, mlgt.y, mlgt.w, k.y, posh+start, velocity+start, force+start);
+	
+	//Update twist springs
+	updateSprings(numParticles-3, 3, mlgt.x, mlgt.y, mlgt.w, k.z, posh+start, velocity+start, force+start);
+	
+	//Apply gravity
+	applyForce(numParticles, make_float3(0.0f,mlgt.z, 0.0f), force+start);
+	
+	//Calculate half velocity and new velocity
+	updateParticles(numParticles, mlgt.w, velocity+start, velh+start, force+start);
 }
 
 #endif
