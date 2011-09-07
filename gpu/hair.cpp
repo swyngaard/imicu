@@ -34,6 +34,11 @@ extern "C" void releaseStrands(float3* &position,
 				 			   float3* &velh,
 				 			   float3* &force);
 
+extern "C" void copyMem(const int numStrands,
+						const int numParticles,
+						float3* &position,
+						float3* &posc);
+
 namespace pilar
 {
 
@@ -465,6 +470,11 @@ namespace pilar
 		
 		//TODO initialise strand data on GPU
 		initStrands(numStrands, numParticles, length, r, position, posc, posh, velocity, velh, force);
+	}
+	
+	void Hair::init()
+	{
+		copyMem(numStrands, numParticles, position, posc);
 	}
 	
 	void Hair::update(float dt)

@@ -27,13 +27,13 @@ void initStrands(int numStrands,
 {
 	int size = numStrands*numParticles*sizeof(float3);
 	
-	position = init(size);
+//	position = init(size);
 	posc = init(size);
 	posh = init(size);
 	velocity = init(size);
 	velh = init(size);
 	force = init(size);
-	
+	/*
 	float3* position_h = (float3*) calloc(numStrands*numParticles, sizeof(float3));
 	
 	for(int i = 0; i < numStrands; i++)
@@ -49,11 +49,24 @@ void initStrands(int numStrands,
 		}
 	}
 	
+	printf("before memcpy\n");
 	cutilSafeCall(cudaMemcpy(position, position_h, size, cudaMemcpyHostToDevice));
 	cutilSafeCall(cudaMemcpy(posc, position, size, cudaMemcpyDeviceToDevice));
+	printf("after memcpy\n");
 	
 	free(position_h);
+	*/
 }
+
+extern "C"
+void copyMem(const int numStrands,
+			 const int numParticles,
+			 float3* &position,
+			 float3* &posc)
+{
+	cutilSafeCall(cudaMemcpy(posc, position, numStrands*numParticles*sizeof(float3), cudaMemcpyDeviceToDevice));
+}
+
 
 extern "C"
 void releaseStrands(float3* &position,
@@ -86,7 +99,7 @@ void releaseStrands(float3* &position,
 	cutilSafeCall(cudaFree(velocity));
 	cutilSafeCall(cudaFree(velh));
 	cutilSafeCall(cudaFree(force));
-	cutilSafeCall(cudaFree(position));
+//	cutilSafeCall(cudaFree(position));
 }
 
 extern "C"

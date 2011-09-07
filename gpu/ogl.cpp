@@ -76,30 +76,46 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-void createVBO(GLuint* v, int size)
+void createVBO(std::vector<pilar::Vector3f> &root)
 {
-    // create buffer object
-    glGenBuffers(1, v);
-    glBindBuffer(GL_ARRAY_BUFFER, *v);
-    glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    
-    CUT_CHECK_ERROR_GL();
+	unsigned int size = NUMSTRANDS * NUMPARTICLES * sizeof(float3);
+	
+	float3* position_h = (float3*) malloc(size);
+	
+	for(int i = 0; i < NUMSTRANDS; i++)
+	{
+		for(int j = 0; j < NUMPARTICLES; j++)
+		{
+			int index = i*NUMPARTICLES + j;
+			position_h[index].x = root[i].x + j * LENGTH / 2.0f;
+			position_h[index].y = root[i].y;
+			position_h[index].z = root[i].z;
+			
+//			printf("%f %f %f\n", position_h[index].x, position_h[index].y, position_h[index].z);
+		}
+	}
+
+	//create vertex buffers and register with CUDA
+	glGenBuffers(1,&vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, NUMSTRANDS*NUMPARTICLES*sizeof(float3), (void*)position_h, GL_DYNAMIC_DRAW);
+	
+	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_vbo_resource, vbo, cudaGraphicsMapFlagsWriteDiscard));
+	
+	free(position_h);
 }
 
-void deleteVBO(GLuint* v)
+void releaseVBO()
 {
-    glDeleteBuffers(1, v);
-    *v = 0;
+	//Delete VBO
+	cutilSafeCall(cudaGraphicsUnregisterResource(cuda_vbo_resource));
+	glDeleteBuffers(1, &vbo);
+	vbo = 0;
 }
 
 void init()
 {
-	std::cout << "before" << std::endl;
-	// create vertex buffers and register with CUDA
-    createVBO(&vbo, NUMSTRANDS*NUMPARTICLES*sizeof(float3));
-    cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_vbo_resource, vbo, cudaGraphicsMapFlagsWriteDiscard));
-    std::cout << "after" << std::endl;
+	
 	
 	pilar::Vector3f root;
 	std::vector<pilar::Vector3f> roots;
@@ -107,7 +123,20 @@ void init()
 	//TODO randomly generate roots on a plane
 	roots.push_back(root);
 	
+	createVBO(roots);
+	
+	size_t size;
+	cutilSafeCall(cudaGraphicsMapResources(1, &cuda_vbo_resource, NULL));
+	
 	hair = new pilar::Hair(roots.size(), NUMPARTICLES, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH, roots);
+	
+	std::cout << "before" << std::endl;
+	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&hair->position, &size, cuda_vbo_resource));
+	std::cout << "after" << std::endl;
+	
+	hair->init();
+	
+	cutilSafeCall(cudaGraphicsUnmapResources(1, &cuda_vbo_resource, 0));
 }
 
 void cleanup()
@@ -118,9 +147,7 @@ void cleanup()
 	
 	hair = NULL;
 	
-	//Delete VBO
-	cutilSafeCall(cudaGraphicsUnregisterResource(cuda_vbo_resource));
-	deleteVBO(&vbo);
+	releaseVBO();
 }
 
 void reshape(int w, int h)

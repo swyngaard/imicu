@@ -130,6 +130,7 @@ namespace pilar
 			 float length,
 			 std::vector<Vector3f> &roots);
 		void update(float dt);
+		void init();
 		void release();
 	};
 }
