@@ -73,7 +73,7 @@ int main()
 	
 	float elapsed = 0.0f;
 	float dt = 1.0f/50.0f; //50 Frames per second
-	float total = 1.0f * dt; //total time of the simulation
+	float total = 2.0f; //total time of the simulation in seconds
 	int fileCount = 0;
 	
 	pilar::Vector3f root;

@@ -19,6 +19,7 @@ namespace pilar
 		
 		Vector3f velh;
 		Vector3f velocity;
+		Vector3f velc;
 		
 		Vector3f force;
 		
@@ -81,6 +82,7 @@ namespace pilar
 		void updateVelocities(float dt);
 		void updateParticles1(float dt);
 		void updateParticles2(float dt);
+		void calcVelocities(float dt);
 		
 	public:
 		int numParticles;
