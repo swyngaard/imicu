@@ -71,11 +71,23 @@ namespace pilar
 		int numTwist;
 		Vector3f root;
 		
+		float k_edge;
+		float k_bend;
+		float k_twist;
+		float k_extra;
+		
+		float d_edge;
+		float d_bend;
+		float d_twist;
+		float d_extra;
+		
+		float length;
+		
 		Spring** edge;
 		Spring** bend;
 		Spring** twist;
 		
-		void buildSprings(float k_edge, float k_bend, float k_twist, float k_extra, float d_edge, float d_bend, float d_twist, float d_extra, float length);
+		void buildSprings();
 		void clearForces();
 		void updateSprings1(float dt);
 		void updateSprings2(float dt);
