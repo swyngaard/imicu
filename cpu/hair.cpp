@@ -1,11 +1,9 @@
 #include "hair.h"
 #include "constants.h"
 
-#include <Eigen/QR>
-#include <Eigen/Dense>
-
 #include <iostream>
 #include <iomanip>
+#include <cstring>
 
 namespace pilar
 {
