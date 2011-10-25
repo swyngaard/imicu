@@ -57,10 +57,6 @@ namespace pilar
 		
 		this->particle[0] = particle1;
 		this->particle[1] = particle2;
-		
-//		this->A = new float[36];
-//		this->x = new float[6];
-//		this->b = new float[6];
 	}
 	
 	void Spring::update1(float dt)
@@ -87,7 +83,7 @@ namespace pilar
 		
 		Vector3f xn = p1 - p0;
 		Vector3f vn = particle[1]->velocity - particle[0]->velocity;
-		Vector3f d = xn.unit();
+		Vector3f d = xn * xn.length_inverse();
 		
 		//Calculate velocity
 		float h = dt * dt * k / (4.0f * particle[0]->mass * length);
@@ -114,9 +110,6 @@ namespace pilar
 		particle[1] = NULL;
 		
 		delete [] particle;
-//		delete [] A;
-//		delete [] x;
-//		delete [] b;
 	}
 	
 ////////////////////////////// Strand Class ////////////////////////////////////
@@ -170,6 +163,10 @@ namespace pilar
 //			std::cout << particle[i]->velh.x << " " << particle[i]->velh.y << " " << particle[i]->velh.z << std::endl;
 //			std::cout << particle[i]->velc.x << " " << particle[i]->velc.y << " " << particle[i]->velc.z << std::endl;
 		}
+		
+		this->A = new float[numParticles*3*numParticles*3];
+		this->x = new float[numParticles*3];
+		this->b = new float[numParticles*3];
 		
 		buildSprings();
 	}
@@ -274,13 +271,96 @@ namespace pilar
 		}
 	}
 	
+	void Strand::conjugate(int N, const float* A, const float* b, float* x)
+	{
+		float r[N];
+		float p[N];
+	
+		for(int i = 0; i < N; i++)
+		{
+			//r = b - Ax
+			r[i] = b[i];
+			for(int j = 0; j < N; j++)
+			{
+				r[i] -= A[i*N+j]*x[j];
+			}
+		
+			//p = r
+			p[i] = r[i];
+		}
+	
+		float rsold = 0.0f;
+	
+		for(int i = 0; i < N; i ++)
+		{
+			rsold += r[i] * r[i];
+		}
+	
+		for(int i = 0; i < N; i++)
+		{
+			float Ap[N];
+		
+			for(int j = 0; j < N; j++)
+			{
+				Ap[j] = 0.0f;
+			
+				for(int k = 0; k < N; k++)
+				{
+					Ap[j] += A[j*N+k] * p[k];
+				}
+			}
+		
+			float abot = 0.0f;
+		
+			for(int j = 0; j < N; j++)
+			{
+				abot += p[j] * Ap[j];
+			}
+		
+			float alpha = rsold / abot;
+		
+			for(int j = 0; j < N; j++)
+			{
+				x[j] = x[j] + alpha * p[j];
+			
+				r[j] = r[j] - alpha * Ap[j];
+			}
+		
+			float rsnew = 0.0f;
+		
+			for(int j = 0; j < N; j++)
+			{
+				rsnew += r[j] * r[j];
+			}
+		
+			if(rsnew < 1e-10f)
+			{
+	//			cout << "break " << i << endl;
+				break;
+			}
+		
+			for(int j = 0; j < N; j++)
+			{
+				p[j] = r[j] + rsnew / rsold * p[j];
+			}
+		
+			rsold = rsnew;
+		}
+	}
+	
 	void Strand::calcVelocities(float dt)
 	{
 		int N = numParticles * 3;
 		
-		Eigen::MatrixXf AA = Eigen::MatrixXf::Zero(N,N);
-		Eigen::VectorXf xx = Eigen::VectorXf::Zero(N);
-		Eigen::VectorXf bb = Eigen::VectorXf::Zero(N);
+		memset(A, 0, N*N*sizeof(float));
+		memset(b, 0, N*sizeof(float));
+		
+		for(int i = 0; i < numParticles; i++)
+		{
+			x[i*3]   = particle[i]->velocity.x;
+			x[i*3+1] = particle[i]->velocity.y;
+			x[i*3+2] = particle[i]->velocity.z;
+		}
 		
 		//Add edge springs data into A and b
 		float h = dt*dt*k_edge/(4.0f*mass*length);
@@ -292,21 +372,21 @@ namespace pilar
 			Vector3f e = d;
 			d = d * d.length_inverse();
 		
-			AA(i*3,  i*3) += 1+h*d.x*d.x; AA(i*3,  i*3+1) +=   h*d.x*d.y; AA(i*3,  i*3+2) +=   h*d.x*d.z; AA(i*3,  i*3+3) +=  -h*d.x*d.x; AA(i*3,  i*3+4) +=  -h*d.x*d.y; AA(i*3,  i*3+5) +=  -h*d.x*d.z;
-			AA(i*3+1,i*3) +=   h*d.x*d.y; AA(i*3+1,i*3+1) += 1+h*d.y*d.y; AA(i*3+1,i*3+2) +=   h*d.y*d.z; AA(i*3+1,i*3+3) +=  -h*d.x*d.y; AA(i*3+1,i*3+4) +=  -h*d.y*d.y; AA(i*3+1,i*3+5) +=  -h*d.y*d.z;
-			AA(i*3+2,i*3) +=   h*d.x*d.z; AA(i*3+2,i*3+1) +=   h*d.y*d.z; AA(i*3+2,i*3+2) += 1+h*d.z*d.z; AA(i*3+2,i*3+3) +=  -h*d.x*d.z; AA(i*3+2,i*3+4) +=  -h*d.y*d.z; AA(i*3+2,i*3+5) +=  -h*d.z*d.z;
-			AA(i*3+3,i*3) +=  -h*d.x*d.x; AA(i*3+3,i*3+1) +=  -h*d.x*d.y; AA(i*3+3,i*3+2) +=  -h*d.x*d.z; AA(i*3+3,i*3+3) += 1+h*d.x*d.x; AA(i*3+3,i*3+4) +=   h*d.x*d.y; AA(i*3+3,i*3+5) +=   h*d.x*d.z;
-			AA(i*3+4,i*3) +=  -h*d.x*d.y; AA(i*3+4,i*3+1) +=  -h*d.y*d.y; AA(i*3+4,i*3+2) +=  -h*d.y*d.z; AA(i*3+4,i*3+3) +=   h*d.x*d.y; AA(i*3+4,i*3+4) += 1+h*d.y*d.y; AA(i*3+4,i*3+5) +=   h*d.y*d.z;
-			AA(i*3+5,i*3) +=  -h*d.x*d.z; AA(i*3+5,i*3+1) +=  -h*d.y*d.z; AA(i*3+5,i*3+2) +=  -h*d.z*d.z; AA(i*3+5,i*3+3) +=   h*d.x*d.z; AA(i*3+5,i*3+4) +=   h*d.y*d.z; AA(i*3+5,i*3+5) += 1+h*d.z*d.z;		
+			A[(i*3)*N  +i*3] += 1+h*d.x*d.x; A[(i*3)*N  +i*3+1] +=   h*d.x*d.y; A[(i*3)*N  +i*3+2] +=   h*d.x*d.z; A[(i*3)*N  +i*3+3] +=  -h*d.x*d.x; A[(i*3)*N  +i*3+4] +=  -h*d.x*d.y; A[(i*3)*N  +i*3+5] +=  -h*d.x*d.z;
+			A[(i*3+1)*N+i*3] +=   h*d.x*d.y; A[(i*3+1)*N+i*3+1] += 1+h*d.y*d.y; A[(i*3+1)*N+i*3+2] +=   h*d.y*d.z; A[(i*3+1)*N+i*3+3] +=  -h*d.x*d.y; A[(i*3+1)*N+i*3+4] +=  -h*d.y*d.y; A[(i*3+1)*N+i*3+5] +=  -h*d.y*d.z;
+			A[(i*3+2)*N+i*3] +=   h*d.x*d.z; A[(i*3+2)*N+i*3+1] +=   h*d.y*d.z; A[(i*3+2)*N+i*3+2] += 1+h*d.z*d.z; A[(i*3+2)*N+i*3+3] +=  -h*d.x*d.z; A[(i*3+2)*N+i*3+4] +=  -h*d.y*d.z; A[(i*3+2)*N+i*3+5] +=  -h*d.z*d.z;
+			A[(i*3+3)*N+i*3] +=  -h*d.x*d.x; A[(i*3+3)*N+i*3+1] +=  -h*d.x*d.y; A[(i*3+3)*N+i*3+2] +=  -h*d.x*d.z; A[(i*3+3)*N+i*3+3] += 1+h*d.x*d.x; A[(i*3+3)*N+i*3+4] +=   h*d.x*d.y; A[(i*3+3)*N+i*3+5] +=   h*d.x*d.z;
+			A[(i*3+4)*N+i*3] +=  -h*d.x*d.y; A[(i*3+4)*N+i*3+1] +=  -h*d.y*d.y; A[(i*3+4)*N+i*3+2] +=  -h*d.y*d.z; A[(i*3+4)*N+i*3+3] +=   h*d.x*d.y; A[(i*3+4)*N+i*3+4] += 1+h*d.y*d.y; A[(i*3+4)*N+i*3+5] +=   h*d.y*d.z;
+			A[(i*3+5)*N+i*3] +=  -h*d.x*d.z; A[(i*3+5)*N+i*3+1] +=  -h*d.y*d.z; A[(i*3+5)*N+i*3+2] +=  -h*d.z*d.z; A[(i*3+5)*N+i*3+3] +=   h*d.x*d.z; A[(i*3+5)*N+i*3+4] +=   h*d.y*d.z; A[(i*3+5)*N+i*3+5] += 1+h*d.z*d.z;
 		
 			float factor = g * ((e.x*d.x+e.y*d.y+e.z*d.z) - (length));
 		
-			bb(i*3)   += particle[i]->velocity.x + factor * d.x;
-			bb(i*3+1) += particle[i]->velocity.y + factor * d.y;
-			bb(i*3+2) += particle[i]->velocity.z + factor * d.z;
-			bb(i*3+3) += particle[i+1]->velocity.x - factor * d.x;
-			bb(i*3+4) += particle[i+1]->velocity.y - factor * d.y;
-			bb(i*3+5) += particle[i+1]->velocity.z - factor * d.z;
+			b[i*3]   += particle[i]->velocity.x + factor * d.x;
+			b[i*3+1] += particle[i]->velocity.y + factor * d.y;
+			b[i*3+2] += particle[i]->velocity.z + factor * d.z;
+			b[i*3+3] += particle[i+1]->velocity.x - factor * d.x;
+			b[i*3+4] += particle[i+1]->velocity.y - factor * d.y;
+			b[i*3+5] += particle[i+1]->velocity.z - factor * d.z;
 		}
 		
 		//Add bending springs data into A and b
@@ -318,22 +398,22 @@ namespace pilar
 			Vector3f d(particle[i+2]->position.x-particle[i]->position.x, particle[i+2]->position.y-particle[i]->position.y, particle[i+2]->position.z - particle[i]->position.z);
 			Vector3f e = d;
 			d = d * d.length_inverse();
-		
-			AA(i*3,  i*3) += 1+h*d.x*d.x; AA(i*3,  i*3+1) +=   h*d.x*d.y; AA(i*3,  i*3+2) +=   h*d.x*d.z; AA(i*3,  i*3+6) +=  -h*d.x*d.x; AA(i*3,  i*3+7) +=  -h*d.x*d.y; AA(i*3,  i*3+8) +=  -h*d.x*d.z;
-			AA(i*3+1,i*3) +=   h*d.x*d.y; AA(i*3+1,i*3+1) += 1+h*d.y*d.y; AA(i*3+1,i*3+2) +=   h*d.y*d.z; AA(i*3+1,i*3+6) +=  -h*d.x*d.y; AA(i*3+1,i*3+7) +=  -h*d.y*d.y; AA(i*3+1,i*3+8) +=  -h*d.y*d.z;
-			AA(i*3+2,i*3) +=   h*d.x*d.z; AA(i*3+2,i*3+1) +=   h*d.y*d.z; AA(i*3+2,i*3+2) += 1+h*d.z*d.z; AA(i*3+2,i*3+6) +=  -h*d.x*d.z; AA(i*3+2,i*3+7) +=  -h*d.y*d.z; AA(i*3+2,i*3+8) +=  -h*d.z*d.z;
-			AA(i*3+6,i*3) +=  -h*d.x*d.x; AA(i*3+6,i*3+1) +=  -h*d.x*d.y; AA(i*3+6,i*3+2) +=  -h*d.x*d.z; AA(i*3+6,i*3+6) += 1+h*d.x*d.x; AA(i*3+6,i*3+7) +=   h*d.x*d.y; AA(i*3+6,i*3+8) +=   h*d.x*d.z;
-			AA(i*3+7,i*3) +=  -h*d.x*d.y; AA(i*3+7,i*3+1) +=  -h*d.y*d.y; AA(i*3+7,i*3+2) +=  -h*d.y*d.z; AA(i*3+7,i*3+6) +=   h*d.x*d.y; AA(i*3+7,i*3+7) += 1+h*d.y*d.y; AA(i*3+7,i*3+8) +=   h*d.y*d.z;
-			AA(i*3+8,i*3) +=  -h*d.x*d.z; AA(i*3+8,i*3+1) +=  -h*d.y*d.z; AA(i*3+8,i*3+2) +=  -h*d.z*d.z; AA(i*3+8,i*3+6) +=   h*d.x*d.z; AA(i*3+8,i*3+7) +=   h*d.y*d.z; AA(i*3+8,i*3+8) += 1+h*d.z*d.z;
+			
+			A[(i*3  )*N+i*3] += 1+h*d.x*d.x; A[(i*3  )*N+i*3+1] +=   h*d.x*d.y; A[(i*3  )*N+i*3+2] +=   h*d.x*d.z; A[(i*3  )*N+i*3+6] +=  -h*d.x*d.x; A[(i*3  )*N+i*3+7] +=  -h*d.x*d.y; A[(i*3  )*N+i*3+8] +=  -h*d.x*d.z;
+			A[(i*3+1)*N+i*3] +=   h*d.x*d.y; A[(i*3+1)*N+i*3+1] += 1+h*d.y*d.y; A[(i*3+1)*N+i*3+2] +=   h*d.y*d.z; A[(i*3+1)*N+i*3+6] +=  -h*d.x*d.y; A[(i*3+1)*N+i*3+7] +=  -h*d.y*d.y; A[(i*3+1)*N+i*3+8] +=  -h*d.y*d.z;
+			A[(i*3+2)*N+i*3] +=   h*d.x*d.z; A[(i*3+2)*N+i*3+1] +=   h*d.y*d.z; A[(i*3+2)*N+i*3+2] += 1+h*d.z*d.z; A[(i*3+2)*N+i*3+6] +=  -h*d.x*d.z; A[(i*3+2)*N+i*3+7] +=  -h*d.y*d.z; A[(i*3+2)*N+i*3+8] +=  -h*d.z*d.z;
+			A[(i*3+6)*N+i*3] +=  -h*d.x*d.x; A[(i*3+6)*N+i*3+1] +=  -h*d.x*d.y; A[(i*3+6)*N+i*3+2] +=  -h*d.x*d.z; A[(i*3+6)*N+i*3+6] += 1+h*d.x*d.x; A[(i*3+6)*N+i*3+7] +=   h*d.x*d.y; A[(i*3+6)*N+i*3+8] +=   h*d.x*d.z;
+			A[(i*3+7)*N+i*3] +=  -h*d.x*d.y; A[(i*3+7)*N+i*3+1] +=  -h*d.y*d.y; A[(i*3+7)*N+i*3+2] +=  -h*d.y*d.z; A[(i*3+7)*N+i*3+6] +=   h*d.x*d.y; A[(i*3+7)*N+i*3+7] += 1+h*d.y*d.y; A[(i*3+7)*N+i*3+8] +=   h*d.y*d.z;
+			A[(i*3+8)*N+i*3] +=  -h*d.x*d.z; A[(i*3+8)*N+i*3+1] +=  -h*d.y*d.z; A[(i*3+8)*N+i*3+2] +=  -h*d.z*d.z; A[(i*3+8)*N+i*3+6] +=   h*d.x*d.z; A[(i*3+8)*N+i*3+7] +=   h*d.y*d.z; A[(i*3+8)*N+i*3+8] += 1+h*d.z*d.z;
 			
 			float factor = g * ((e.x*d.x+e.y*d.y+e.z*d.z) - (length));
 			
-			bb(i*3)   += particle[i]->velocity.x + factor * d.x;
-			bb(i*3+1) += particle[i]->velocity.y + factor * d.y;
-			bb(i*3+2) += particle[i]->velocity.z + factor * d.z;
-			bb(i*3+6) += particle[i+2]->velocity.x - factor * d.x;
-			bb(i*3+7) += particle[i+2]->velocity.y - factor * d.y;
-			bb(i*3+8) += particle[i+2]->velocity.z - factor * d.z;
+			b[i*3  ] += particle[i]->velocity.x + factor * d.x;
+			b[i*3+1] += particle[i]->velocity.y + factor * d.y;
+			b[i*3+2] += particle[i]->velocity.z + factor * d.z;
+			b[i*3+6] += particle[i+2]->velocity.x - factor * d.x;
+			b[i*3+7] += particle[i+2]->velocity.y - factor * d.y;
+			b[i*3+8] += particle[i+2]->velocity.z - factor * d.z;
 		}
 	
 		//Add twisting springs data into A and b
@@ -346,40 +426,40 @@ namespace pilar
 			Vector3f e = d;
 			d = d * d.length_inverse();
 		
-			AA(i*3,  i*3)  += 1+h*d.x*d.x;  AA(i*3,  i*3+1) +=   h*d.x*d.y; AA(i*3,  i*3+2)  +=   h*d.x*d.z; AA(i*3,  i*3+9)  +=  -h*d.x*d.x; AA(i*3,  i*3+10)  +=  -h*d.x*d.y; AA(i*3,  i*3+11)  +=  -h*d.x*d.z;
-			AA(i*3+1,i*3)  +=   h*d.x*d.y;  AA(i*3+1,i*3+1) += 1+h*d.y*d.y; AA(i*3+1,i*3+2)  +=   h*d.y*d.z; AA(i*3+1,i*3+9)  +=  -h*d.x*d.y; AA(i*3+1,i*3+10)  +=  -h*d.y*d.y; AA(i*3+1,i*3+11)  +=  -h*d.y*d.z;
-			AA(i*3+2,i*3)  +=   h*d.x*d.z;  AA(i*3+2,i*3+1) +=   h*d.y*d.z; AA(i*3+2,i*3+2)  += 1+h*d.z*d.z; AA(i*3+2,i*3+9)  +=  -h*d.x*d.z; AA(i*3+2,i*3+10)  +=  -h*d.y*d.z; AA(i*3+2,i*3+11)  +=  -h*d.z*d.z;
-			AA(i*3+9,i*3)  +=  -h*d.x*d.x;  AA(i*3+9,i*3+1) +=  -h*d.x*d.y; AA(i*3+9,i*3+2)  +=  -h*d.x*d.z; AA(i*3+9,i*3+9)  += 1+h*d.x*d.x; AA(i*3+9,i*3+10)  +=   h*d.x*d.y; AA(i*3+9,i*3+11)  +=   h*d.x*d.z;
-			AA(i*3+10,i*3) +=  -h*d.x*d.y; AA(i*3+10,i*3+1) +=  -h*d.y*d.y; AA(i*3+10,i*3+2) +=  -h*d.y*d.z; AA(i*3+10,i*3+9) +=   h*d.x*d.y; AA(i*3+10,i*3+10) += 1+h*d.y*d.y; AA(i*3+10,i*3+11) +=   h*d.y*d.z;
-			AA(i*3+11,i*3) +=  -h*d.x*d.z; AA(i*3+11,i*3+1) +=  -h*d.y*d.z; AA(i*3+11,i*3+2) +=  -h*d.z*d.z; AA(i*3+11,i*3+9) +=   h*d.x*d.z; AA(i*3+11,i*3+10) +=   h*d.y*d.z; AA(i*3+11,i*3+11) += 1+h*d.z*d.z;
+			A[(i*3   )*N+i*3] += 1+h*d.x*d.x; A[(i*3   )*N+i*3+1] +=   h*d.x*d.y; A[(i*3   )*N+i*3+2] +=   h*d.x*d.z; A[(i*3   )*N+i*3+9] +=  -h*d.x*d.x; A[(i*3   )*N+i*3+10] +=  -h*d.x*d.y; A[(i*3   )*N+i*3+11] +=  -h*d.x*d.z;
+			A[(i*3+1 )*N+i*3] +=   h*d.x*d.y; A[(i*3+1 )*N+i*3+1] += 1+h*d.y*d.y; A[(i*3+1 )*N+i*3+2] +=   h*d.y*d.z; A[(i*3+1 )*N+i*3+9] +=  -h*d.x*d.y; A[(i*3+1 )*N+i*3+10] +=  -h*d.y*d.y; A[(i*3+1 )*N+i*3+11] +=  -h*d.y*d.z;
+			A[(i*3+2 )*N+i*3] +=   h*d.x*d.z; A[(i*3+2 )*N+i*3+1] +=   h*d.y*d.z; A[(i*3+2 )*N+i*3+2] += 1+h*d.z*d.z; A[(i*3+2 )*N+i*3+9] +=  -h*d.x*d.z; A[(i*3+2 )*N+i*3+10] +=  -h*d.y*d.z; A[(i*3+2 )*N+i*3+11] +=  -h*d.z*d.z;
+			A[(i*3+9 )*N+i*3] +=  -h*d.x*d.x; A[(i*3+9 )*N+i*3+1] +=  -h*d.x*d.y; A[(i*3+9 )*N+i*3+2] +=  -h*d.x*d.z; A[(i*3+9 )*N+i*3+9] += 1+h*d.x*d.x; A[(i*3+9 )*N+i*3+10] +=   h*d.x*d.y; A[(i*3+9 )*N+i*3+11] +=   h*d.x*d.z;
+			A[(i*3+10)*N+i*3] +=  -h*d.x*d.y; A[(i*3+10)*N+i*3+1] +=  -h*d.y*d.y; A[(i*3+10)*N+i*3+2] +=  -h*d.y*d.z; A[(i*3+10)*N+i*3+9] +=   h*d.x*d.y; A[(i*3+10)*N+i*3+10] += 1+h*d.y*d.y; A[(i*3+10)*N+i*3+11] +=   h*d.y*d.z;
+			A[(i*3+11)*N+i*3] +=  -h*d.x*d.z; A[(i*3+11)*N+i*3+1] +=  -h*d.y*d.z; A[(i*3+11)*N+i*3+2] +=  -h*d.z*d.z; A[(i*3+11)*N+i*3+9] +=   h*d.x*d.z; A[(i*3+11)*N+i*3+10] +=   h*d.y*d.z; A[(i*3+11)*N+i*3+11] += 1+h*d.z*d.z;
 			
 			float factor = g * ((e.x*d.x+e.y*d.y+e.z*d.z) - (length));
 			
-			bb(i*3)    += particle[i]->velocity.x + factor * d.x;
-			bb(i*3+1)  += particle[i]->velocity.y + factor * d.y;
-			bb(i*3+2)  += particle[i]->velocity.z + factor * d.z;
-			bb(i*3+9)  += particle[i+3]->velocity.x + factor * d.x;
-			bb(i*3+10) += particle[i+3]->velocity.y + factor * d.y;
-			bb(i*3+11) += particle[i+3]->velocity.z + factor * d.z;
+			b[i*3   ] += particle[i]->velocity.x + factor * d.x;
+			b[i*3+1 ] += particle[i]->velocity.y + factor * d.y;
+			b[i*3+2 ] += particle[i]->velocity.z + factor * d.z;
+			b[i*3+9 ] += particle[i+3]->velocity.x + factor * d.x;
+			b[i*3+10] += particle[i+3]->velocity.y + factor * d.y;
+			b[i*3+11] += particle[i+3]->velocity.z + factor * d.z;
 		}
-//		std::cout << dt << std::endl;
-//		std::cout << AA << std::endl << std::endl;
 		
-		//	cout << "AA:" <<endl;
-		//	std::cout << AA << std::endl;
-	
-		//	cout << "bb:" <<endl;
-		//	std::cout << bb << std::endl;
-	
-		Eigen::LDLT<Eigen::MatrixXf> ldlt(AA);
+//		for(int i = 0; i < N; i++)
+//		{
+//			for(int j = 0; j < N; j++)
+//			{
+//				std::cout << std::setw(6) << A[i * N + j] << " "; 
+//			}
+//			std::cout << std::endl;
+//		}
+//		std::cout << std::endl;
 		
-		xx = ldlt.solve(bb);
+		conjugate(N, A, b, x);
 		
 		for(int i = 0; i < numParticles; i++)
 		{
-			particle[i]->velc.x = xx(i*3);
-			particle[i]->velc.y = xx(i*3+1);
-			particle[i]->velc.z = xx(i*3+2);
+			particle[i]->velc.x = x[i*3];
+			particle[i]->velc.y = x[i*3+1];
+			particle[i]->velc.z = x[i*3+2];
 		}
 	}
 	
@@ -498,6 +578,10 @@ namespace pilar
 			particle[i] = NULL;
 		}
 		delete [] particle;
+		
+		delete [] A;
+		delete [] x;
+		delete [] b;
 	}
 	
 /////////////////////////// Hair Class /////////////////////////////////////////

@@ -49,12 +49,7 @@ namespace pilar
 		float damping;
 		SpringType type;
 		
-//		float *A;
-//		float *x;
-//		float *b;
-		
 		void updateForce(Vector3f p0, Vector3f p1, float dt);
-//		void conjugate(const float* A, const float* b, float* x);
 		
 	public:
 		Spring(Particle* particle1, Particle* particle2, float k, float length, float damping, SpringType type);
@@ -65,6 +60,7 @@ namespace pilar
 	
 	class Strand
 	{
+	
 	protected:
 		int numEdges;
 		int numBend;
@@ -88,6 +84,10 @@ namespace pilar
 		Spring** bend;
 		Spring** twist;
 		
+		float *A;
+		float *b;
+		float *x;
+		
 		void buildSprings();
 		void clearForces();
 		void updateSprings1(float dt);
@@ -95,6 +95,7 @@ namespace pilar
 		void updateVelocities(float dt);
 		void updateParticles1(float dt);
 		void updateParticles2(float dt);
+		void conjugate(int N, const float *A, const float *b, float *x);
 		void calcVelocities(float dt);
 		
 	public:
