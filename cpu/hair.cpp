@@ -58,9 +58,9 @@ namespace pilar
 		this->particle[0] = particle1;
 		this->particle[1] = particle2;
 		
-		this->A = new float[36];
-		this->x = new float[6];
-		this->b = new float[6];
+//		this->A = new float[36];
+//		this->x = new float[6];
+//		this->b = new float[6];
 	}
 	
 	void Spring::update1(float dt)
@@ -75,10 +75,10 @@ namespace pilar
 		updateForce(particle[0]->posh, particle[1]->posh, dt);
 	}
 	
-	void Spring::conjugate(const float* A, const float* b, float* x)
-	{
+//	void Spring::conjugate(const float* A, const float* b, float* x)
+//	{
 		
-	}
+//	}
 	
 	//Calculates the current velocities and applies the spring forces
 	void Spring::updateForce(Vector3f p0, Vector3f p1, float dt)
@@ -114,9 +114,9 @@ namespace pilar
 		particle[1] = NULL;
 		
 		delete [] particle;
-		delete [] A;
-		delete [] x;
-		delete [] b;
+//		delete [] A;
+//		delete [] x;
+//		delete [] b;
 	}
 	
 ////////////////////////////// Strand Class ////////////////////////////////////
@@ -151,6 +151,9 @@ namespace pilar
 		this->d_extra = d_extra;
 		
 		this->length = length;
+		this->mass  = mass;
+		
+//		std::cout << mass << " " << length << " " << k_edge << std::endl;
 		
 		particle = new Particle*[numParticles];
 		
@@ -160,8 +163,12 @@ namespace pilar
 			particle[i] = new Particle(mass);
 			
 			//TODO set the intial particle positions
-			particle[i]->position = (root + Vector3f(length/2.0f*i, 0.0f, 0.0f));
+			particle[i]->position = (root + Vector3f(length/2.0f*float(i), 0.0f, 0.0f));
 			particle[i]->posc = particle[i]->position;
+
+//			std::cout << particle[i]->position.x << " " << particle[i]->position.y << " " << particle[i]->position.z << std::endl;			
+//			std::cout << particle[i]->velh.x << " " << particle[i]->velh.y << " " << particle[i]->velh.z << std::endl;
+//			std::cout << particle[i]->velc.x << " " << particle[i]->velc.y << " " << particle[i]->velc.z << std::endl;
 		}
 		
 		buildSprings();
@@ -271,31 +278,19 @@ namespace pilar
 	{
 		int N = numParticles * 3;
 		
-		Eigen::MatrixXf AA(N,N);
-		Eigen::VectorXf xx(N);
-		Eigen::VectorXf bb(N);
+		Eigen::MatrixXf AA = Eigen::MatrixXf::Zero(N,N);
+		Eigen::VectorXf xx = Eigen::VectorXf::Zero(N);
+		Eigen::VectorXf bb = Eigen::VectorXf::Zero(N);
 		
 		//Add edge springs data into A and b
-		float h = dt*dt*k_edge/(4.0f*MASS*LENGTH);
-		float g = dt*k_edge/(2.0f*MASS*LENGTH);
+		float h = dt*dt*k_edge/(4.0f*mass*length);
+		float g = dt*k_edge/(2.0f*mass*length);
 	
 		for(int i = 0; i < numEdges; i++)
 		{
-			Vector3f d;
-			Vector3f e;
-		
-			d.x = particle[i+1]->position.x - particle[i]->position.x;
-			d.y = particle[i+1]->position.y - particle[i]->position.y;
-			d.z = particle[i+1]->position.z - particle[i]->position.z;
-			e.x = d.x;
-			e.y = d.y;
-			e.z = d.z;
-		
-			float length = sqrtf(d.x*d.x + d.y*d.y + d.z*d.z);
-		
-			d.x /= length;
-			d.y /= length;
-			d.z /= length;
+			Vector3f d(particle[i+1]->position.x-particle[i]->position.x, particle[i+1]->position.y-particle[i]->position.y, particle[i+1]->position.z - particle[i]->position.z);
+			Vector3f e = d;
+			d = d * d.length_inverse();
 		
 			AA(i*3,  i*3) += 1+h*d.x*d.x; AA(i*3,  i*3+1) +=   h*d.x*d.y; AA(i*3,  i*3+2) +=   h*d.x*d.z; AA(i*3,  i*3+3) +=  -h*d.x*d.x; AA(i*3,  i*3+4) +=  -h*d.x*d.y; AA(i*3,  i*3+5) +=  -h*d.x*d.z;
 			AA(i*3+1,i*3) +=   h*d.x*d.y; AA(i*3+1,i*3+1) += 1+h*d.y*d.y; AA(i*3+1,i*3+2) +=   h*d.y*d.z; AA(i*3+1,i*3+3) +=  -h*d.x*d.y; AA(i*3+1,i*3+4) +=  -h*d.y*d.y; AA(i*3+1,i*3+5) +=  -h*d.y*d.z;
@@ -304,7 +299,7 @@ namespace pilar
 			AA(i*3+4,i*3) +=  -h*d.x*d.y; AA(i*3+4,i*3+1) +=  -h*d.y*d.y; AA(i*3+4,i*3+2) +=  -h*d.y*d.z; AA(i*3+4,i*3+3) +=   h*d.x*d.y; AA(i*3+4,i*3+4) += 1+h*d.y*d.y; AA(i*3+4,i*3+5) +=   h*d.y*d.z;
 			AA(i*3+5,i*3) +=  -h*d.x*d.z; AA(i*3+5,i*3+1) +=  -h*d.y*d.z; AA(i*3+5,i*3+2) +=  -h*d.z*d.z; AA(i*3+5,i*3+3) +=   h*d.x*d.z; AA(i*3+5,i*3+4) +=   h*d.y*d.z; AA(i*3+5,i*3+5) += 1+h*d.z*d.z;		
 		
-			float factor = g * ((e.x*d.x+e.y*d.y+e.z*d.z) - (LENGTH));
+			float factor = g * ((e.x*d.x+e.y*d.y+e.z*d.z) - (length));
 		
 			bb(i*3)   += particle[i]->velocity.x + factor * d.x;
 			bb(i*3+1) += particle[i]->velocity.y + factor * d.y;
@@ -315,22 +310,14 @@ namespace pilar
 		}
 		
 		//Add bending springs data into A and b
-		h = dt*dt*K_BEND/(4*MASS*LENGTH);
-		g = dt*K_BEND/(2*MASS*LENGTH);
+		h = dt*dt*k_bend/(4.0f*mass*length);
+		g = dt*k_bend/(2.0f*mass*length);
 		
 		for(int i = 0; i < numBend; i++)
 		{
-			Vector3f d;
-			
-			d.x = particle[i+2]->position.x - particle[i]->position.x;
-			d.y = particle[i+2]->position.y - particle[i]->position.y;
-			d.z = particle[i+2]->position.z - particle[i]->position.z;
-		
-			float length = sqrtf(d.x*d.x + d.y*d.y + d.z*d.z);
-		
-			d.x /= length;
-			d.y /= length;
-			d.z /= length;
+			Vector3f d(particle[i+2]->position.x-particle[i]->position.x, particle[i+2]->position.y-particle[i]->position.y, particle[i+2]->position.z - particle[i]->position.z);
+			Vector3f e = d;
+			d = d * d.length_inverse();
 		
 			AA(i*3,  i*3) += 1+h*d.x*d.x; AA(i*3,  i*3+1) +=   h*d.x*d.y; AA(i*3,  i*3+2) +=   h*d.x*d.z; AA(i*3,  i*3+6) +=  -h*d.x*d.x; AA(i*3,  i*3+7) +=  -h*d.x*d.y; AA(i*3,  i*3+8) +=  -h*d.x*d.z;
 			AA(i*3+1,i*3) +=   h*d.x*d.y; AA(i*3+1,i*3+1) += 1+h*d.y*d.y; AA(i*3+1,i*3+2) +=   h*d.y*d.z; AA(i*3+1,i*3+6) +=  -h*d.x*d.y; AA(i*3+1,i*3+7) +=  -h*d.y*d.y; AA(i*3+1,i*3+8) +=  -h*d.y*d.z;
@@ -338,38 +325,26 @@ namespace pilar
 			AA(i*3+6,i*3) +=  -h*d.x*d.x; AA(i*3+6,i*3+1) +=  -h*d.x*d.y; AA(i*3+6,i*3+2) +=  -h*d.x*d.z; AA(i*3+6,i*3+6) += 1+h*d.x*d.x; AA(i*3+6,i*3+7) +=   h*d.x*d.y; AA(i*3+6,i*3+8) +=   h*d.x*d.z;
 			AA(i*3+7,i*3) +=  -h*d.x*d.y; AA(i*3+7,i*3+1) +=  -h*d.y*d.y; AA(i*3+7,i*3+2) +=  -h*d.y*d.z; AA(i*3+7,i*3+6) +=   h*d.x*d.y; AA(i*3+7,i*3+7) += 1+h*d.y*d.y; AA(i*3+7,i*3+8) +=   h*d.y*d.z;
 			AA(i*3+8,i*3) +=  -h*d.x*d.z; AA(i*3+8,i*3+1) +=  -h*d.y*d.z; AA(i*3+8,i*3+2) +=  -h*d.z*d.z; AA(i*3+8,i*3+6) +=   h*d.x*d.z; AA(i*3+8,i*3+7) +=   h*d.y*d.z; AA(i*3+8,i*3+8) += 1+h*d.z*d.z;
-		
-			Vector3f e;
-		
-			e.x = particle[i+2]->position.x - particle[i]->position.x;
-			e.y = particle[i+2]->position.y - particle[i]->position.y;
-			e.z = particle[i+2]->position.z - particle[i]->position.z;
-		
-			bb(i*3)   += particle[i]->velocity.x + g * ((e.x*d.x+e.y*d.y+e.z*d.z) - LENGTH) * d.x;
-			bb(i*3+1) += particle[i]->velocity.y + g * ((e.x*d.x+e.y*d.y+e.z*d.z) - LENGTH) * d.y;
-			bb(i*3+2) += particle[i]->velocity.z + g * ((e.x*d.x+e.y*d.y+e.z*d.z) - LENGTH) * d.z;
-			bb(i*3+6) += particle[i+2]->velocity.x + g * (( (-e.x)*(-d.x)+(-e.y)*(-d.y)+(-e.z)*(-d.z) ) - LENGTH) * (-d.x);
-			bb(i*3+7) += particle[i+2]->velocity.y + g * (( (-e.x)*(-d.x)+(-e.y)*(-d.y)+(-e.z)*(-d.z) ) - LENGTH) * (-d.y);
-			bb(i*3+8) += particle[i+2]->velocity.z + g * (( (-e.x)*(-d.x)+(-e.y)*(-d.y)+(-e.z)*(-d.z) ) - LENGTH) * (-d.z);
+			
+			float factor = g * ((e.x*d.x+e.y*d.y+e.z*d.z) - (length));
+			
+			bb(i*3)   += particle[i]->velocity.x + factor * d.x;
+			bb(i*3+1) += particle[i]->velocity.y + factor * d.y;
+			bb(i*3+2) += particle[i]->velocity.z + factor * d.z;
+			bb(i*3+6) += particle[i+2]->velocity.x - factor * d.x;
+			bb(i*3+7) += particle[i+2]->velocity.y - factor * d.y;
+			bb(i*3+8) += particle[i+2]->velocity.z - factor * d.z;
 		}
 	
 		//Add twisting springs data into A and b
-		h = dt*dt*K_TWIST/(4*MASS*LENGTH);
-		g = dt*K_TWIST/(2*MASS*LENGTH);
+		h = dt*dt*k_twist/(4.0f*mass*length);
+		g = dt*k_twist/(2.0f*mass*length);
 	
 		for(int i = 0; i < numTwist; i++)
 		{
-			Vector3f d;
-		
-			d.x = particle[i+3]->position.x - particle[i]->position.x;
-			d.y = particle[i+3]->position.y - particle[i]->position.y;
-			d.z = particle[i+3]->position.z - particle[i]->position.z;
-		
-			float length = sqrtf(d.x*d.x + d.y*d.y + d.z*d.z);
-		
-			d.x /= length;
-			d.y /= length;
-			d.z /= length;
+			Vector3f d(particle[i+3]->position.x-particle[i]->position.x, particle[i+3]->position.y-particle[i]->position.y, particle[i+3]->position.z - particle[i]->position.z);
+			Vector3f e = d;
+			d = d * d.length_inverse();
 		
 			AA(i*3,  i*3)  += 1+h*d.x*d.x;  AA(i*3,  i*3+1) +=   h*d.x*d.y; AA(i*3,  i*3+2)  +=   h*d.x*d.z; AA(i*3,  i*3+9)  +=  -h*d.x*d.x; AA(i*3,  i*3+10)  +=  -h*d.x*d.y; AA(i*3,  i*3+11)  +=  -h*d.x*d.z;
 			AA(i*3+1,i*3)  +=   h*d.x*d.y;  AA(i*3+1,i*3+1) += 1+h*d.y*d.y; AA(i*3+1,i*3+2)  +=   h*d.y*d.z; AA(i*3+1,i*3+9)  +=  -h*d.x*d.y; AA(i*3+1,i*3+10)  +=  -h*d.y*d.y; AA(i*3+1,i*3+11)  +=  -h*d.y*d.z;
@@ -377,22 +352,18 @@ namespace pilar
 			AA(i*3+9,i*3)  +=  -h*d.x*d.x;  AA(i*3+9,i*3+1) +=  -h*d.x*d.y; AA(i*3+9,i*3+2)  +=  -h*d.x*d.z; AA(i*3+9,i*3+9)  += 1+h*d.x*d.x; AA(i*3+9,i*3+10)  +=   h*d.x*d.y; AA(i*3+9,i*3+11)  +=   h*d.x*d.z;
 			AA(i*3+10,i*3) +=  -h*d.x*d.y; AA(i*3+10,i*3+1) +=  -h*d.y*d.y; AA(i*3+10,i*3+2) +=  -h*d.y*d.z; AA(i*3+10,i*3+9) +=   h*d.x*d.y; AA(i*3+10,i*3+10) += 1+h*d.y*d.y; AA(i*3+10,i*3+11) +=   h*d.y*d.z;
 			AA(i*3+11,i*3) +=  -h*d.x*d.z; AA(i*3+11,i*3+1) +=  -h*d.y*d.z; AA(i*3+11,i*3+2) +=  -h*d.z*d.z; AA(i*3+11,i*3+9) +=   h*d.x*d.z; AA(i*3+11,i*3+10) +=   h*d.y*d.z; AA(i*3+11,i*3+11) += 1+h*d.z*d.z;
-		
-			Vector3f e;
-		
-			e.x = particle[i+3]->position.x - particle[i]->position.x;
-			e.y = particle[i+3]->position.y - particle[i]->position.y;
-			e.z = particle[i+3]->position.z - particle[i]->position.z;
-		
-			bb(i*3)    += particle[i]->velocity.x + g * ((e.x*d.x+e.y*d.y+e.z*d.z) - LENGTH) * d.x;
-			bb(i*3+1)  += particle[i]->velocity.y + g * ((e.x*d.x+e.y*d.y+e.z*d.z) - LENGTH) * d.y;
-			bb(i*3+2)  += particle[i]->velocity.z + g * ((e.x*d.x+e.y*d.y+e.z*d.z) - LENGTH) * d.z;
-			bb(i*3+9)  += particle[i+3]->velocity.x + g * (( (-e.x)*(-d.x)+(-e.y)*(-d.y)+(-e.z)*(-d.z) ) - LENGTH) * (-d.x);
-			bb(i*3+10) += particle[i+3]->velocity.y + g * (( (-e.x)*(-d.x)+(-e.y)*(-d.y)+(-e.z)*(-d.z) ) - LENGTH) * (-d.y);
-			bb(i*3+11) += particle[i+3]->velocity.z + g * (( (-e.x)*(-d.x)+(-e.y)*(-d.y)+(-e.z)*(-d.z) ) - LENGTH) * (-d.z);
+			
+			float factor = g * ((e.x*d.x+e.y*d.y+e.z*d.z) - (length));
+			
+			bb(i*3)    += particle[i]->velocity.x + factor * d.x;
+			bb(i*3+1)  += particle[i]->velocity.y + factor * d.y;
+			bb(i*3+2)  += particle[i]->velocity.z + factor * d.z;
+			bb(i*3+9)  += particle[i+3]->velocity.x + factor * d.x;
+			bb(i*3+10) += particle[i+3]->velocity.y + factor * d.y;
+			bb(i*3+11) += particle[i+3]->velocity.z + factor * d.z;
 		}
-		
-		std::cout << AA << std::endl << std::endl;
+//		std::cout << dt << std::endl;
+//		std::cout << AA << std::endl << std::endl;
 		
 		//	cout << "AA:" <<endl;
 		//	std::cout << AA << std::endl;
@@ -400,9 +371,9 @@ namespace pilar
 		//	cout << "bb:" <<endl;
 		//	std::cout << bb << std::endl;
 	
-		Eigen::FullPivLU<Eigen::MatrixXf> fplu(AA);
+		Eigen::LDLT<Eigen::MatrixXf> ldlt(AA);
 		
-		xx = fplu.solve(bb);
+		xx = ldlt.solve(bb);
 		
 		for(int i = 0; i < numParticles; i++)
 		{
@@ -464,7 +435,7 @@ namespace pilar
 		updateSprings1(dt);
 		
 		//Apply gravity
-//		applyForce(Vector3f(0.0f, GRAVITY, 0.0f));
+		applyForce(Vector3f(0.0f, GRAVITY, 0.0f));
 		
 		updateVelocities(dt);		
 		
@@ -482,7 +453,7 @@ namespace pilar
 		updateSprings2(dt);
 		
 		//Apply gravity
-//		applyForce(Vector3f(0.0f, GRAVITY, 0.0f));
+		applyForce(Vector3f(0.0f, GRAVITY, 0.0f));
 		
 		//Calculate half velocity and new velocity
 		updateParticles2(dt);
