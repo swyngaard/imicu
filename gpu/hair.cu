@@ -13,6 +13,15 @@ static float3* init(const int size)
 	return d_vec;
 }
 
+static float* init2(const int size)
+{
+	float* d_vec;
+	cutilSafeCall(cudaMalloc((void**)&d_vec, size));
+	cutilSafeCall(cudaMemset(d_vec, 0, size));
+	
+	return d_vec;
+}
+
 extern "C"
 void initStrands(int numStrands,
 				 int numParticles,
@@ -23,7 +32,10 @@ void initStrands(int numStrands,
 				 float3* &posh,
 				 float3* &velocity,
 				 float3* &velh,
-				 float3* &force)
+				 float3* &force,
+				 float* &A,
+				 float* &b,
+				 float* &x)
 {
 	int size = numStrands*numParticles*sizeof(float3);
 	
@@ -33,6 +45,10 @@ void initStrands(int numStrands,
 	velocity = init(size);
 	velh = init(size);
 	force = init(size);
+	A = init2(numStrands*numParticles*3*numParticles*3*sizeof(float));
+	b = init2(numStrands*numParticles*3*sizeof(float));
+	x = init2(numStrands*numParticles*3*sizeof(float));
+	
 	/*
 	float3* position_h = (float3*) calloc(numStrands*numParticles, sizeof(float3));
 	
@@ -74,7 +90,10 @@ void releaseStrands(float3* &position,
 				 	float3* &posh,
 				 	float3* &velocity,
 				 	float3* &velh,
-				 	float3* &force)
+				 	float3* &force,
+				 	float* &A,
+				 	float* &b,
+				 	float* &x)
 {
 	/*
 	float3* position_h = (float3*) calloc(numStrands*numParticles, sizeof(float3));
@@ -99,6 +118,9 @@ void releaseStrands(float3* &position,
 	cutilSafeCall(cudaFree(velocity));
 	cutilSafeCall(cudaFree(velh));
 	cutilSafeCall(cudaFree(force));
+	cutilSafeCall(cudaFree(A));
+	cutilSafeCall(cudaFree(b));
+	cutilSafeCall(cudaFree(x));
 //	cutilSafeCall(cudaFree(position));
 }
 
@@ -112,7 +134,10 @@ void updateStrands(const int numParticles,
 				   float3* &posh,
 				   float3* &velocity,
 				   float3* &velh,
-				   float3* &force)
+				   float3* &force,
+				   float* &A,
+				   float* &b,
+				   float* &x)
 {
 	dim3 grid(1,1,1);
 	dim3 block(1,1,1);
@@ -126,7 +151,10 @@ void updateStrands(const int numParticles,
 							posh,
 							velocity,
 							velh,
-							force);
+							force,
+							A,
+							b,
+							x);
 	
 	cudaThreadSynchronize();
 }

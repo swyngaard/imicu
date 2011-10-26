@@ -14,7 +14,10 @@ extern "C" void initStrands(int numStrands,
 							float3* &posh,
 							float3* &velocity,
 							float3* &velh,
-							float3* &force);
+							float3* &force,
+							float* &A,
+							float* &b,
+							float* &x);
 				 
 extern "C" void updateStrands(const int numParticles,
 				   			  float4 &mlgt,
@@ -25,14 +28,20 @@ extern "C" void updateStrands(const int numParticles,
 				   			  float3* &posh,
 				   			  float3* &velocity,
 				   			  float3* &velh,
-				   			  float3* &force);
+				   			  float3* &force,
+				   			  float* &A,
+				   			  float* &b,
+				   			  float* &x);
 
 extern "C" void releaseStrands(float3* &position,
 				 			   float3* &posc,
 				 			   float3* &posh,
 				 			   float3* &velocity,
 				 			   float3* &velh,
-				 			   float3* &force);
+				 			   float3* &force,
+				 			   float* &A,
+				 			   float* &b,
+				 			   float* &x);
 
 extern "C" void copyMem(const int numStrands,
 						const int numParticles,
@@ -469,7 +478,7 @@ namespace pilar
 		}
 		
 		//TODO initialise strand data on GPU
-		initStrands(numStrands, numParticles, length, r, position, posc, posh, velocity, velh, force);
+		initStrands(numStrands, numParticles, length, r, position, posc, posh, velocity, velh, force, A, b, x);
 	}
 	
 	void Hair::init()
@@ -481,12 +490,24 @@ namespace pilar
 	{
 		for(int i = 0; i < numStrands; i++)
 		{
-			strand[i]->update(dt);
+//			strand[i]->update(dt);
 		}
 		
 		//TODO update strands on GPU
 		mlgt.w = dt;
-//		updateStrands();
+		updateStrands(numParticles,
+				   	  mlgt,
+				   	  k,
+				   	  d,
+				   	  position,
+				   	  posc,
+				   	  posh,
+				   	  velocity,
+				   	  velh,
+				   	  force,
+				   	  A,
+				   	  b,
+				   	  x);
 	}
 	
 	//Clean up
@@ -502,7 +523,7 @@ namespace pilar
 		delete [] strand;
 		
 		//TODO Release strand data from GPU
-		releaseStrands(position,posc,posh,velocity,velh,force);
+		releaseStrands(position,posc,posh,velocity,velh,force,A,b,x);
 	}
 }
 

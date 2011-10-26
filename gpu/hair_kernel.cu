@@ -2,6 +2,8 @@
 #ifndef _HAIR_KERNEL_H_
 #define _HAIR_KERNEL_H_
 
+#include "constants.h"
+
 __device__
 void clearForces(int numParticles, float3* force)
 {
@@ -51,7 +53,7 @@ void updateSprings(int numSprings,
 		//TODO CONJUGATE GRADIENT!!!!!
 		
 		//Store resulting velocity here
-		float3 v1;
+		float3 v1 = make_float3(0.0f, 0.0f, 0.0f);
 		
 		//Store resulting force here
 		float3 result;
@@ -72,7 +74,7 @@ void updateSprings(int numSprings,
 __device__
 void applyForce(int numParticles, float3 f, float3* force)
 {
-	for(int i = 0; i < numParticles; i++)
+	for(int i = 1; i < numParticles; i++)
 	{
 		force[i].x += f.x;
 		force[i].y += f.y;
@@ -87,7 +89,7 @@ void updateVelocities(int numParticles,
 					  float3* velh,
 					  float3* force)
 {
-	for(int i = 0; i < numParticles; i++)
+	for(int i = 1; i < numParticles; i++)
 	{
 		velh[i].x = velocity[i].x + force[i].x * (dt / 2.0f);
 		velh[i].y = velocity[i].y + force[i].y * (dt / 2.0f);
@@ -102,7 +104,7 @@ void updatePositions(int numParticles,
 					 float3* posh,
 					 float3* velh)
 {
-	for(int i = 0; i < numParticles; i++)
+	for(int i = 1; i < numParticles; i++)
 	{
 		float3 newPosition = make_float3(position[i].x + velh[i].x * dt,
 										 position[i].y + velh[i].y * dt,
@@ -121,7 +123,7 @@ void updatePositions(int numParticles,
 __device__
 void updateParticles(int numParticles, float dt, float3* velocity, float3* velh, float3* force)
 {
-	for(int i = 0; i < numParticles; i++)
+	for(int i = 1; i < numParticles; i++)
 	{
 		velh[i].x = velocity[i].x + force[i].x * (dt / 2.0f);
 		velh[i].y = velocity[i].y + force[i].y * (dt / 2.0f);
@@ -130,6 +132,50 @@ void updateParticles(int numParticles, float dt, float3* velocity, float3* velh,
 		velocity[i].x = velh[i].x * 2.0f - velocity[i].x;
 		velocity[i].y = velh[i].y * 2.0f - velocity[i].y;
 		velocity[i].z = velh[i].z * 2.0f - velocity[i].z;
+	}
+}
+
+__device__
+void calcVelocities(int numParticles, float dt)
+{
+	int N = numParticles * 3;
+	
+	
+}
+
+__device__
+void applyStrainLimiting(int numParticles, float dt, float3* position, float3* posc, float3* velh)
+{
+	bool strained = false;
+	
+	while(strained)
+	{
+		strained = false;
+		
+		for(int i = 1; i < numParticles; i++)
+		{
+			posc[i].x = position[i].x + velh[i].x * dt;
+			posc[i].y = position[i].y + velh[i].y * dt;
+			posc[i].z = position[i].z + velh[i].z * dt;
+			
+			float3 dir = make_float3(posc[i].x-posc[i-1].x, posc[i].y-posc[i-1].y, posc[i].z-posc[i-1].z);
+			float length_sqr = dir.x*dir.x + dir.y*dir.y + dir.z*dir.z;
+			
+			if(length_sqr > MAX_LENGTH_SQUARED)
+			{
+				strained = true;
+				
+				float length = sqrtf(length_sqr);
+				
+				posc[i].x = posc[i-1].x + (dir.x * (MAX_LENGTH/length));
+				posc[i].y = posc[i-1].y + (dir.y * (MAX_LENGTH/length));
+				posc[i].z = posc[i-1].z + (dir.z * (MAX_LENGTH/length));
+				
+				velh[i].x = (posc[i].x - position[i].x)/dt;
+				velh[i].y = (posc[i].y - position[i].y)/dt;
+				velh[i].z = (posc[i].z - position[i].z)/dt;
+			}
+		}
 	}
 }
 
@@ -143,7 +189,10 @@ void update(const int numParticles,
 			float3* posh,
 			float3* velocity,
 			float3* velh,
-			float3* force)
+			float3* force,
+			float* A,
+			float* b,
+			float* x)
 {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	
@@ -151,6 +200,8 @@ void update(const int numParticles,
 //	int end = start + numParticles; //last particle index
 	
 	clearForces(numParticles, force+start);
+	
+//	calcVelocities();
 	
 	//Update edge springs
 	updateSprings(numParticles-1, 1, mlgt.x, mlgt.y, mlgt.w, k.x, position+start, velocity+start, force+start);
@@ -169,6 +220,7 @@ void update(const int numParticles,
 	updateVelocities(numParticles, mlgt.w, velocity+start, velh+start, force+start);
 	
 	//TODO apply strain limiting
+	applyStrainLimiting(numParticles, mlgt.w, position+start, posc+start, velh+start);
 	
 	//Calculate half position and new position
 	updatePositions(numParticles, mlgt.w, position+start, posh+start, velh+start);

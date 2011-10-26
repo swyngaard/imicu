@@ -105,6 +105,10 @@ namespace pilar
 		
 		float3 *force;
 		
+		float *A;
+		float *b;
+		float *x;
+		
 		float4 mlgt; //Mass of particle, maximum length of a spring, gravity and change in time (dt)
 		float4 k;  //Spring constants
 		float4 d;  //Dampening constants

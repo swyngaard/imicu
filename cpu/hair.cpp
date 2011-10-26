@@ -451,7 +451,7 @@ namespace pilar
 //		}
 //		std::cout << std::endl;
 		
-		conjugate(N, A, b, x);
+//		conjugate(N, A, b, x);
 		
 		for(int i = 0; i < numParticles; i++)
 		{
