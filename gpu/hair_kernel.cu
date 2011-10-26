@@ -146,7 +146,7 @@ void calcVelocities(int numParticles, float dt)
 __device__
 void applyStrainLimiting(int numParticles, float dt, float3* position, float3* posc, float3* velh)
 {
-	bool strained = false;
+	bool strained = true;
 	
 	while(strained)
 	{
@@ -165,11 +165,11 @@ void applyStrainLimiting(int numParticles, float dt, float3* position, float3* p
 			{
 				strained = true;
 				
-				float length = sqrtf(length_sqr);
+				float length_inv = inv_sqrt(length_sqr);
 				
-				posc[i].x = posc[i-1].x + (dir.x * (MAX_LENGTH/length));
-				posc[i].y = posc[i-1].y + (dir.y * (MAX_LENGTH/length));
-				posc[i].z = posc[i-1].z + (dir.z * (MAX_LENGTH/length));
+				posc[i].x = posc[i-1].x + (dir.x * (MAX_LENGTH*length_inv));
+				posc[i].y = posc[i-1].y + (dir.y * (MAX_LENGTH*length_inv));
+				posc[i].z = posc[i-1].z + (dir.z * (MAX_LENGTH*length_inv));
 				
 				velh[i].x = (posc[i].x - position[i].x)/dt;
 				velh[i].y = (posc[i].y - position[i].y)/dt;

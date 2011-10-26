@@ -130,9 +130,7 @@ void init()
 	
 	hair = new pilar::Hair(roots.size(), NUMPARTICLES, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH, roots);
 	
-	std::cout << "before" << std::endl;
 	cutilSafeCall(cudaGraphicsResourceGetMappedPointer((void**)&hair->position, &size, cuda_vbo_resource));
-	std::cout << "after" << std::endl;
 	
 	hair->init();
 	
