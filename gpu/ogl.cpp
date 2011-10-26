@@ -22,7 +22,9 @@ int prevTime;
 
 // vbo variables
 GLuint vbo;
+GLuint vbo2;
 struct cudaGraphicsResource *cuda_vbo_resource;
+static float* colour = NULL;
 
 void animate(int milli);
 void reshape(int w, int h);
@@ -102,6 +104,10 @@ void createVBO(std::vector<pilar::Vector3f> &root)
 	
 	cutilSafeCall(cudaGraphicsGLRegisterBuffer(&cuda_vbo_resource, vbo, cudaGraphicsMapFlagsNone));
 	
+	glGenBuffers(1,&vbo2);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo2);
+	glBufferData(GL_ARRAY_BUFFER, NUMPARTICLES*3*sizeof(float), (void*)colour, GL_DYNAMIC_DRAW);
+	
 	free(position_h);
 }
 
@@ -110,6 +116,7 @@ void releaseVBO()
 	//Delete VBO
 	cutilSafeCall(cudaGraphicsUnregisterResource(cuda_vbo_resource));
 	glDeleteBuffers(1, &vbo);
+	glDeleteBuffers(1, &vbo2);
 	vbo = 0;
 }
 
@@ -122,6 +129,35 @@ void init()
 	
 	//TODO randomly generate roots on a plane
 	roots.push_back(root);
+	
+	colour = new float[NUMPARTICLES*3];
+	
+	for(int i = 0; i < NUMPARTICLES; i++)
+	{
+		switch(i%4)
+		{
+			case 0: //WHITE
+				colour[i*3  ] = 1.0f;
+				colour[i*3+1] = 1.0f;
+				colour[i*3+2] = 1.0f;
+			break;
+			case 1: //RED
+				colour[i*3  ] = 1.0f;
+				colour[i*3+1] = 0.0f;
+				colour[i*3+2] = 0.0f;
+			break;
+			case 2: //GREEN
+				colour[i*3  ] = 0.0f;
+				colour[i*3+1] = 1.0f;
+				colour[i*3+2] = 0.0f;
+			break;
+			case 3: //PINK
+				colour[i*3  ] = 1.0f;
+				colour[i*3+1] = 0.0f;
+				colour[i*3+2] = 1.0f;
+			break;
+		}
+	}
 	
 	createVBO(roots);
 	
@@ -144,6 +180,10 @@ void cleanup()
 	delete hair;
 	
 	hair = NULL;
+	
+	delete [] colour;
+	
+	colour = NULL;
 	
 	releaseVBO();
 }
@@ -238,15 +278,16 @@ void render(void) {
 	// render from the vbo
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glVertexPointer(3, GL_FLOAT, 0, 0);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vbo2);
+    glColorPointer(3, GL_FLOAT, 0, 0);
+    
     glEnableClientState(GL_VERTEX_ARRAY);
-	
-//	for(int i = 0; i < hair->numStrands; i++)
-//	{
-//		int start = i * NUMPARTICLES;
-//		int end = start + NUMPARTICLES;
+    glEnableClientState(GL_COLOR_ARRAY);
+    
 		glDrawArrays(GL_LINE_STRIP, 0, NUMPARTICLES);
-//	}
 	
+	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	
 	glutSwapBuffers();
