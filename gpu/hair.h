@@ -101,6 +101,7 @@ namespace pilar
 		float3 *posh;
 		
 		float3 *velocity;
+		float3 *velc;
 		float3 *velh;
 		
 		float3 *force;

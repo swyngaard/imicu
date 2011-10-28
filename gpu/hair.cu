@@ -31,6 +31,7 @@ void initStrands(int numStrands,
 				 float3* &posc,
 				 float3* &posh,
 				 float3* &velocity,
+				 float3* &velc,
 				 float3* &velh,
 				 float3* &force,
 				 float* &A,
@@ -44,6 +45,7 @@ void initStrands(int numStrands,
 	posh = init(size);
 	velocity = init(size);
 	velh = init(size);
+	velc = init(size);
 	force = init(size);
 	A = init2(numStrands*numParticles*3*numParticles*3*sizeof(float));
 	b = init2(numStrands*numParticles*3*sizeof(float));
@@ -89,6 +91,7 @@ void releaseStrands(float3* &position,
 				 	float3* &posc,
 				 	float3* &posh,
 				 	float3* &velocity,
+				 	float3* &velc,
 				 	float3* &velh,
 				 	float3* &force,
 				 	float* &A,
@@ -116,6 +119,7 @@ void releaseStrands(float3* &position,
 	cutilSafeCall(cudaFree(posc));
 	cutilSafeCall(cudaFree(posh));
 	cutilSafeCall(cudaFree(velocity));
+	cutilSafeCall(cudaFree(velc));
 	cutilSafeCall(cudaFree(velh));
 	cutilSafeCall(cudaFree(force));
 	cutilSafeCall(cudaFree(A));
@@ -133,6 +137,7 @@ void updateStrands(const int numParticles,
 				   float3* &posc,
 				   float3* &posh,
 				   float3* &velocity,
+				   float3* &velc,
 				   float3* &velh,
 				   float3* &force,
 				   float* &A,
@@ -150,6 +155,7 @@ void updateStrands(const int numParticles,
 							posc,
 							posh,
 							velocity,
+							velc,
 							velh,
 							force,
 							A,

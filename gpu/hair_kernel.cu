@@ -46,8 +46,6 @@ void updateSprings(int numSprings,
 		float inv_length = inv_sqrt(xn.x*xn.x + xn.y*xn.y + xn.z*xn.z);
 		float3 d = make_float3(xn.x*inv_length, xn.y*inv_length, xn.z*inv_length);
 		
-		float h = dt * dt * k / (4.0f * mass * length);
-		float g = dt * k / (2.0f * mass * length);
 		float f = k / length * mass;
 		
 		//TODO CONJUGATE GRADIENT!!!!!
@@ -136,11 +134,216 @@ void updateParticles(int numParticles, float dt, float3* velocity, float3* velh,
 }
 
 __device__
-void calcVelocities(int numParticles, float dt)
+void conjugate(const int N, const float* A, const float* b, float* x)
+{
+	float r[NUMPARTICLES*3];
+	float p[NUMPARTICLES*3];
+
+	for(int i = 0; i < N; i++)
+	{
+		//r = b - Ax
+		r[i] = b[i];
+		for(int j = 0; j < N; j++)
+		{
+			r[i] -= A[i*N+j]*x[j];
+		}
+	
+		//p = r
+		p[i] = r[i];
+	}
+
+	float rsold = 0.0f;
+
+	for(int i = 0; i < N; i ++)
+	{
+		rsold += r[i] * r[i];
+	}
+
+	for(int i = 0; i < N; i++)
+	{
+		float Ap[NUMPARTICLES*3];
+	
+		for(int j = 0; j < N; j++)
+		{
+			Ap[j] = 0.0f;
+		
+			for(int k = 0; k < N; k++)
+			{
+				Ap[j] += A[j*N+k] * p[k];
+			}
+		}
+	
+		float abot = 0.0f;
+	
+		for(int j = 0; j < N; j++)
+		{
+			abot += p[j] * Ap[j];
+		}
+	
+		float alpha = rsold / abot;
+	
+		for(int j = 0; j < N; j++)
+		{
+			x[j] = x[j] + alpha * p[j];
+		
+			r[j] = r[j] - alpha * Ap[j];
+		}
+	
+		float rsnew = 0.0f;
+	
+		for(int j = 0; j < N; j++)
+		{
+			rsnew += r[j] * r[j];
+		}
+	
+		if(rsnew < 1e-10f) break;
+	
+		for(int j = 0; j < N; j++)
+		{
+			p[j] = r[j] + rsnew / rsold * p[j];
+		}
+	
+		rsold = rsnew;
+	}
+}
+
+__device__
+void calcVelocities(int numParticles,
+					float dt,
+					float mass,
+					float length,
+					float4 k,
+					float3* position,
+					float3* velocity,
+					float3* velc,
+					float* A,
+					float* b,
+					float* x)
 {
 	int N = numParticles * 3;
+	int numEdges = numParticles - 1;
+	int numBend  = numParticles - 2;
+	int numTwist = numParticles - 3;
 	
+	for(int i = 0; i < numParticles; i++)
+	{
+		int xx = i * 3;
+		int yy = xx + 1;
+		int zz = yy + 1;
+		
+		A[xx] = 0.0f;
+		A[yy] = 0.0f;
+		A[zz] = 0.0f;
+		
+		b[xx] = 0.0f;
+		b[yy] = 0.0f;
+		b[zz] = 0.0f;
+		
+		x[xx] = velocity[i].x;
+		x[yy] = velocity[i].y;
+		x[zz] = velocity[i].z;
+	}
 	
+	float h = dt * dt * k.x / ( 4.0f * mass * length );
+	float g = dt * k.x / (2.0f * mass * length);
+	
+	for(int i = 0; i < numEdges; i++)
+	{
+		float3 d = make_float3(position[i+1].x-position[i].x,position[i+1].y-position[i].y,position[i+1].z-position[i].z);
+		float3 e = make_float3(d.x, d.y, d.z);
+		
+		float dlength = inv_sqrt(d.x*d.x+d.y*d.y+d.z*d.z);
+		d.x = d.x * dlength;
+		d.y = d.y * dlength;
+		d.z = d.z * dlength;
+	
+		A[(i*3)*N  +i*3] += 1+h*d.x*d.x; A[(i*3)*N  +i*3+1] +=   h*d.x*d.y; A[(i*3)*N  +i*3+2] +=   h*d.x*d.z; A[(i*3)*N  +i*3+3] +=  -h*d.x*d.x; A[(i*3)*N  +i*3+4] +=  -h*d.x*d.y; A[(i*3)*N  +i*3+5] +=  -h*d.x*d.z;
+		A[(i*3+1)*N+i*3] +=   h*d.x*d.y; A[(i*3+1)*N+i*3+1] += 1+h*d.y*d.y; A[(i*3+1)*N+i*3+2] +=   h*d.y*d.z; A[(i*3+1)*N+i*3+3] +=  -h*d.x*d.y; A[(i*3+1)*N+i*3+4] +=  -h*d.y*d.y; A[(i*3+1)*N+i*3+5] +=  -h*d.y*d.z;
+		A[(i*3+2)*N+i*3] +=   h*d.x*d.z; A[(i*3+2)*N+i*3+1] +=   h*d.y*d.z; A[(i*3+2)*N+i*3+2] += 1+h*d.z*d.z; A[(i*3+2)*N+i*3+3] +=  -h*d.x*d.z; A[(i*3+2)*N+i*3+4] +=  -h*d.y*d.z; A[(i*3+2)*N+i*3+5] +=  -h*d.z*d.z;
+		A[(i*3+3)*N+i*3] +=  -h*d.x*d.x; A[(i*3+3)*N+i*3+1] +=  -h*d.x*d.y; A[(i*3+3)*N+i*3+2] +=  -h*d.x*d.z; A[(i*3+3)*N+i*3+3] += 1+h*d.x*d.x; A[(i*3+3)*N+i*3+4] +=   h*d.x*d.y; A[(i*3+3)*N+i*3+5] +=   h*d.x*d.z;
+		A[(i*3+4)*N+i*3] +=  -h*d.x*d.y; A[(i*3+4)*N+i*3+1] +=  -h*d.y*d.y; A[(i*3+4)*N+i*3+2] +=  -h*d.y*d.z; A[(i*3+4)*N+i*3+3] +=   h*d.x*d.y; A[(i*3+4)*N+i*3+4] += 1+h*d.y*d.y; A[(i*3+4)*N+i*3+5] +=   h*d.y*d.z;
+		A[(i*3+5)*N+i*3] +=  -h*d.x*d.z; A[(i*3+5)*N+i*3+1] +=  -h*d.y*d.z; A[(i*3+5)*N+i*3+2] +=  -h*d.z*d.z; A[(i*3+5)*N+i*3+3] +=   h*d.x*d.z; A[(i*3+5)*N+i*3+4] +=   h*d.y*d.z; A[(i*3+5)*N+i*3+5] += 1+h*d.z*d.z;
+	
+		float factor = g * ((e.x*d.x+e.y*d.y+e.z*d.z) - (length));
+	
+		b[i*3]   += velocity[i].x   + factor * d.x;
+		b[i*3+1] += velocity[i].y   + factor * d.y;
+		b[i*3+2] += velocity[i].z   + factor * d.z;
+		b[i*3+3] += velocity[i+1].x - factor * d.x;
+		b[i*3+4] += velocity[i+1].y - factor * d.y;
+		b[i*3+5] += velocity[i+1].z - factor * d.z;
+	}
+	
+	//Add bending springs data into A and b
+	h = dt * dt * k.y / (4.0f * mass * length);
+	g = dt * k.y / (2.0f * mass * length);
+	
+	for(int i = 0; i < numBend; i++)
+	{
+		float3 d = make_float3(position[i+2].x-position[i].x,position[i+2].y-position[i].y,position[i+2].z-position[i].z);
+		float3 e = make_float3(d.x, d.y, d.z);
+		
+		float dlength = inv_sqrt(d.x*d.x+d.y*d.y+d.z*d.z);
+		d.x = d.x * dlength;
+		d.y = d.y * dlength;
+		d.z = d.z * dlength;
+		
+		A[(i*3  )*N+i*3] += 1+h*d.x*d.x; A[(i*3  )*N+i*3+1] +=   h*d.x*d.y; A[(i*3  )*N+i*3+2] +=   h*d.x*d.z; A[(i*3  )*N+i*3+6] +=  -h*d.x*d.x; A[(i*3  )*N+i*3+7] +=  -h*d.x*d.y; A[(i*3  )*N+i*3+8] +=  -h*d.x*d.z;
+		A[(i*3+1)*N+i*3] +=   h*d.x*d.y; A[(i*3+1)*N+i*3+1] += 1+h*d.y*d.y; A[(i*3+1)*N+i*3+2] +=   h*d.y*d.z; A[(i*3+1)*N+i*3+6] +=  -h*d.x*d.y; A[(i*3+1)*N+i*3+7] +=  -h*d.y*d.y; A[(i*3+1)*N+i*3+8] +=  -h*d.y*d.z;
+		A[(i*3+2)*N+i*3] +=   h*d.x*d.z; A[(i*3+2)*N+i*3+1] +=   h*d.y*d.z; A[(i*3+2)*N+i*3+2] += 1+h*d.z*d.z; A[(i*3+2)*N+i*3+6] +=  -h*d.x*d.z; A[(i*3+2)*N+i*3+7] +=  -h*d.y*d.z; A[(i*3+2)*N+i*3+8] +=  -h*d.z*d.z;
+		A[(i*3+6)*N+i*3] +=  -h*d.x*d.x; A[(i*3+6)*N+i*3+1] +=  -h*d.x*d.y; A[(i*3+6)*N+i*3+2] +=  -h*d.x*d.z; A[(i*3+6)*N+i*3+6] += 1+h*d.x*d.x; A[(i*3+6)*N+i*3+7] +=   h*d.x*d.y; A[(i*3+6)*N+i*3+8] +=   h*d.x*d.z;
+		A[(i*3+7)*N+i*3] +=  -h*d.x*d.y; A[(i*3+7)*N+i*3+1] +=  -h*d.y*d.y; A[(i*3+7)*N+i*3+2] +=  -h*d.y*d.z; A[(i*3+7)*N+i*3+6] +=   h*d.x*d.y; A[(i*3+7)*N+i*3+7] += 1+h*d.y*d.y; A[(i*3+7)*N+i*3+8] +=   h*d.y*d.z;
+		A[(i*3+8)*N+i*3] +=  -h*d.x*d.z; A[(i*3+8)*N+i*3+1] +=  -h*d.y*d.z; A[(i*3+8)*N+i*3+2] +=  -h*d.z*d.z; A[(i*3+8)*N+i*3+6] +=   h*d.x*d.z; A[(i*3+8)*N+i*3+7] +=   h*d.y*d.z; A[(i*3+8)*N+i*3+8] += 1+h*d.z*d.z;
+		
+		float factor = g * ((e.x*d.x+e.y*d.y+e.z*d.z) - (length));
+		
+		b[i*3]   += velocity[i].x   + factor * d.x;
+		b[i*3+1] += velocity[i].y   + factor * d.y;
+		b[i*3+2] += velocity[i].z   + factor * d.z;
+		b[i*3+6] += velocity[i+2].x - factor * d.x;
+		b[i*3+7] += velocity[i+2].y - factor * d.y;
+		b[i*3+8] += velocity[i+2].z - factor * d.z;
+	}
+	
+	//Add twisting springs data into A and b
+	h = dt * dt * k.z / (4.0f * mass * length);
+	g = dt * k.z / (2.0f * mass * length);
+
+	for(int i = 0; i < numTwist; i++)
+	{
+		float3 d = make_float3(position[i+3].x-position[i].x,position[i+3].y-position[i].y,position[i+3].z-position[i].z);
+		float3 e = make_float3(d.x, d.y, d.z);
+		
+		float dlength = inv_sqrt(d.x*d.x+d.y*d.y+d.z*d.z);
+		d.x = d.x * dlength;
+		d.y = d.y * dlength;
+		d.z = d.z * dlength;
+	
+		A[(i*3   )*N+i*3] += 1+h*d.x*d.x; A[(i*3   )*N+i*3+1] +=   h*d.x*d.y; A[(i*3   )*N+i*3+2] +=   h*d.x*d.z; A[(i*3   )*N+i*3+9] +=  -h*d.x*d.x; A[(i*3   )*N+i*3+10] +=  -h*d.x*d.y; A[(i*3   )*N+i*3+11] +=  -h*d.x*d.z;
+		A[(i*3+1 )*N+i*3] +=   h*d.x*d.y; A[(i*3+1 )*N+i*3+1] += 1+h*d.y*d.y; A[(i*3+1 )*N+i*3+2] +=   h*d.y*d.z; A[(i*3+1 )*N+i*3+9] +=  -h*d.x*d.y; A[(i*3+1 )*N+i*3+10] +=  -h*d.y*d.y; A[(i*3+1 )*N+i*3+11] +=  -h*d.y*d.z;
+		A[(i*3+2 )*N+i*3] +=   h*d.x*d.z; A[(i*3+2 )*N+i*3+1] +=   h*d.y*d.z; A[(i*3+2 )*N+i*3+2] += 1+h*d.z*d.z; A[(i*3+2 )*N+i*3+9] +=  -h*d.x*d.z; A[(i*3+2 )*N+i*3+10] +=  -h*d.y*d.z; A[(i*3+2 )*N+i*3+11] +=  -h*d.z*d.z;
+		A[(i*3+9 )*N+i*3] +=  -h*d.x*d.x; A[(i*3+9 )*N+i*3+1] +=  -h*d.x*d.y; A[(i*3+9 )*N+i*3+2] +=  -h*d.x*d.z; A[(i*3+9 )*N+i*3+9] += 1+h*d.x*d.x; A[(i*3+9 )*N+i*3+10] +=   h*d.x*d.y; A[(i*3+9 )*N+i*3+11] +=   h*d.x*d.z;
+		A[(i*3+10)*N+i*3] +=  -h*d.x*d.y; A[(i*3+10)*N+i*3+1] +=  -h*d.y*d.y; A[(i*3+10)*N+i*3+2] +=  -h*d.y*d.z; A[(i*3+10)*N+i*3+9] +=   h*d.x*d.y; A[(i*3+10)*N+i*3+10] += 1+h*d.y*d.y; A[(i*3+10)*N+i*3+11] +=   h*d.y*d.z;
+		A[(i*3+11)*N+i*3] +=  -h*d.x*d.z; A[(i*3+11)*N+i*3+1] +=  -h*d.y*d.z; A[(i*3+11)*N+i*3+2] +=  -h*d.z*d.z; A[(i*3+11)*N+i*3+9] +=   h*d.x*d.z; A[(i*3+11)*N+i*3+10] +=   h*d.y*d.z; A[(i*3+11)*N+i*3+11] += 1+h*d.z*d.z;
+		
+		float factor = g * ((e.x*d.x+e.y*d.y+e.z*d.z) - (length));
+		
+		b[i*3   ] += velocity[i].x   + factor * d.x;
+		b[i*3+1 ] += velocity[i].y   + factor * d.y;
+		b[i*3+2 ] += velocity[i].z   + factor * d.z;
+		b[i*3+9 ] += velocity[i+3].x - factor * d.x;
+		b[i*3+10] += velocity[i+3].y - factor * d.y;
+		b[i*3+11] += velocity[i+3].z - factor * d.z;
+	}
+	
+	conjugate(N, A, b, x);
+	
+	for(int i = 0; i < numParticles; i++)
+	{
+		velc[i].x = x[i*3  ];
+		velc[i].y = x[i*3+1];
+		velc[i].z = x[i*3+2];
+	}
 }
 
 __device__
@@ -188,6 +391,7 @@ void update(const int numParticles,
 			float3* posc,
 			float3* posh,
 			float3* velocity,
+			float3* velc,
 			float3* velh,
 			float3* force,
 			float* A,
@@ -201,7 +405,17 @@ void update(const int numParticles,
 	
 	clearForces(numParticles, force+start);
 	
-//	calcVelocities();
+	calcVelocities(numParticles,
+				   mlgt.w,
+				   mlgt.x,
+				   mlgt.y,
+				   k,
+				   position+start,
+				   velocity+start,
+				   velc+start,
+				   A,
+				   b,
+				   x);
 	
 	//Update edge springs
 	updateSprings(numParticles-1, 1, mlgt.x, mlgt.y, mlgt.w, k.x, position+start, velocity+start, force+start);
@@ -227,6 +441,18 @@ void update(const int numParticles,
 	
 	//Reset forces on particles
 	clearForces(numParticles, force+start);
+	
+	calcVelocities(numParticles,
+				   mlgt.w,
+				   mlgt.x,
+				   mlgt.y,
+				   k,
+				   position+start,
+				   velocity+start,
+				   velc+start,
+				   A,
+				   b,
+				   x);
 	
 	//Calculate and apply spring forces using half position
 	//Update edge springs

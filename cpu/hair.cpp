@@ -84,8 +84,6 @@ namespace pilar
 		Vector3f d = xn * xn.length_inverse();
 		
 		//Calculate velocity
-		float h = dt * dt * k / (4.0f * particle[0]->mass * length);
-		float g = dt * k / (2.0f * particle[0]->mass * length);
 		float f = k / length * particle[0]->mass;
 		
 		Vector3f v1(particle[1]->velc.x-particle[0]->velc.x, particle[1]->velc.y-particle[0]->velc.y, particle[1]->velc.z-particle[0]->velc.z);
