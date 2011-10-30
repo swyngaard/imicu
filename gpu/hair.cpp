@@ -18,7 +18,10 @@ extern "C" void initStrands(int numStrands,
 							float3* &force,
 							float* &A,
 							float* &b,
-							float* &x);
+							float* &x,
+							float* &r,
+							float* &p,
+							float* &Ap);
 				 
 extern "C" void updateStrands(const int numParticles,
 				   			  float4 &mlgt,
@@ -33,7 +36,10 @@ extern "C" void updateStrands(const int numParticles,
 				   			  float3* &force,
 				   			  float* &A,
 				   			  float* &b,
-				   			  float* &x);
+				   			  float* &x,
+							  float* &r,
+							  float* &p,
+							  float* &Ap);
 
 extern "C" void releaseStrands(float3* &position,
 				 			   float3* &posc,
@@ -44,7 +50,10 @@ extern "C" void releaseStrands(float3* &position,
 				 			   float3* &force,
 				 			   float* &A,
 				 			   float* &b,
-				 			   float* &x);
+				 			   float* &x,
+							   float* &r,
+							   float* &p,
+							   float* &Ap);
 
 extern "C" void copyMem(const int numStrands,
 						const int numParticles,
@@ -470,18 +479,18 @@ namespace pilar
 			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]);
 		}
 		
-		float3* r = (float3*) calloc(numStrands, sizeof(float3));
+		float3* rr = (float3*) calloc(numStrands, sizeof(float3));
 		
 		//TODO change roots to float3* vector
 		for(unsigned int i = 0; i < roots.size(); i++)
 		{
-			r[i].x = roots[i].x;
-			r[i].y = roots[i].y;
-			r[i].z = roots[i].z;
+			rr[i].x = roots[i].x;
+			rr[i].y = roots[i].y;
+			rr[i].z = roots[i].z;
 		}
 		
 		//TODO initialise strand data on GPU
-		initStrands(numStrands, numParticles, length, r, position, posc, posh, velocity, velc, velh, force, A, b, x);
+		initStrands(numStrands, numParticles, length, rr, position, posc, posh, velocity, velc, velh, force, A, b, x, r, p, Ap);
 	}
 	
 	void Hair::init()
@@ -511,7 +520,10 @@ namespace pilar
 				   	  force,
 				   	  A,
 				   	  b,
-				   	  x);
+				   	  x,
+				   	  r,
+				   	  p,
+				   	  Ap);
 	}
 	
 	//Clean up
@@ -527,7 +539,7 @@ namespace pilar
 		delete [] strand;
 		
 		//TODO Release strand data from GPU
-		releaseStrands(position,posc,posh,velocity,velc,velh,force,A,b,x);
+		releaseStrands(position,posc,posh,velocity,velc,velh,force,A,b,x,r,p,Ap);
 	}
 }
 

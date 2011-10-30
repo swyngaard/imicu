@@ -134,10 +134,10 @@ void updateParticles(int numParticles, float dt, float3* velocity, float3* velh,
 }
 
 __device__
-void conjugate(const int N, const float* A, const float* b, float* x)
+void conjugate(int N, const float* A, const float* b, float* x, float* r, float* p, float* Ap)
 {
-	float r[NUMPARTICLES*3];
-	float p[NUMPARTICLES*3];
+//	float r[NUMPARTICLES*3];
+//	float p[NUMPARTICLES*3];
 
 	for(int i = 0; i < N; i++)
 	{
@@ -161,7 +161,7 @@ void conjugate(const int N, const float* A, const float* b, float* x)
 
 	for(int i = 0; i < N; i++)
 	{
-		float Ap[NUMPARTICLES*3];
+//		float Ap[NUMPARTICLES*3];
 	
 		for(int j = 0; j < N; j++)
 		{
@@ -218,7 +218,10 @@ void calcVelocities(int numParticles,
 					float3* velc,
 					float* A,
 					float* b,
-					float* x)
+					float* x,
+					float* r,
+					float* p,
+					float* Ap)
 {
 	int N = numParticles * 3;
 	int numEdges = numParticles - 1;
@@ -336,7 +339,7 @@ void calcVelocities(int numParticles,
 		b[i*3+11] += velocity[i+3].z - factor * d.z;
 	}
 	
-	conjugate(N, A, b, x);
+//	conjugate(N, A, b, x, r, p, Ap);
 	
 	for(int i = 0; i < numParticles; i++)
 	{
@@ -396,7 +399,10 @@ void update(const int numParticles,
 			float3* force,
 			float* A,
 			float* b,
-			float* x)
+			float* x,
+			float* r,
+			float* p,
+			float* Ap)
 {
 	int tid = blockIdx.x * blockDim.x + threadIdx.x;
 	
@@ -415,7 +421,10 @@ void update(const int numParticles,
 				   velc+start,
 				   A,
 				   b,
-				   x);
+				   x,
+				   r,
+				   p,
+				   Ap);
 	
 	//Update edge springs
 	updateSprings(numParticles-1, 1, mlgt.x, mlgt.y, mlgt.w, k.x, position+start, velocity+start, force+start);
@@ -452,7 +461,10 @@ void update(const int numParticles,
 				   velc+start,
 				   A,
 				   b,
-				   x);
+				   x,
+				   r,
+				   p,
+				   Ap);
 	
 	//Calculate and apply spring forces using half position
 	//Update edge springs
