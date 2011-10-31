@@ -167,10 +167,10 @@ void conjugate(int N, const float* A, const float* b, float* x, float* r, float*
 		{
 			Ap[j] = 0.0f;
 		
-//			for(int k = 0; k < N; k++)
-//			{
-//				Ap[j] += A[j*N+k] * p[k];
-//			}
+			for(int k = 0; k < N; k++)
+			{
+				Ap[j] += A[j*N+k] * p[k];
+			}
 		}
 	
 		float abot = 0.0f;
@@ -339,7 +339,7 @@ void calcVelocities(int numParticles,
 		b[i*3+11] += velocity[i+3].z - factor * d.z;
 	}
 	
-//	conjugate(N, A, b, x, r, p, Ap);
+	conjugate(N, A, b, x, r, p, Ap);
 	
 	for(int i = 0; i < numParticles; i++)
 	{
