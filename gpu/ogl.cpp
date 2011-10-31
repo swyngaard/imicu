@@ -53,7 +53,7 @@ int main(int argc, char **argv) {
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
 //	glutIdleFunc(render);
-	glutTimerFunc(20, animate, 20);
+	glutTimerFunc(40, animate, 40);
 	
 	glewInit();
 	
