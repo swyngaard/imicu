@@ -28,7 +28,7 @@ class Model_OBJ
 	float* normals;							// Stores the normals
     float* Faces_Triangles;					// Stores the triangles
 	float* vertexBuffer;					// Stores the points which make the object
-	long TotalConnectedPoints;				// Stores the total number of connected verteces
+	long TotalConnectedPoints;				// Stores the total number of connected vertices
 	long TotalConnectedTriangles;			// Stores the total number of connected triangles
  
 };
@@ -39,10 +39,29 @@ Model_OBJ obj;
 pilar::Hair* hair = NULL;
 int prevTime;
 
+// camera attributes
+float viewerPosition[3]		= { 0.0f, -0.13f, -0.35f };
+float viewerDirection[3]	= { 0.0, 1.0, 0.0 };
+
+// rotation values for the navigation
+float navigationRotation[3]	= { 0.0, 0.0, 0.0 };
+
+// parameters for the navigation
+
+// position of the mouse when pressed
+int mousePressedX = 0, mousePressedY = 0;
+float lastXOffset = 0.0, lastYOffset = 0.0, lastZOffset = 0.0;
+// mouse button states
+int leftMouseButtonActive = 0, middleMouseButtonActive = 0, rightMouseButtonActive = 0;
+// modifier state
+int shiftActive = 0, altActive = 0, ctrlActive = 0;
+
 void animate(int milli);
 void reshape(int w, int h);
 void render(void);
 void keyboard(unsigned char key, int x, int y);
+void mouseFunc(int button, int state, int x, int y);
+void mouseMotionFunc(int x, int y);
 
 void init();
 void update(float dt);
@@ -213,6 +232,8 @@ int main(int argc, char **argv) {
 	glutKeyboardFunc(keyboard);
 //	glutIdleFunc(render);
 	glutTimerFunc(20, animate, 20);
+	glutMouseFunc(mouseFunc);
+	glutMotionFunc(mouseMotionFunc);
 	
 	glPointSize(3.0f);
 	glShadeModel(GL_FLAT);
@@ -278,6 +299,28 @@ void reshape(int w, int h)
 
 	// Get Back to the Modelview
 	glMatrixMode(GL_MODELVIEW);
+	
+	glShadeModel( GL_SMOOTH );
+    glClearColor( 0.9f, 0.95f, 1.0f, 0.5f );
+    glClearDepth( 1.0f );
+    glEnable( GL_DEPTH_TEST );
+    glDepthFunc( GL_LEQUAL );
+    glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+ 
+    GLfloat amb_light[] = { 0.1, 0.1, 0.1, 1.0 };
+    GLfloat diffuse[] = { 0.6, 0.6, 0.6, 1 };
+    GLfloat specular[] = { 0.7, 0.7, 0.3, 1 };
+    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, amb_light );
+    glLightfv( GL_LIGHT0, GL_DIFFUSE, diffuse );
+    glLightfv( GL_LIGHT0, GL_SPECULAR, specular );
+    glEnable( GL_LIGHT0 );
+    glEnable( GL_COLOR_MATERIAL );
+    glShadeModel( GL_SMOOTH );
+    glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE );
+    glDepthFunc( GL_LEQUAL );
+    glEnable( GL_DEPTH_TEST );
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0); 
 }
 
 //float angle = 0.0f;
@@ -294,6 +337,8 @@ void render(void) {
 	gluLookAt(	0.0f, -0.13f, -0.35f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
+	
+	
 	//closeup with damping
 //	gluLookAt(	0.0f, -0.25f, -0.65f,
 //				0.0f, -0.25f,  0.0f,
@@ -303,8 +348,12 @@ void render(void) {
 //				0.0f, -0.4f,  0.0f,
 //				0.0f, 1.0f,  0.0f);
 	
+	// add navigation rotation
+//	glRotatef( navigationRotation[0], 1.0f, 0.0f, 0.0f );
+	glRotatef( navigationRotation[1], 0.0f, -1.0f, 0.0f );
+	
 	glPushMatrix();
-//		glRotatef(90,0,1,0);
+		glRotatef(180.0f,0.0f,1.0f,0.0f);
 		glTranslatef(0.0f, -0.13f, 0.0f);
 		obj.Draw();
 	glPopMatrix();
@@ -322,7 +371,6 @@ void render(void) {
 //			pilar::Particle* p0 = hair->strand[i]->particle[j-1];
 			
 			//Set the colour of the spring
-			
 			switch(j%4)
 			{
 				case 0: glColor3f(1.0f, 1.0f, 1.0f); break; //WHITE
@@ -330,7 +378,6 @@ void render(void) {
 				case 2: glColor3f(0.0f, 1.0f, 0.0f); break; //GREEN
 				case 3: glColor3f(1.0f, 0.0f, 1.0f); break; //PINK
 			}
-			
 			
 //			glVertex3f(p0->position.x, p0->position.y, p0->position.z);
 			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
@@ -347,7 +394,6 @@ void render(void) {
 		glVertex3f(0.0f, 0.0f, 0.0f);
 		glVertex3f(0.0f, -0.25f, 0.0f);
 	glEnd();
-	
 	
 	glutSwapBuffers();
 }
@@ -374,4 +420,105 @@ void keyboard(unsigned char key, int x, int y)
 		glutLeaveMainLoop();
 	}
 }
+
+// mouse callback
+void mouseFunc(int button, int state, int x, int y)
+{
+	
+	// get the modifiers
+	switch (glutGetModifiers()) {
+
+		case GLUT_ACTIVE_SHIFT:
+			shiftActive = 1;
+			break;
+		case GLUT_ACTIVE_ALT:
+			altActive	= 1;
+			break;
+		case GLUT_ACTIVE_CTRL:
+			ctrlActive	= 1;
+			break;
+		default:
+			shiftActive = 0;
+			altActive	= 0;
+			ctrlActive	= 0;
+			break;
+	}
+
+	// get the mouse buttons
+	if (button == GLUT_LEFT_BUTTON)
+		if (state == GLUT_DOWN) {
+			leftMouseButtonActive += 1;
+		} else
+			leftMouseButtonActive -= 1;
+	else if (button == GLUT_MIDDLE_BUTTON)
+		if (state == GLUT_DOWN) {
+			middleMouseButtonActive += 1;
+			lastXOffset = 0.0;
+			lastYOffset = 0.0;
+		} else
+			middleMouseButtonActive -= 1;
+	else if (button == GLUT_RIGHT_BUTTON)
+		if (state == GLUT_DOWN) {
+			rightMouseButtonActive += 1;
+			lastZOffset = 0.0;
+		} else
+			rightMouseButtonActive -= 1;
+
+//	if (altActive) {
+		mousePressedX = x;
+		mousePressedY = y;
+//	}
+}
+
+//-----------------------------------------------------------------------------
+
+void mouseMotionFunc(int x, int y)
+{
+	
+	float xOffset = 0.0, yOffset = 0.0, zOffset = 0.0;
+
+	// navigation
+//	if (altActive) {
+	
+		// rotatation
+		if (leftMouseButtonActive) {
+
+			navigationRotation[0] += ((mousePressedY - y) * 180.0f) / 200.0f;
+			navigationRotation[1] += ((mousePressedX - x) * 180.0f) / 200.0f;
+
+			mousePressedY = y;
+			mousePressedX = x;
+
+		}
+		// panning
+		else if (middleMouseButtonActive) {
+
+			xOffset = (mousePressedX + x);
+			if (!lastXOffset == 0.0) {
+				viewerPosition[0]	-= (xOffset - lastXOffset) / 8.0;
+				viewerDirection[0]	-= (xOffset - lastXOffset) / 8.0;
+			}
+			lastXOffset = xOffset;
+
+			yOffset = (mousePressedY + y);
+			if (!lastYOffset == 0.0) {
+				viewerPosition[1]	+= (yOffset - lastYOffset) / 8.0;
+				viewerDirection[1]	+= (yOffset - lastYOffset) / 8.0;	
+			}	
+			lastYOffset = yOffset;
+
+		}
+		// depth movement
+		else if (rightMouseButtonActive) {
+			zOffset = (mousePressedX + x);
+			if (!lastZOffset == 0.0) {
+				viewerPosition[2] -= (zOffset - lastZOffset) / 5.0;
+				viewerDirection[2] -= (zOffset - lastZOffset) / 5.0;
+			}
+			lastZOffset = zOffset;
+		}
+//	}
+
+}
+
 
