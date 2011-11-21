@@ -395,6 +395,10 @@ void render(void) {
 		glVertex3f(0.0f, -0.25f, 0.0f);
 	glEnd();
 	
+	glPushMatrix();
+		glTranslatef(0.0f, -0.125f, 0.0f);
+		glutWireCube(0.275);
+	glPopMatrix();
 	glutSwapBuffers();
 }
 
