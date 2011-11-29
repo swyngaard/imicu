@@ -15,9 +15,9 @@
 #define POINTS_PER_VERTEX 3
 #define TOTAL_FLOATS_IN_TRIANGLE 9
 
-#define DOMAIN_DIM		5
-#define CELL_WIDTH		0.055f
-#define CELL_HALF		0.0275f
+#define DOMAIN_DIM		100
+#define CELL_WIDTH		0.00275f
+#define CELL_HALF		0.001375f
 
 class Model_OBJ
 {
@@ -405,22 +405,24 @@ void render(void) {
 	
 	glPushMatrix();
 		glTranslatef(-0.11f, -0.015f, -0.11);
+		glBegin(GL_POINTS);
 			for(int xx = 0; xx < DOMAIN_DIM; xx++)
 			{
 				for(int yy = 0; yy < DOMAIN_DIM; yy++)
 				{
 					for(int zz = 0; zz < DOMAIN_DIM; zz++)
 					{
-						glBegin(GL_POINTS);
+						
 							glVertex3f(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
-						glEnd();
-						glPushMatrix();
-							glTranslatef(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
-							glutWireCube(CELL_WIDTH);
-						glPopMatrix();
+						
+//						glPushMatrix();
+//							glTranslatef(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
+//							glutWireCube(CELL_WIDTH);
+//						glPopMatrix();
 					}
 				}
 			}
+		glEnd();
 	glPopMatrix();
 	
 	glutSwapBuffers();
