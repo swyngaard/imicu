@@ -3,6 +3,7 @@
 #define __HAIR_H__
 
 #include "tools.h"
+#include "constants.h"
 #include <vector>
 
 namespace pilar
@@ -15,7 +16,6 @@ namespace pilar
 		Vector3f posh;
 		Vector3f posc;
 		Vector3f position;
-		
 		
 		Vector3f velh;
 		Vector3f velocity;
@@ -128,6 +128,7 @@ namespace pilar
 	public:
 		int numStrands;
 		Strand** strand;
+		float grid;
 		
 		Hair(int numStrands,
 			 int numParticles,

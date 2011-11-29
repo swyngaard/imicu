@@ -15,10 +15,6 @@
 #define POINTS_PER_VERTEX 3
 #define TOTAL_FLOATS_IN_TRIANGLE 9
 
-#define DOMAIN_DIM		100
-#define CELL_WIDTH		0.00275f
-#define CELL_HALF		0.001375f
-
 class Model_OBJ
 {
   public: 
@@ -337,7 +333,7 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.35f,
+	gluLookAt(	0.0f, -0.13f, -0.55f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
@@ -404,7 +400,7 @@ void render(void) {
 	glPopMatrix();
 	
 	glPushMatrix();
-		glTranslatef(-0.11f, -0.015f, -0.11);
+		glTranslatef(-DOMAIN_HALF+CELL_HALF, DOMAIN_HALF-0.125f-CELL_HALF, -DOMAIN_HALF+CELL_HALF);
 		glBegin(GL_POINTS);
 			for(int xx = 0; xx < DOMAIN_DIM; xx++)
 			{
@@ -413,7 +409,7 @@ void render(void) {
 					for(int zz = 0; zz < DOMAIN_DIM; zz++)
 					{
 						
-							glVertex3f(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
+								glVertex3f(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
 						
 //						glPushMatrix();
 //							glTranslatef(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
