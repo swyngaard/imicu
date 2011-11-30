@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstring>
+#include <cfloat>
 
 namespace pilar
 {
@@ -604,6 +605,11 @@ namespace pilar
 		{
 			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]);
 		}
+		
+		for(int xx = 0; xx < DOMAIN_DIM; xx++)
+			for(int yy = 0; yy < DOMAIN_DIM; yy++)
+				for(int zz = 0; zz < DOMAIN_DIM; zz++)
+					grid[xx][yy][zz] = FLT_MAX;
 	}
 	
 	void Hair::update(float dt)

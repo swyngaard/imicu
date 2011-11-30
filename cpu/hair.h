@@ -6,6 +6,7 @@
 #include "constants.h"
 #include <vector>
 
+
 namespace pilar
 {
 	class Particle
@@ -128,7 +129,7 @@ namespace pilar
 	public:
 		int numStrands;
 		Strand** strand;
-		float grid;
+		float grid[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM];
 		
 		Hair(int numStrands,
 			 int numParticles,

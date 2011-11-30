@@ -239,6 +239,8 @@ int main(int argc, char **argv) {
 	
 	prevTime = glutGet(GLUT_ELAPSED_TIME);
 	
+	std::cout << "Size of float: " << sizeof(float) << " bytes" << std::endl;
+	
 	//Initialise hair simulation
 	init();
 	
