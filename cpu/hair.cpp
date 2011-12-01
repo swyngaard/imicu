@@ -605,11 +605,51 @@ namespace pilar
 		{
 			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]);
 		}
+	}
+	
+	Hair::Hair(int numStrands,
+			   int numParticles,
+			   float mass,
+			   float k_edge,
+			   float k_bend,
+			   float k_twist,
+			   float k_extra,
+			   float d_edge,
+			   float d_bend,
+			   float d_twist,
+			   float d_extra,
+			   float length,
+			   std::vector<Vector3f> &roots,
+			   Model_OBJ &obj)
+	{
+		this->numStrands = numStrands;
 		
+		strand = new Strand*[numStrands];
+		
+		for(int i = 0; i < numStrands; i++)
+		{
+			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]);
+		}
+		
+		initDistanceField(obj);
+	}
+	
+	void Hair::initDistanceField(Model_OBJ &obj)
+	{
+		//Initialise distance field to inifinity
 		for(int xx = 0; xx < DOMAIN_DIM; xx++)
 			for(int yy = 0; yy < DOMAIN_DIM; yy++)
 				for(int zz = 0; zz < DOMAIN_DIM; zz++)
 					grid[xx][yy][zz] = FLT_MAX;
+		
+		//calculate triangle normal scaling factor
+		float delta = 0.75f;
+		float echo = CELL_WIDTH * delta;
+		
+		//read in each triangle with its normal data
+		
+		std::cout << "Number of Vertices: " << obj.TotalConnectedPoints << std::endl;
+		std::cout << "Number of Triangles: " << obj.TotalConnectedTriangles << std::endl;
 	}
 	
 	void Hair::update(float dt)

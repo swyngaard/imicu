@@ -1,4 +1,6 @@
 
+#include <math.h>
+
 #include "tools.h"
 
 namespace pilar

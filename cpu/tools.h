@@ -2,8 +2,6 @@
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
-#include <math.h>
-
 namespace pilar
 {
 	class Vector3f

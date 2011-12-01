@@ -4,8 +4,8 @@
 
 #include "tools.h"
 #include "constants.h"
+#include "ogl.h"
 #include <vector>
-
 
 namespace pilar
 {
@@ -126,6 +126,8 @@ namespace pilar
 	protected:
 		Vector3f gravity;
 		
+		void initDistanceField(Model_OBJ &obj);
+		
 	public:
 		int numStrands;
 		Strand** strand;
@@ -144,6 +146,22 @@ namespace pilar
 			 float d_extra,
 			 float length,
 			 std::vector<Vector3f> &roots);
+		
+		Hair(int numStrands,
+			 int numParticles,
+			 float mass, 
+			 float k_edge, 
+			 float k_bend,
+			 float k_twist,
+			 float k_extra,
+			 float d_edge,
+			 float d_bend,
+			 float d_twist,
+			 float d_extra,
+			 float length,
+			 std::vector<Vector3f> &roots,
+			 Model_OBJ &obj);
+			 
 		void update(float dt);
 		void release();
 	};
