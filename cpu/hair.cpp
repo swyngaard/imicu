@@ -688,7 +688,6 @@ namespace pilar
 //			std::cout << prism[1][6] << " " << prism[1][7] << " " << prism[1][8] << std::endl;
 //			std::cout << std::endl;
 			
-			
 		}
 	}
 	

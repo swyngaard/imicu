@@ -157,7 +157,7 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.15f,
+	gluLookAt(	0.0f, -0.13f, -0.55f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
@@ -176,8 +176,8 @@ void render(void) {
 	glRotatef( navigationRotation[1], 0.0f, -1.0f, 0.0f );
 	
 	glPushMatrix();
-		glRotatef(180.0f,0.0f,1.0f,0.0f);
-		glTranslatef(0.0f, -0.13f, 0.0f);
+//		glRotatef(180.0f,0.0f,1.0f,0.0f);
+//		glTranslatef(0.0f, -0.13f, 0.0f);
 		obj.Draw();
 	glPopMatrix();
 	
