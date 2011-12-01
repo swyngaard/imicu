@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100,100);
 	glutInitWindowSize(800,600);
-	glutCreateWindow("Simulation");
+	glutCreateWindow("Pilar");
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 	
 	// register callbacks
@@ -157,7 +157,7 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.55f,
+	gluLookAt(	0.0f, -0.13f, -0.15f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
@@ -221,6 +221,25 @@ void render(void) {
 	glPushMatrix();
 		glTranslatef(0.0f, -0.125f, 0.0f);
 		glutWireCube(CELL_WIDTH * DOMAIN_DIM);
+	glPopMatrix();
+	
+	glPushMatrix();
+		glRotatef(180.0f,0.0f,1.0f,0.0f);
+		glTranslatef(0.0f, -0.13f, 0.0f);
+		glBegin(GL_POINTS);
+			glVertex3f(0.012305f, 0.004639f, 0.018018f);
+			glVertex3f(0.012598f, 0.006067f, 0.017944f);
+			glVertex3f(0.011816f, 0.006076f, 0.018781f);
+			
+			glVertex3f(0.0138011f, 0.0044046f, 0.0194183f);
+			glVertex3f(0.0140941f, 0.0058326f, 0.0193443f);
+			glVertex3f(0.0133121f, 0.0058416f, 0.0201813f);
+			
+			glVertex3f(0.0108089f, 0.0048734f, 0.0166177f);
+			glVertex3f(0.0111019f, 0.0063014f, 0.0165437f);
+			glVertex3f(0.0103199f, 0.0063104f, 0.0173807f);
+			
+		glEnd();
 	glPopMatrix();
 	
 	glPushMatrix();
@@ -395,7 +414,7 @@ float* Model_OBJ::calculateNormal( float *coord1, float *coord2, float *coord3 )
    vr[2] = va[0] * vb[1] - vb[0] * va[1];
  
    /* normalization factor */
-   val = sqrt( vr[0]*vr[0] + vr[1]*vr[1] + vr[2]*vr[2] );
+   val = sqrtf( vr[0]*vr[0] + vr[1]*vr[1] + vr[2]*vr[2] );
  
 	float norm[3];
 	norm[0] = vr[0]/val;
@@ -485,7 +504,7 @@ int Model_OBJ::Load(const char* filename)
 					normals[normal_index + tCounter +2] = norm[2];
 					tCounter += POINTS_PER_VERTEX;
 				}
- 
+ 				
 				triangle_index += TOTAL_FLOATS_IN_TRIANGLE;
 				normal_index += TOTAL_FLOATS_IN_TRIANGLE;
 				TotalConnectedTriangles += TOTAL_FLOATS_IN_TRIANGLE;			

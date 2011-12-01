@@ -643,13 +643,53 @@ namespace pilar
 					grid[xx][yy][zz] = FLT_MAX;
 		
 		//calculate triangle normal scaling factor
-		float delta = 0.75f;
+		float delta = 1.75f;
 		float echo = CELL_WIDTH * delta;
 		
 		//read in each triangle with its normal data
 		
-		std::cout << "Number of Vertices: " << obj.TotalConnectedPoints << std::endl;
-		std::cout << "Number of Triangles: " << obj.TotalConnectedTriangles << std::endl;
+		int numVertices = obj.TotalConnectedPoints / POINTS_PER_VERTEX;
+		int numTriangles = obj.TotalConnectedTriangles / TOTAL_FLOATS_IN_TRIANGLE;
+		
+		std::cout << "Number of Vertices: " << numVertices << std::endl;
+		std::cout << "Number of Triangles: " << numTriangles << std::endl;
+		
+		for(int i = 0; i < numTriangles; i++)
+		{
+			//print triangle normals
+			int index = i * TOTAL_FLOATS_IN_TRIANGLE;
+			
+//			std::cout << obj.normals[index]     <<  " " << obj.normals[index + 1] << " " << obj.normals[index + 2] << std::endl;
+//			std::cout << obj.normals[index + 3] <<  " " << obj.normals[index + 4] << " " << obj.normals[index + 5] << std::endl;
+//			std::cout << obj.normals[index + 6] <<  " " << obj.normals[index + 7] << " " << obj.normals[index + 8] << std::endl;
+//			std::cout << std::endl;
+			
+			//print triangle vertices
+//			std::cout << obj.Faces_Triangles[index]   << " " << obj.Faces_Triangles[index+1] << " " << obj.Faces_Triangles[index+2] << std::endl;
+//			std::cout << obj.Faces_Triangles[index+3] << " " << obj.Faces_Triangles[index+4] << " " << obj.Faces_Triangles[index+5] << std::endl;
+//			std::cout << obj.Faces_Triangles[index+6] << " " << obj.Faces_Triangles[index+7] << " " << obj.Faces_Triangles[index+8] << std::endl;
+//			std::cout << std::endl;
+			
+			//build prism
+			float prism[2][TOTAL_FLOATS_IN_TRIANGLE];
+			
+			for(int j = 0; j < TOTAL_FLOATS_IN_TRIANGLE; j++)
+			{
+				prism[0][j] = obj.Faces_Triangles[index+j] + echo * obj.normals[index+j];
+				prism[1][j] = obj.Faces_Triangles[index+j] - echo * obj.normals[index+j];
+			}
+			
+			//print prism
+//			std::cout << prism[0][0] << " " << prism[0][1] << " " << prism[0][2] << std::endl;
+//			std::cout << prism[0][3] << " " << prism[0][4] << " " << prism[0][5] << std::endl;
+//			std::cout << prism[0][6] << " " << prism[0][7] << " " << prism[0][8] << std::endl;
+//			std::cout << prism[1][0] << " " << prism[1][1] << " " << prism[1][2] << std::endl;
+//			std::cout << prism[1][3] << " " << prism[1][4] << " " << prism[1][5] << std::endl;
+//			std::cout << prism[1][6] << " " << prism[1][7] << " " << prism[1][8] << std::endl;
+//			std::cout << std::endl;
+			
+			
+		}
 	}
 	
 	void Hair::update(float dt)
