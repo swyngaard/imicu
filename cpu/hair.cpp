@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <iomanip>
+//#include <algorithm>
 #include <cstring>
 #include <cfloat>
 
@@ -690,16 +691,32 @@ namespace pilar
 			
 			float aabb[6]; //-x,-y,-z,+x,+y,+z
 			
-			aabb[0] = MAX_FLT;
-			aabb[1] = MAX_FLT;
-			aabb[2] = MAX_FLT;
-			aabb[3] = MIN_FLT;
-			aabb[4] = MIN_FLT;
-			aabb[5] = MIN_FLT;
+			aabb[0] = FLT_MAX;
+			aabb[1] = FLT_MAX;
+			aabb[2] = FLT_MAX;
+			aabb[3] = FLT_MIN;
+			aabb[4] = FLT_MIN;
+			aabb[5] = FLT_MIN;
 			
 			for(int j = 0; j < (TOTAL_FLOATS_IN_TRIANGLE / POINTS_PER_VERTEX); j++)
 			{
+				int ii = j * POINTS_PER_VERTEX;
 				
+				aabb[0] = std::min(prism[0][ii],   aabb[0]);
+				aabb[1] = std::min(prism[0][ii+1], aabb[1]);
+				aabb[2] = std::min(prism[0][ii+2], aabb[2]);
+				
+				aabb[0] = std::min(prism[1][ii],   aabb[0]);
+				aabb[1] = std::min(prism[1][ii+1], aabb[1]);
+				aabb[2] = std::min(prism[1][ii+2], aabb[2]);
+				
+				aabb[3] = std::max(prism[0][ii],   aabb[3]);
+				aabb[4] = std::max(prism[0][ii+1], aabb[4]);
+				aabb[5] = std::max(prism[0][ii+2], aabb[5]);
+				
+				aabb[3] = std::max(prism[1][ii],   aabb[3]);
+				aabb[4] = std::max(prism[1][ii+1], aabb[4]);
+				aabb[5] = std::max(prism[1][ii+2], aabb[5]);
 			}
 			
 		}
