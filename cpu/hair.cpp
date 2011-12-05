@@ -691,34 +691,50 @@ namespace pilar
 			
 			float aabb[6]; //-x,-y,-z,+x,+y,+z
 			
-			aabb[0] = FLT_MAX;
-			aabb[1] = FLT_MAX;
-			aabb[2] = FLT_MAX;
-			aabb[3] = FLT_MIN;
-			aabb[4] = FLT_MIN;
-			aabb[5] = FLT_MIN;
+			aabb[0] =  FLT_MAX;
+			aabb[1] =  FLT_MAX;
+			aabb[2] =  FLT_MAX;
+			aabb[3] = -FLT_MAX;
+			aabb[4] = -FLT_MAX;
+			aabb[5] = -FLT_MAX;
 			
 			for(int j = 0; j < (TOTAL_FLOATS_IN_TRIANGLE / POINTS_PER_VERTEX); j++)
 			{
 				int ii = j * POINTS_PER_VERTEX;
 				
+				//Minimum
 				aabb[0] = std::min(prism[0][ii],   aabb[0]);
 				aabb[1] = std::min(prism[0][ii+1], aabb[1]);
 				aabb[2] = std::min(prism[0][ii+2], aabb[2]);
-				
 				aabb[0] = std::min(prism[1][ii],   aabb[0]);
 				aabb[1] = std::min(prism[1][ii+1], aabb[1]);
 				aabb[2] = std::min(prism[1][ii+2], aabb[2]);
 				
+				//Maximum
 				aabb[3] = std::max(prism[0][ii],   aabb[3]);
 				aabb[4] = std::max(prism[0][ii+1], aabb[4]);
 				aabb[5] = std::max(prism[0][ii+2], aabb[5]);
-				
 				aabb[3] = std::max(prism[1][ii],   aabb[3]);
 				aabb[4] = std::max(prism[1][ii+1], aabb[4]);
 				aabb[5] = std::max(prism[1][ii+2], aabb[5]);
 			}
 			
+			//print aabb
+//			std::cout << "min: " << aabb[0] << " " << aabb[1] << " " << aabb[2] << std::endl;
+//			std::cout << "max: " << aabb[3] << " " << aabb[4] << " " << aabb[5] << std::endl;
+//			std::cout << std::endl;
+			
+			for(int j = 0; j < 2; j++)
+			{
+				aabb[j*3]   = (aabb[j*3]   + DOMAIN_HALF)/CELL_WIDTH;
+				aabb[j*3+1] = (aabb[j*3+1])/CELL_WIDTH;
+				aabb[j*3+2] = (aabb[j*3+2] + DOMAIN_HALF)/CELL_WIDTH;
+			}
+			
+			//print modified aabb
+			std::cout << "min: " << aabb[0] << " " << aabb[1] << " " << aabb[2] << std::endl;
+			std::cout << "max: " << aabb[3] << " " << aabb[4] << " " << aabb[5] << std::endl;
+			std::cout << std::endl;
 		}
 	}
 	
@@ -743,3 +759,4 @@ namespace pilar
 		delete [] strand;
 	}
 }
+

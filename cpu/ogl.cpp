@@ -176,9 +176,7 @@ void render(void) {
 	glRotatef( navigationRotation[1], 0.0f, -1.0f, 0.0f );
 	
 	glPushMatrix();
-//		glRotatef(180.0f,0.0f,1.0f,0.0f);
-//		glTranslatef(0.0f, -0.13f, 0.0f);
-		obj.Draw();
+//		obj.Draw();
 	glPopMatrix();
 	
 	//Draw hair
@@ -216,6 +214,7 @@ void render(void) {
 	glBegin(GL_POINTS);
 		glVertex3f(0.0f, 0.0f, 0.0f);
 		glVertex3f(0.0f, -0.25f, 0.0f);
+		glVertex3f(0.0f, -DOMAIN_HALF, 0.0f);
 	glEnd();
 	
 	glPushMatrix();
