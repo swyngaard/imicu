@@ -6,6 +6,7 @@
 //#include <algorithm>
 #include <cstring>
 #include <cfloat>
+#include <math.h>
 
 namespace pilar
 {
@@ -644,7 +645,7 @@ namespace pilar
 					grid[xx][yy][zz] = FLT_MAX;
 		
 		//calculate triangle normal scaling factor
-		float delta = 1.75f;
+		float delta = 0.25f;
 		float echo = CELL_WIDTH * delta;
 		
 		//read in each triangle with its normal data
@@ -690,7 +691,6 @@ namespace pilar
 //			std::cout << std::endl;
 			
 			float aabb[6]; //-x,-y,-z,+x,+y,+z
-			
 			aabb[0] =  FLT_MAX;
 			aabb[1] =  FLT_MAX;
 			aabb[2] =  FLT_MAX;
@@ -724,17 +724,57 @@ namespace pilar
 //			std::cout << "max: " << aabb[3] << " " << aabb[4] << " " << aabb[5] << std::endl;
 //			std::cout << std::endl;
 			
+			//normalise to the grid
 			for(int j = 0; j < 2; j++)
 			{
 				aabb[j*3]   = (aabb[j*3]   + DOMAIN_HALF)/CELL_WIDTH;
-				aabb[j*3+1] = (aabb[j*3+1])/CELL_WIDTH;
+				aabb[j*3+1] = (aabb[j*3+1] + DOMAIN_HALF+0.125f)/CELL_WIDTH;
 				aabb[j*3+2] = (aabb[j*3+2] + DOMAIN_HALF)/CELL_WIDTH;
 			}
 			
-			//print modified aabb
-			std::cout << "min: " << aabb[0] << " " << aabb[1] << " " << aabb[2] << std::endl;
-			std::cout << "max: " << aabb[3] << " " << aabb[4] << " " << aabb[5] << std::endl;
-			std::cout << std::endl;
+			//print adjusted aabb
+//			std::cout << "min: " << aabb[0] << " " << aabb[1] << " " << aabb[2] << std::endl;
+//			std::cout << "max: " << aabb[3] << " " << aabb[4] << " " << aabb[5] << std::endl;
+//			std::cout << std::endl;
+			
+			//round aabb
+			aabb[0] = floor(aabb[0]);
+			aabb[1] = floor(aabb[1]);
+			aabb[2] = floor(aabb[2]);
+			aabb[3] = ceil(aabb[3]);
+			aabb[4] = ceil(aabb[4]);
+			aabb[5] = ceil(aabb[5]);
+			
+			//print rounded aabb
+//			std::cout << "min: " << aabb[0] << " " << aabb[1] << " " << aabb[2] << std::endl;
+//			std::cout << "max: " << aabb[3] << " " << aabb[4] << " " << aabb[5] << std::endl;
+//			std::cout << std::endl;
+			
+			int iaabb[6];
+			iaabb[0] = int(aabb[0]);
+			iaabb[1] = int(aabb[1]);
+			iaabb[2] = int(aabb[2]);
+			iaabb[3] = int(aabb[3]);
+			iaabb[4] = int(aabb[4]);
+			iaabb[5] = int(aabb[5]);
+			
+			//print integer aabb
+//			std::cout << "min: " << iaabb[0] << " " << iaabb[1] << " " << iaabb[2] << std::endl;
+//			std::cout << "max: " << iaabb[3] << " " << iaabb[4] << " " << iaabb[5] << std::endl;
+//			std::cout << std::endl;
+			
+			for(int xx = iaabb[0]; xx <= iaabb[3]; xx++)
+			{
+				for(int yy = iaabb[1]; yy <= iaabb[4]; yy++)
+				{	
+					for(int zz = iaabb[2]; zz <= iaabb[5]; zz++)
+					{
+						//dot product between gridpoint and triangle normal
+						grid[xx][yy][zz] = (float(xx) + CELL_HALF - obj.Faces_Triangles[index]) * obj.normals[index] + (float(yy) + CELL_HALF - obj.Faces_Triangles[index+1]) * obj.normals[index+1] + (float(zz) + CELL_HALF - obj.Faces_Triangles[index+2]) * obj.normals[index+2];
+//						std::cout << grid[xx][yy][zz] << std::endl;
+					}
+				}
+			}
 		}
 	}
 	
