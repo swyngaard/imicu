@@ -769,12 +769,17 @@ namespace pilar
 				{	
 					for(int zz = iaabb[2]; zz <= iaabb[5]; zz++)
 					{
+						float xpos = xx * CELL_WIDTH - DOMAIN_HALF + CELL_HALF;
+						float ypos = yy * CELL_WIDTH - DOMAIN_HALF - 0.125f + CELL_HALF;
+						float zpos = zz * CELL_WIDTH - DOMAIN_HALF + CELL_HALF;
+						
 						//dot product between gridpoint and triangle normal
-						grid[xx][yy][zz] = (float(xx) + CELL_HALF - obj.Faces_Triangles[index]) * obj.normals[index] + (float(yy) + CELL_HALF - obj.Faces_Triangles[index+1]) * obj.normals[index+1] + (float(zz) + CELL_HALF - obj.Faces_Triangles[index+2]) * obj.normals[index+2];
+						grid[xx][yy][zz] = (xpos - obj.Faces_Triangles[index]) * obj.normals[index] + (ypos - obj.Faces_Triangles[index+1]) * obj.normals[index+1] + (zpos - obj.Faces_Triangles[index+2]) * obj.normals[index+2];
 //						std::cout << grid[xx][yy][zz] << std::endl;
 					}
 				}
 			}
+//			std::cout << std::endl;
 		}
 	}
 	

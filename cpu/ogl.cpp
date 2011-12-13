@@ -157,7 +157,7 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.15f,
+	gluLookAt(	0.0f, -0.13f, -0.35f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
@@ -255,7 +255,7 @@ void render(void) {
 					{
 						if(hair->grid[xx][yy][zz] < FLT_MAX)
 //							glVertex3f(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
-							glVertex3f(xx*CELL_WIDTH, yy*CELL_WIDTH, zz*CELL_WIDTH);
+							glVertex3f(xx*CELL_WIDTH+CELL_HALF, yy*CELL_WIDTH+CELL_HALF, zz*CELL_WIDTH+CELL_HALF);
 						
 //						glPushMatrix();
 //							glTranslatef(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
@@ -399,33 +399,29 @@ Model_OBJ::Model_OBJ()
 	this->TotalConnectedPoints = 0;
 }
  
-float* Model_OBJ::calculateNormal( float *coord1, float *coord2, float *coord3 )
+float* Model_OBJ::calculateNormal( float *coord1, float *coord2, float *coord3, float *norm )
 {
-   /* calculate Vector1 and Vector2 */
-   float va[3], vb[3], vr[3], val;
-   va[0] = coord1[0] - coord2[0];
-   va[1] = coord1[1] - coord2[1];
-   va[2] = coord1[2] - coord2[2];
- 
-   vb[0] = coord1[0] - coord3[0];
-   vb[1] = coord1[1] - coord3[1];
-   vb[2] = coord1[2] - coord3[2];
- 
-   /* cross product */
-   vr[0] = va[1] * vb[2] - vb[1] * va[2];
-   vr[1] = vb[0] * va[2] - va[0] * vb[2];
-   vr[2] = va[0] * vb[1] - vb[0] * va[1];
- 
-   /* normalization factor */
-   val = sqrtf( vr[0]*vr[0] + vr[1]*vr[1] + vr[2]*vr[2] );
- 
-	float norm[3];
+	/* calculate Vector1 and Vector2 */
+	float va[3], vb[3], vr[3], val;
+	va[0] = coord1[0] - coord2[0];
+	va[1] = coord1[1] - coord2[1];
+	va[2] = coord1[2] - coord2[2];
+
+	vb[0] = coord1[0] - coord3[0];
+	vb[1] = coord1[1] - coord3[1];
+	vb[2] = coord1[2] - coord3[2];
+
+	/* cross product */
+	vr[0] = va[1] * vb[2] - vb[1] * va[2];
+	vr[1] = vb[0] * va[2] - va[0] * vb[2];
+	vr[2] = va[0] * vb[1] - vb[0] * va[1];
+
+	/* normalization factor */
+	val = sqrtf( vr[0]*vr[0] + vr[1]*vr[1] + vr[2]*vr[2] );
+
 	norm[0] = vr[0]/val;
 	norm[1] = vr[1]/val;
 	norm[2] = vr[2]/val;
- 
- 
-	return norm;
 }
  
  
@@ -497,7 +493,10 @@ int Model_OBJ::Load(const char* filename)
 				float coord1[3] = { Faces_Triangles[triangle_index], Faces_Triangles[triangle_index+1],Faces_Triangles[triangle_index+2]};
 				float coord2[3] = {Faces_Triangles[triangle_index+3],Faces_Triangles[triangle_index+4],Faces_Triangles[triangle_index+5]};
 				float coord3[3] = {Faces_Triangles[triangle_index+6],Faces_Triangles[triangle_index+7],Faces_Triangles[triangle_index+8]};
-				float *norm = this->calculateNormal( coord1, coord2, coord3 );
+				
+				float norm[3];
+				this->calculateNormal(coord1, coord2, coord3, norm);
+//				float *norm = this->calculateNormal( coord1, coord2, coord3 );
  
 				tCounter = 0;
 				for (int i = 0; i < POINTS_PER_VERTEX; i++)

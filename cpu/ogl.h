@@ -9,7 +9,7 @@ class Model_OBJ
 {
   public: 
 	Model_OBJ();			
-    float* calculateNormal(float* coord1,float* coord2,float* coord3 );
+    float* calculateNormal(float* coord1,float* coord2,float* coord3, float* norm);
     int Load(const char *filename);	// Loads the model
 	void Draw();					// Draws the model on the screen
 	void Release();				// Release the model
