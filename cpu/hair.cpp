@@ -773,8 +773,9 @@ namespace pilar
 						float ypos = yy * CELL_WIDTH - DOMAIN_HALF - 0.125f + CELL_HALF;
 						float zpos = zz * CELL_WIDTH - DOMAIN_HALF + CELL_HALF;
 						
+						float dvalue = (xpos - obj.Faces_Triangles[index]) * obj.normals[index] + (ypos - obj.Faces_Triangles[index+1]) * obj.normals[index+1] + (zpos - obj.Faces_Triangles[index+2]) * obj.normals[index+2];
 						//dot product between gridpoint and triangle normal
-						grid[xx][yy][zz] = (xpos - obj.Faces_Triangles[index]) * obj.normals[index] + (ypos - obj.Faces_Triangles[index+1]) * obj.normals[index+1] + (zpos - obj.Faces_Triangles[index+2]) * obj.normals[index+2];
+						grid[xx][yy][zz] = dvalue;
 //						std::cout << grid[xx][yy][zz] << std::endl;
 					}
 				}
