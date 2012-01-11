@@ -6,7 +6,7 @@
 //#include <algorithm>
 #include <cstring>
 #include <cfloat>
-#include <math.h>
+#include <cmath>
 
 namespace pilar
 {
@@ -773,9 +773,44 @@ namespace pilar
 						float ypos = yy * CELL_WIDTH - DOMAIN_HALF - 0.125f + CELL_HALF;
 						float zpos = zz * CELL_WIDTH - DOMAIN_HALF + CELL_HALF;
 						
-						float dvalue = (xpos - obj.Faces_Triangles[index]) * obj.normals[index] + (ypos - obj.Faces_Triangles[index+1]) * obj.normals[index+1] + (zpos - obj.Faces_Triangles[index+2]) * obj.normals[index+2];
 						//dot product between gridpoint and triangle normal
-						grid[xx][yy][zz] = dvalue;
+						float dvalue = (xpos - obj.Faces_Triangles[index]) * obj.normals[index] + (ypos - obj.Faces_Triangles[index+1]) * obj.normals[index+1] + (zpos - obj.Faces_Triangles[index+2]) * obj.normals[index+2];
+						
+						//build edge vectors
+						float edgenorm[9];
+						edgenorm[0] = obj.Faces_Triangles[index+3] - obj.Faces_Triangles[index];
+						edgenorm[1] = obj.Faces_Triangles[index+4] - obj.Faces_Triangles[index+1];
+						edgenorm[2] = obj.Faces_Triangles[index+5] - obj.Faces_Triangles[index+2];
+						edgenorm[3] = obj.Faces_Triangles[index+6] - obj.Faces_Triangles[index+3];
+						edgenorm[4] = obj.Faces_Triangles[index+7] - obj.Faces_Triangles[index+4];
+						edgenorm[5] = obj.Faces_Triangles[index+8] - obj.Faces_Triangles[index+5];
+						edgenorm[6] = obj.Faces_Triangles[index]   - obj.Faces_Triangles[index+6];
+						edgenorm[7] = obj.Faces_Triangles[index+1] - obj.Faces_Triangles[index+7];
+						edgenorm[8] = obj.Faces_Triangles[index+2] - obj.Faces_Triangles[index+8];
+						
+						//build edge normal vectors by cross product with triangle normal
+						edgenorm[0] = obj.normals[index+1] * edgenorm[2] - obj.normals[index+2] * edgenorm[1];
+						edgenorm[1] = obj.normals[index+2] * edgenorm[0] - obj.normals[index]   * edgenorm[2];
+						edgenorm[2] = obj.normals[index]   * edgenorm[1] - obj.normals[index+1] * edgenorm[0];
+						edgenorm[3] = obj.normals[index+1] * edgenorm[5] - obj.normals[index+2] * edgenorm[4];
+						edgenorm[4] = obj.normals[index+2] * edgenorm[3] - obj.normals[index]   * edgenorm[5];
+						edgenorm[5] = obj.normals[index]   * edgenorm[4] - obj.normals[index+1] * edgenorm[3];
+						edgenorm[6] = obj.normals[index+1] * edgenorm[8] - obj.normals[index+2] * edgenorm[7];
+						edgenorm[7] = obj.normals[index+2] * edgenorm[6] - obj.normals[index]   * edgenorm[8];
+						edgenorm[8] = obj.normals[index]   * edgenorm[7] - obj.normals[index+1] * edgenorm[6];
+						
+						//Test whether the point lies within the triangle voronoi region
+						float etest[3];
+						etest[0] = xpos * edgenorm[0] + ypos * edgenorm[1] + zpos * edgenorm[2];
+						etest[1] = xpos * edgenorm[3] + ypos * edgenorm[4] + zpos * edgenorm[5];
+						etest[2] = xpos * edgenorm[6] + ypos * edgenorm[7] + zpos * edgenorm[8];
+						
+						if(!(etest[0] < 0.0f && etest[1] < 0.0f && etest[2] < 0.0f))
+						{
+							
+						}
+						
+						grid[xx][yy][zz] = std::min(std::abs(dvalue), grid[xx][yy][zz]);
 //						std::cout << grid[xx][yy][zz] << std::endl;
 					}
 				}
