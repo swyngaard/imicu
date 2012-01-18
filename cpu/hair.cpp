@@ -818,9 +818,42 @@ namespace pilar
 							edgenorm[7] = obj.normals[index+2] * edgenorm[6] - obj.normals[index]   * edgenorm[8];
 							edgenorm[8] = obj.normals[index]   * edgenorm[7] - obj.normals[index+1] * edgenorm[6];
 							
+							float regiontest[3][2];
+							
+							//Test if the point lies between the planes that define the first edge's voronoi region.
+							regiontest[0][0] = -xpos*edgenorm[0] - ypos*edgenorm[1] - zpos*edgenorm[2] + obj.Faces_Triangles[index  ]*edgenorm[0] + obj.Faces_Triangles[index+1]*edgenorm[1] + obj.Faces_Triangles[index+2]*edgenorm[2];
+							regiontest[0][1] =  xpos*edgenorm[0] + ypos*edgenorm[1] + zpos*edgenorm[2] - obj.Faces_Triangles[index+3]*edgenorm[0] - obj.Faces_Triangles[index+4]*edgenorm[1] - obj.Faces_Triangles[index+5]*edgenorm[2];
+							//Test if the point lies between the planes that define the second edge's voronoi region.
+							regiontest[1][0] = -xpos*edgenorm[3] - ypos*edgenorm[4] - zpos*edgenorm[5] + obj.Faces_Triangles[index+3]*edgenorm[3] + obj.Faces_Triangles[index+4]*edgenorm[4] + obj.Faces_Triangles[index+5]*edgenorm[5];
+							regiontest[1][1] =  xpos*edgenorm[3] + ypos*edgenorm[4] + zpos*edgenorm[5] - obj.Faces_Triangles[index+6]*edgenorm[3] - obj.Faces_Triangles[index+7]*edgenorm[4] - obj.Faces_Triangles[index+8]*edgenorm[5];
+							//Test if the point lies between the planes that define the third edge's voronoi region.
+							regiontest[2][0] = -xpos*edgenorm[6] - ypos*edgenorm[7] - zpos*edgenorm[8] + obj.Faces_Triangles[index+6]*edgenorm[3] + obj.Faces_Triangles[index+7]*edgenorm[4] + obj.Faces_Triangles[index+8]*edgenorm[5];
+							regiontest[2][1] =  xpos*edgenorm[6] + ypos*edgenorm[7] + zpos*edgenorm[8] - obj.Faces_Triangles[index  ]*edgenorm[3] - obj.Faces_Triangles[index+1]*edgenorm[4] - obj.Faces_Triangles[index+2]*edgenorm[5];
+							
+							if(etest[0] >= 0.0f && regiontest[0][0] < 0.0f && regiontest[0][1] < 0.0f)
+							{
+								
+							}
+							else if(etest[1] >= 0.0f && regiontest[1][0] < 0.0f && regiontest[1][1] < 0.0f)
+							{
+								
+							}
+							else if(etest[2] >= 0.0f && regiontest[2][0] < 0.0f && regiontest[2][1] < 0.0f)
+							{
+								
+							}
+							else
+							{
+								float dist[3];
+								dist[0] = sqrtf( (xpos-obj.Faces_Triangles[index  ])*(xpos - obj.Faces_Triangles[index  ]) + (ypos-obj.Faces_Triangles[index+1])*(ypos-obj.Faces_Triangles[index+1]) + (zpos-obj.Faces_Triangles[index+2])*(zpos-obj.Faces_Triangles[index+2]));
+								dist[1] = sqrtf( (xpos-obj.Faces_Triangles[index+3])*(xpos - obj.Faces_Triangles[index+3]) + (ypos-obj.Faces_Triangles[index+4])*(ypos-obj.Faces_Triangles[index+4]) + (zpos-obj.Faces_Triangles[index+5])*(zpos-obj.Faces_Triangles[index+5]));
+								dist[2] = sqrtf( (xpos-obj.Faces_Triangles[index+6])*(xpos - obj.Faces_Triangles[index+6]) + (ypos-obj.Faces_Triangles[index+7])*(ypos-obj.Faces_Triangles[index+7]) + (zpos-obj.Faces_Triangles[index+8])*(zpos-obj.Faces_Triangles[index+8]));
+								
+								dvalue = (dvalue >= 0.0f) ? std::min(dist[0], std::min(dist[1], dist[2])) : -1 * std::min(dist[0], std::min(dist[1], dist[2]));
+							}
 						}
 						
-						grid[xx][yy][zz] = std::min(std::abs(dvalue), grid[xx][yy][zz]);
+						grid[xx][yy][zz] = (std::abs(dvalue) < grid[xx][yy][zz]) ? dvalue : grid[xx][yy][zz];
 //						std::cout << grid[xx][yy][zz] << std::endl;
 					}
 				}
