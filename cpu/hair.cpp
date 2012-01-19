@@ -924,6 +924,21 @@ namespace pilar
 			}
 //			std::cout << std::endl;
 		}
+		
+		//Print out distance field
+//		for(int xx = 0; xx < DOMAIN_DIM; xx++)
+//		{
+//			for(int yy = 0; yy < DOMAIN_DIM; yy++)
+//			{
+//				for(int zz = 0; zz < DOMAIN_DIM; zz++)
+//				{
+//					if(grid[xx][yy][zz] < FLT_MAX)
+//					{
+//						std::cout << "x: " << xx << " y: " << yy << " z: " << zz << " v: " << grid[xx][yy][zz] << std::endl;
+//					}
+//				}
+//			}
+//		}
 	}
 	
 	void Hair::update(float dt)
