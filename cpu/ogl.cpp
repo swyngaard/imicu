@@ -157,7 +157,7 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.35f,
+	gluLookAt(	0.0f, -0.13f, -0.15f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
@@ -176,7 +176,7 @@ void render(void) {
 	glRotatef( navigationRotation[1], 0.0f, -1.0f, 0.0f );
 	
 	glPushMatrix();
-		obj.Draw();
+//		obj.Draw();
 	glPopMatrix();
 	
 	//Draw hair
@@ -256,11 +256,12 @@ void render(void) {
 						if(hair->grid[xx][yy][zz] < FLT_MAX)
 //							glVertex3f(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
 							glVertex3f(xx*CELL_WIDTH+CELL_HALF, yy*CELL_WIDTH+CELL_HALF, zz*CELL_WIDTH+CELL_HALF);
-						
-//						glPushMatrix();
-//							glTranslatef(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
-//							glutWireCube(CELL_WIDTH);
-//						glPopMatrix();
+//						{
+//							glPushMatrix();
+//								glTranslatef(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
+//								glutWireCube(CELL_WIDTH);
+//							glPopMatrix();
+//						}
 					}
 				}
 			}

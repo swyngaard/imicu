@@ -832,15 +832,79 @@ namespace pilar
 							
 							if(etest[0] >= 0.0f && regiontest[0][0] < 0.0f && regiontest[0][1] < 0.0f)
 							{
+								float aa[3];
+								float bb[3];
+								float cc[3];
+								float dd[3];
+								
+								aa[0] = xpos - obj.Faces_Triangles[index  ];
+								aa[1] = ypos - obj.Faces_Triangles[index+1];
+								aa[2] = zpos - obj.Faces_Triangles[index+2];
+								bb[0] = xpos - obj.Faces_Triangles[index+3];
+								bb[1] = ypos - obj.Faces_Triangles[index+4];
+								bb[2] = zpos - obj.Faces_Triangles[index+5];
+								cc[0] = obj.Faces_Triangles[index+3] - obj.Faces_Triangles[index  ];
+								cc[1] = obj.Faces_Triangles[index+4] - obj.Faces_Triangles[index+1];
+								cc[2] = obj.Faces_Triangles[index+5] - obj.Faces_Triangles[index+2];
+								
+								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
+								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
+								dd[2] = aa[0]*bb[1] - aa[1]*bb[0];
+								
+								float dist = sqrtf(dd[0]*dd[0]+dd[1]*dd[1]+dd[2]*dd[2])/sqrtf(cc[0]*cc[0]+cc[1]*cc[1]+cc[2]*cc[2]);
+								
+								dvalue = (dvalue >= 0.0f) ? dist : -dist;
 								
 							}
 							else if(etest[1] >= 0.0f && regiontest[1][0] < 0.0f && regiontest[1][1] < 0.0f)
 							{
+								float aa[3];
+								float bb[3];
+								float cc[3];
+								float dd[3];
 								
+								aa[0] = xpos - obj.Faces_Triangles[index+3];
+								aa[1] = ypos - obj.Faces_Triangles[index+4];
+								aa[2] = zpos - obj.Faces_Triangles[index+5];
+								bb[0] = xpos - obj.Faces_Triangles[index+6];
+								bb[1] = ypos - obj.Faces_Triangles[index+7];
+								bb[2] = zpos - obj.Faces_Triangles[index+8];
+								cc[0] = obj.Faces_Triangles[index+6] - obj.Faces_Triangles[index+3];
+								cc[1] = obj.Faces_Triangles[index+7] - obj.Faces_Triangles[index+4];
+								cc[2] = obj.Faces_Triangles[index+8] - obj.Faces_Triangles[index+5];
+								
+								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
+								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
+								dd[2] = aa[0]*bb[1] - aa[1]*bb[0];
+								
+								float dist = sqrtf(dd[0]*dd[0]+dd[1]*dd[1]+dd[2]*dd[2])/sqrtf(cc[0]*cc[0]+cc[1]*cc[1]+cc[2]*cc[2]);
+								
+								dvalue = (dvalue >= 0.0f) ? dist : -dist;
 							}
 							else if(etest[2] >= 0.0f && regiontest[2][0] < 0.0f && regiontest[2][1] < 0.0f)
 							{
+								float aa[3];
+								float bb[3];
+								float cc[3];
+								float dd[3];
 								
+								aa[0] = xpos - obj.Faces_Triangles[index+6];
+								aa[1] = ypos - obj.Faces_Triangles[index+7];
+								aa[2] = zpos - obj.Faces_Triangles[index+8];
+								bb[0] = xpos - obj.Faces_Triangles[index  ];
+								bb[1] = ypos - obj.Faces_Triangles[index+1];
+								bb[2] = zpos - obj.Faces_Triangles[index+2];
+								cc[0] = obj.Faces_Triangles[index  ] - obj.Faces_Triangles[index+6];
+								cc[1] = obj.Faces_Triangles[index+1] - obj.Faces_Triangles[index+7];
+								cc[2] = obj.Faces_Triangles[index+2] - obj.Faces_Triangles[index+8];
+								
+								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
+								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
+								dd[2] = aa[0]*bb[1] - aa[1]*bb[0];
+								
+								float dist = sqrtf(dd[0]*dd[0]+dd[1]*dd[1]+dd[2]*dd[2])/sqrtf(cc[0]*cc[0]+cc[1]*cc[1]+cc[2]*cc[2]);
+								
+								dvalue = (dvalue >= 0.0f) ? dist : -dist;
 							}
 							else
 							{
@@ -849,7 +913,7 @@ namespace pilar
 								dist[1] = sqrtf( (xpos-obj.Faces_Triangles[index+3])*(xpos - obj.Faces_Triangles[index+3]) + (ypos-obj.Faces_Triangles[index+4])*(ypos-obj.Faces_Triangles[index+4]) + (zpos-obj.Faces_Triangles[index+5])*(zpos-obj.Faces_Triangles[index+5]));
 								dist[2] = sqrtf( (xpos-obj.Faces_Triangles[index+6])*(xpos - obj.Faces_Triangles[index+6]) + (ypos-obj.Faces_Triangles[index+7])*(ypos-obj.Faces_Triangles[index+7]) + (zpos-obj.Faces_Triangles[index+8])*(zpos-obj.Faces_Triangles[index+8]));
 								
-								dvalue = (dvalue >= 0.0f) ? std::min(dist[0], std::min(dist[1], dist[2])) : -1 * std::min(dist[0], std::min(dist[1], dist[2]));
+								dvalue = (dvalue >= 0.0f) ? std::min(dist[0], std::min(dist[1], dist[2])) : -std::min(dist[0], std::min(dist[1], dist[2]));
 							}
 						}
 						
