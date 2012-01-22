@@ -157,7 +157,7 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.15f,
+	gluLookAt(	0.0f, -0.13f, -0.35f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
@@ -176,7 +176,7 @@ void render(void) {
 	glRotatef( navigationRotation[1], 0.0f, -1.0f, 0.0f );
 	
 	glPushMatrix();
-//		obj.Draw();
+		obj.Draw();
 	glPopMatrix();
 	
 	//Draw hair
@@ -221,51 +221,27 @@ void render(void) {
 		glTranslatef(0.0f, -0.125f, 0.0f);
 		glutWireCube(CELL_WIDTH * DOMAIN_DIM);
 	glPopMatrix();
-
-//	visualise points of 	
-//	glPushMatrix();
-//		glRotatef(180.0f,0.0f,1.0f,0.0f);
-//		glTranslatef(0.0f, -0.13f, 0.0f);
-//		glBegin(GL_POINTS);
-//			glVertex3f(0.012305f, 0.004639f, 0.018018f);
-//			glVertex3f(0.012598f, 0.006067f, 0.017944f);
-//			glVertex3f(0.011816f, 0.006076f, 0.018781f);
-//			
-//			glVertex3f(0.0138011f, 0.0044046f, 0.0194183f);
-//			glVertex3f(0.0140941f, 0.0058326f, 0.0193443f);
-//			glVertex3f(0.0133121f, 0.0058416f, 0.0201813f);
-//			
-//			glVertex3f(0.0108089f, 0.0048734f, 0.0166177f);
-//			glVertex3f(0.0111019f, 0.0063014f, 0.0165437f);
-//			glVertex3f(0.0103199f, 0.0063104f, 0.0173807f);
-//			
-//		glEnd();
-//	glPopMatrix();
 	
 	glPushMatrix();
-		//TODO fix/check CELL_HALF offset
-		glTranslatef(-DOMAIN_HALF, -DOMAIN_HALF-0.125f, -DOMAIN_HALF);
-//		glTranslatef(-DOMAIN_HALF+CELL_HALF, -DOMAIN_HALF-0.125f+CELL_HALF, -DOMAIN_HALF+CELL_HALF);
-		glBegin(GL_POINTS);
-			for(int xx = 0; xx < DOMAIN_DIM; xx++)
+		glTranslatef(-DOMAIN_HALF+CELL_HALF, -DOMAIN_HALF-0.125f+CELL_HALF, -DOMAIN_HALF+CELL_HALF);
+		
+		for(int xx = 0; xx < DOMAIN_DIM; xx++)
+		{
+			for(int yy = 0; yy < DOMAIN_DIM; yy++)
 			{
-				for(int yy = 0; yy < DOMAIN_DIM; yy++)
+				for(int zz = 0; zz < DOMAIN_DIM; zz++)
 				{
-					for(int zz = 0; zz < DOMAIN_DIM; zz++)
-					{
-						if(hair->grid[xx][yy][zz] < FLT_MAX)
-//							glVertex3f(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
-							glVertex3f(xx*CELL_WIDTH+CELL_HALF, yy*CELL_WIDTH+CELL_HALF, zz*CELL_WIDTH+CELL_HALF);
-//						{
-//							glPushMatrix();
-//								glTranslatef(xx*CELL_WIDTH, -yy*CELL_WIDTH, zz*CELL_WIDTH);
-//								glutWireCube(CELL_WIDTH);
-//							glPopMatrix();
-//						}
-					}
+					glPushMatrix();
+						glTranslatef(xx*CELL_WIDTH, yy*CELL_WIDTH, zz*CELL_WIDTH);
+						glBegin(GL_POINTS);
+							glVertex3f(0.0f, 0.0f, 0.0f);
+						glEnd();
+//						glutWireCube(CELL_WIDTH);
+					glPopMatrix();
 				}
 			}
-		glEnd();
+		}
+		
 	glPopMatrix();
 	
 	glutSwapBuffers();
