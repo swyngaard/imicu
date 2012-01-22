@@ -157,7 +157,7 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.35f,
+	gluLookAt(	0.0f, -0.13f, -0.15f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
@@ -223,6 +223,7 @@ void render(void) {
 	glPopMatrix();
 	
 	glPushMatrix();
+	
 		glTranslatef(-DOMAIN_HALF+CELL_HALF, -DOMAIN_HALF-0.125f+CELL_HALF, -DOMAIN_HALF+CELL_HALF);
 		
 		for(int xx = 0; xx < DOMAIN_DIM; xx++)
@@ -233,10 +234,14 @@ void render(void) {
 				{
 					glPushMatrix();
 						glTranslatef(xx*CELL_WIDTH, yy*CELL_WIDTH, zz*CELL_WIDTH);
-						glBegin(GL_POINTS);
-							glVertex3f(0.0f, 0.0f, 0.0f);
-						glEnd();
-//						glutWireCube(CELL_WIDTH);
+						if(hair->grid[xx][yy][zz] < FLT_MAX)
+						{
+							glBegin(GL_POINTS);
+								glVertex3f(0.0f, 0.0f, 0.0f);
+							glEnd();
+//							glutSolidCube(CELL_WIDTH);
+						}
+						
 					glPopMatrix();
 				}
 			}
