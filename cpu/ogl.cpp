@@ -234,12 +234,12 @@ void render(void) {
 				{
 					glPushMatrix();
 						glTranslatef(xx*CELL_WIDTH, yy*CELL_WIDTH, zz*CELL_WIDTH);
-						if(hair->grid[xx][yy][zz] < FLT_MAX)
+						if(hair->grid[xx][yy][zz] < FLT_MAX && xx < 50 && hair->grid[xx][yy][zz] > 0.0f)
 						{
-							glBegin(GL_POINTS);
-								glVertex3f(0.0f, 0.0f, 0.0f);
-							glEnd();
-//							glutSolidCube(CELL_WIDTH);
+//							glBegin(GL_POINTS);
+//								glVertex3f(0.0f, 0.0f, 0.0f);
+//							glEnd();
+							glutWireCube(CELL_WIDTH);
 						}
 						
 					glPopMatrix();
