@@ -157,7 +157,7 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.15f,
+	gluLookAt(	0.0f, -0.13f, -0.14f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
@@ -234,7 +234,7 @@ void render(void) {
 				{
 					glPushMatrix();
 						glTranslatef(xx*CELL_WIDTH, yy*CELL_WIDTH, zz*CELL_WIDTH);
-						if(hair->grid[xx][yy][zz] < FLT_MAX && xx < 50 && hair->grid[xx][yy][zz] > 0.0f)
+						if(hair->grid[xx][yy][zz] < FLT_MAX)
 						{
 //							glBegin(GL_POINTS);
 //								glVertex3f(0.0f, 0.0f, 0.0f);
