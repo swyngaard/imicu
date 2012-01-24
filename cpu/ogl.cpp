@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
 void init()
 {
-	obj.Load("monkey.obj");
+	obj.Load("spherehalf.obj");
 	
 	pilar::Vector3f root;
 	std::vector<pilar::Vector3f> roots;
@@ -118,7 +118,7 @@ void reshape(int w, int h)
 	glViewport(0, 0, w, h);
 
 	// Set the correct perspective.
-	gluPerspective(45.0f, ratio, 0.1f, 100.0f);
+	gluPerspective(45.0f, ratio, 0.01f, 100.0f);
 
 	// Get Back to the Modelview
 	glMatrixMode(GL_MODELVIEW);
@@ -139,7 +139,7 @@ void reshape(int w, int h)
     glEnable( GL_LIGHT0 );
     glEnable( GL_COLOR_MATERIAL );
     glShadeModel( GL_SMOOTH );
-    glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE );
+    glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE );
     glDepthFunc( GL_LEQUAL );
     glEnable( GL_DEPTH_TEST );
     glEnable(GL_LIGHTING);
@@ -157,7 +157,7 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.14f,
+	gluLookAt(	0.0f, -0.13f, -0.10f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
@@ -175,6 +175,7 @@ void render(void) {
 //	glRotatef( navigationRotation[0], 1.0f, 0.0f, 0.0f );
 	glRotatef( navigationRotation[1], 0.0f, -1.0f, 0.0f );
 	
+	glColor3f(1.0f, 0.7f, 1.0f);
 	glPushMatrix();
 		obj.Draw();
 	glPopMatrix();
@@ -234,12 +235,13 @@ void render(void) {
 				{
 					glPushMatrix();
 						glTranslatef(xx*CELL_WIDTH, yy*CELL_WIDTH, zz*CELL_WIDTH);
-						if(hair->grid[xx][yy][zz] < FLT_MAX)
+						if(hair->grid[xx][yy][zz] < FLT_MAX && hair->grid[xx][yy][zz] < 0.0f)
 						{
-//							glBegin(GL_POINTS);
-//								glVertex3f(0.0f, 0.0f, 0.0f);
-//							glEnd();
-							glutWireCube(CELL_WIDTH);
+							glColor3f(0.0f, 0.0f, 0.0f);
+							glBegin(GL_POINTS);
+								glVertex3f(0.0f, 0.0f, 0.0f);
+							glEnd();
+//							glutWireCube(CELL_WIDTH);
 						}
 						
 					glPopMatrix();

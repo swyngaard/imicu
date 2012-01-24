@@ -651,32 +651,40 @@ namespace pilar
 		int numVertices = obj.TotalConnectedPoints / POINTS_PER_VERTEX;
 		int numTriangles = obj.TotalConnectedTriangles / TOTAL_FLOATS_IN_TRIANGLE;
 		
+//		std::cout << numVertices << std::endl;
+		std::cout << numTriangles << std::endl;
+		
 		//read in each triangle with its normal data
 		for(int i = 0; i < numTriangles; i++)
 		{
 			//print triangle normals
 			int index = i * TOTAL_FLOATS_IN_TRIANGLE;
 			
+//			std::cout << "tri: " << i << std::endl;
+//			std::cout << "0: " << obj.Faces_Triangles[index  ] << " " << obj.Faces_Triangles[index+1] << " " << obj.Faces_Triangles[index+2] << std::endl;
+//			std::cout << "1: " << obj.Faces_Triangles[index+3] << " " << obj.Faces_Triangles[index+4] << " " << obj.Faces_Triangles[index+5] << std::endl;
+//			std::cout << "2: " << obj.Faces_Triangles[index+6] << " " << obj.Faces_Triangles[index+7] << " " << obj.Faces_Triangles[index+8] << std::endl;
+//			std::cout << "n: " << obj.normals[index] << " " << obj.normals[index+1] << " " << obj.normals[index+2] << std::endl;
+//			std::cout << std::endl;
+			
 			//build prism
-			float prism[2][TOTAL_FLOATS_IN_TRIANGLE];
+			float prism[6][POINTS_PER_VERTEX];
 			
-			for(int j = 0; j < TOTAL_FLOATS_IN_TRIANGLE; j++)
+			for(int j = 0; j < POINTS_PER_VERTEX; j++)
 			{
-				prism[0][j] = obj.Faces_Triangles[index+j] + echo * obj.normals[index+j];
-				prism[1][j] = obj.Faces_Triangles[index+j] - echo * obj.normals[index+j];
+				prism[j][0]   = obj.Faces_Triangles[index+j*3]   + echo * obj.normals[index+j*3];
+				prism[j][1]   = obj.Faces_Triangles[index+j*3+1] + echo * obj.normals[index+j*3+1];
+				prism[j][2]   = obj.Faces_Triangles[index+j*3+2] + echo * obj.normals[index+j*3+2];
+				prism[j+3][0] = obj.Faces_Triangles[index+j*3]   - echo * obj.normals[index+j*3];
+				prism[j+3][1] = obj.Faces_Triangles[index+j*3+1] - echo * obj.normals[index+j*3+1];
+				prism[j+3][2] = obj.Faces_Triangles[index+j*3+2] - echo * obj.normals[index+j*3+2];
 			}
 			
-			float pprism[6][POINTS_PER_VERTEX];
-			
-			for(int j = 0; j < 3; j++)
-			{
-				pprism[j][0]   = obj.Faces_Triangles[index+j*3]   + echo * obj.normals[index+j*3];
-				pprism[j][1]   = obj.Faces_Triangles[index+j*3+1] + echo * obj.normals[index+j*3+1];
-				pprism[j][2]   = obj.Faces_Triangles[index+j*3+2] + echo * obj.normals[index+j*3+2];
-				pprism[j+3][0] = obj.Faces_Triangles[index+j*3]   + echo * obj.normals[index+j*3];
-				pprism[j+3][1] = obj.Faces_Triangles[index+j*3+1] + echo * obj.normals[index+j*3+1];
-				pprism[j+3][2] = obj.Faces_Triangles[index+j*3+2] + echo * obj.normals[index+j*3+2];
-			}
+//			for(int j = 0; j < 6; j++)
+//			{
+//				std::cout << j << ": " << prism[j][0] << " " << prism[j][1] << " " << prism[j][2] << std::endl;
+//			}
+//			std::cout << std::endl;
 			
 			//Axis-aligned bounding box
 			float aabb[2][POINTS_PER_VERTEX]; //-x,-y,-z,+x,+y,+z
@@ -688,26 +696,22 @@ namespace pilar
 			aabb[1][2] = -FLT_MAX;
 			
 			//Build the aabb using the minimum and maximum values of the prism
-			for(int j = 0; j < (TOTAL_FLOATS_IN_TRIANGLE / POINTS_PER_VERTEX); j++)
+			for(int j = 0; j < 6; j++)
 			{
-				int k = j * POINTS_PER_VERTEX;
+				//minimum x, y, z
+				aabb[0][0] = std::min(prism[j][0], aabb[0][0]);
+				aabb[0][1] = std::min(prism[j][1], aabb[0][1]);
+				aabb[0][2] = std::min(prism[j][2], aabb[0][2]);
 				
-				//Minimum
-				aabb[0][0] = std::min(prism[0][k],   aabb[0][0]);
-				aabb[0][1] = std::min(prism[0][k+1], aabb[0][1]);
-				aabb[0][2] = std::min(prism[0][k+2], aabb[0][2]);
-				aabb[0][0] = std::min(prism[1][k],   aabb[0][0]);
-				aabb[0][1] = std::min(prism[1][k+1], aabb[0][1]);
-				aabb[0][2] = std::min(prism[1][k+2], aabb[0][2]);
-				
-				//Maximum
-				aabb[1][0] = std::max(prism[0][k],   aabb[1][0]);
-				aabb[1][1] = std::max(prism[0][k+1], aabb[1][1]);
-				aabb[1][2] = std::max(prism[0][k+2], aabb[1][2]);
-				aabb[1][0] = std::max(prism[1][k],   aabb[1][0]);
-				aabb[1][1] = std::max(prism[1][k+1], aabb[1][1]);
-				aabb[1][2] = std::max(prism[1][k+2], aabb[1][2]);
+				//maximum x, y, z
+				aabb[1][0] = std::max(prism[j][0], aabb[1][0]);
+				aabb[1][1] = std::max(prism[j][1], aabb[1][1]);
+				aabb[1][2] = std::max(prism[j][2], aabb[1][2]);
 			}
+			
+//			std::cout << "min: " << std::setw(10) << std::setprecision(8) << aabb[0][0] << " " << aabb[0][1] << " " << aabb[0][2] << std::endl;
+//			std::cout << "max: " << std::setw(10) << std::setprecision(8) << aabb[1][0] << " " << aabb[1][1] << " " << aabb[1][2] << std::endl;
+//			std::cout << std::endl;
 			
 			//normalise to the grid
 			aabb[0][0] = (aabb[0][0] + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
@@ -717,6 +721,10 @@ namespace pilar
 			aabb[1][1] = (aabb[1][1] + DOMAIN_HALF+0.125f-CELL_HALF)/CELL_WIDTH;
 			aabb[1][2] = (aabb[1][2] + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
 			
+//			std::cout << "nmin: " << std::setw(10) << std::setprecision(8) << aabb[0][0] << " " << aabb[0][1] << " " << aabb[0][2] << std::endl;
+//			std::cout << "nmax: " << std::setw(10) << std::setprecision(8) << aabb[1][0] << " " << aabb[1][1] << " " << aabb[1][2] << std::endl;
+//			std::cout << std::endl;
+			
 			//round aabb
 			aabb[0][0] = floor(aabb[0][0]);
 			aabb[0][1] = floor(aabb[0][1]);
@@ -724,6 +732,10 @@ namespace pilar
 			aabb[1][0] = ceil(aabb[1][0]);
 			aabb[1][1] = ceil(aabb[1][1]);
 			aabb[1][2] = ceil(aabb[1][2]);
+			
+//			std::cout << "nmin: " << std::setw(10) << std::setprecision(8) << aabb[0][0] << " " << aabb[0][1] << " " << aabb[0][2] << std::endl;
+//			std::cout << "nmax: " << std::setw(10) << std::setprecision(8) << aabb[1][0] << " " << aabb[1][1] << " " << aabb[1][2] << std::endl;
+//			std::cout << std::endl;
 			
 			int iaabb[2][POINTS_PER_VERTEX];
 			iaabb[0][0] = int(aabb[0][0]);
@@ -733,13 +745,17 @@ namespace pilar
 			iaabb[1][1] = int(aabb[1][1]);
 			iaabb[1][2] = int(aabb[1][2]);
 			
+//			std::cout << "nmin: " << std::setw(10) << std::setprecision(8) << iaabb[0][0] << " " << iaabb[0][1] << " " << iaabb[0][2] << std::endl;
+//			std::cout << "nmax: " << std::setw(10) << std::setprecision(8) << iaabb[1][0] << " " << iaabb[1][1] << " " << iaabb[1][2] << std::endl;
+//			std::cout << std::endl;
+			
 			for(int xx = iaabb[0][0]; xx <= iaabb[1][0]; xx++)
 			{
 				for(int yy = iaabb[0][1]; yy <= iaabb[1][1]; yy++)
 				{	
 					for(int zz = iaabb[0][2]; zz <= iaabb[1][2]; zz++)
 					{
-						//Denormalise from grid
+						//Denormalise from grid to centre of cell
 						float xpos = xx * CELL_WIDTH - DOMAIN_HALF + CELL_HALF;
 						float ypos = yy * CELL_WIDTH - DOMAIN_HALF - 0.125f + CELL_HALF;
 						float zpos = zz * CELL_WIDTH - DOMAIN_HALF + CELL_HALF;
@@ -747,150 +763,151 @@ namespace pilar
 						//dot product between gridpoint and triangle normal
 						float dvalue = (xpos - obj.Faces_Triangles[index]) * obj.normals[index] + (ypos - obj.Faces_Triangles[index+1]) * obj.normals[index+1] + (zpos - obj.Faces_Triangles[index+2]) * obj.normals[index+2];
 						
-//						//build edge vectors
-//						float edgeNormal[3][POINTS_PER_VERTEX];
-//						
-//						float edgenorm[9];
-//						edgeNormal[0][0] = obj.Faces_Triangles[index+3] - obj.Faces_Triangles[index];
-//						edgeNormal[0][1] = obj.Faces_Triangles[index+4] - obj.Faces_Triangles[index+1];
-//						edgeNormal[0][2] = obj.Faces_Triangles[index+5] - obj.Faces_Triangles[index+2];
-//						edgeNormal[1][0] = obj.Faces_Triangles[index+6] - obj.Faces_Triangles[index+3];
-//						edgeNormal[1][1] = obj.Faces_Triangles[index+7] - obj.Faces_Triangles[index+4];
-//						edgeNormal[1][2] = obj.Faces_Triangles[index+8] - obj.Faces_Triangles[index+5];
-//						edgeNormal[2][0] = obj.Faces_Triangles[index]   - obj.Faces_Triangles[index+6];
-//						edgeNormal[2][1] = obj.Faces_Triangles[index+1] - obj.Faces_Triangles[index+7];
-//						edgeNormal[2][2] = obj.Faces_Triangles[index+2] - obj.Faces_Triangles[index+8];
-//						
-//						//build edge normal vectors by cross product with triangle normal
-//						edgeNormal[0][0] = obj.normals[index+1] * edgeNormal[0][2] - obj.normals[index+2] * edgeNormal[0][1];
-//						edgeNormal[0][1] = obj.normals[index+2] * edgeNormal[0][0] - obj.normals[index]   * edgeNormal[0][2];
-//						edgeNormal[0][2] = obj.normals[index]   * edgeNormal[0][1] - obj.normals[index+1] * edgeNormal[0][0];
-//						edgeNormal[1][0] = obj.normals[index+1] * edgeNormal[1][2] - obj.normals[index+2] * edgeNormal[1][1];
-//						edgeNormal[1][1] = obj.normals[index+2] * edgeNormal[1][0] - obj.normals[index]   * edgeNormal[1][2];
-//						edgeNormal[1][2] = obj.normals[index]   * edgeNormal[1][1] - obj.normals[index+1] * edgeNormal[1][0];
-//						edgeNormal[2][0] = obj.normals[index+1] * edgeNormal[2][2] - obj.normals[index+2] * edgeNormal[2][1];
-//						edgeNormal[2][1] = obj.normals[index+2] * edgeNormal[2][0] - obj.normals[index]   * edgeNormal[2][2];
-//						edgeNormal[2][2] = obj.normals[index]   * edgeNormal[2][1] - obj.normals[index+1] * edgeNormal[2][0];
-//						
-//						//Test whether the point lies within the triangle voronoi region
-//						float etest[3];
-//						etest[0] = xpos*edgeNormal[0][0] + ypos*edgeNormal[0][1] + zpos*edgeNormal[0][2] - obj.Faces_Triangles[index  ]*edgeNormal[0][0] - obj.Faces_Triangles[index+1]*edgeNormal[0][1] - obj.Faces_Triangles[index+2]*edgeNormal[0][2];
-//						etest[1] = xpos*edgeNormal[1][0] + ypos*edgeNormal[1][1] + zpos*edgeNormal[1][2] - obj.Faces_Triangles[index+3]*edgeNormal[1][0] - obj.Faces_Triangles[index+4]*edgeNormal[1][1] - obj.Faces_Triangles[index+5]*edgeNormal[1][2];
-//						etest[2] = xpos*edgeNormal[2][0] + ypos*edgeNormal[2][1] + zpos*edgeNormal[2][2] - obj.Faces_Triangles[index+6]*edgeNormal[2][0] - obj.Faces_Triangles[index+7]*edgeNormal[2][1] - obj.Faces_Triangles[index+8]*edgeNormal[2][2];
-//						
-//						if(!(etest[0] < 0.0f && etest[1] < 0.0f && etest[2] < 0.0f))
-//						{
-//							//Cross products
-//							edgeNormal[0][0] = obj.normals[index+1] * edgeNormal[0][2] - obj.normals[index+2] * edgeNormal[0][1];
-//							edgeNormal[0][1] = obj.normals[index+2] * edgeNormal[0][0] - obj.normals[index]   * edgeNormal[0][2];
-//							edgeNormal[0][2] = obj.normals[index]   * edgeNormal[0][1] - obj.normals[index+1] * edgeNormal[0][0];
-//							edgeNormal[1][0] = obj.normals[index+1] * edgeNormal[1][2] - obj.normals[index+2] * edgeNormal[1][1];
-//							edgeNormal[1][1] = obj.normals[index+2] * edgeNormal[1][0] - obj.normals[index]   * edgeNormal[1][2];
-//							edgeNormal[1][2] = obj.normals[index]   * edgeNormal[1][1] - obj.normals[index+1] * edgeNormal[1][0];
-//							edgeNormal[2][0] = obj.normals[index+1] * edgeNormal[2][2] - obj.normals[index+2] * edgeNormal[2][1];
-//							edgeNormal[2][1] = obj.normals[index+2] * edgeNormal[2][0] - obj.normals[index]   * edgeNormal[2][2];
-//							edgeNormal[2][2] = obj.normals[index]   * edgeNormal[2][1] - obj.normals[index+1] * edgeNormal[2][0];
-//							
-//							float regiontest[3][2];
-//							
-//							//Test if the point lies between the planes that define the first edge's voronoi region.
-//							regiontest[0][0] = -xpos*edgeNormal[0][0] - ypos*edgeNormal[0][1] - zpos*edgeNormal[0][2] + obj.Faces_Triangles[index  ]*edgeNormal[0][0] + obj.Faces_Triangles[index+1]*edgeNormal[0][1] + obj.Faces_Triangles[index+2]*edgeNormal[0][2];
-//							regiontest[0][1] =  xpos*edgeNormal[0][0] + ypos*edgeNormal[0][1] + zpos*edgeNormal[0][2] - obj.Faces_Triangles[index+3]*edgeNormal[0][0] - obj.Faces_Triangles[index+4]*edgeNormal[0][1] - obj.Faces_Triangles[index+5]*edgeNormal[0][2];
-//							//Test if the point lies between the planes that define the second edge's voronoi region.
-//							regiontest[1][0] = -xpos*edgeNormal[1][0] - ypos*edgeNormal[1][1] - zpos*edgeNormal[1][2] + obj.Faces_Triangles[index+3]*edgeNormal[1][0] + obj.Faces_Triangles[index+4]*edgeNormal[1][1] + obj.Faces_Triangles[index+5]*edgeNormal[1][2];
-//							regiontest[1][1] =  xpos*edgeNormal[1][0] + ypos*edgeNormal[1][1] + zpos*edgeNormal[1][2] - obj.Faces_Triangles[index+6]*edgeNormal[1][0] - obj.Faces_Triangles[index+7]*edgeNormal[1][1] - obj.Faces_Triangles[index+8]*edgeNormal[1][2];
-//							//Test if the point lies between the planes that define the third edge's voronoi region.
-//							regiontest[2][0] = -xpos*edgeNormal[2][0] - ypos*edgeNormal[2][1] - zpos*edgeNormal[2][2] + obj.Faces_Triangles[index+6]*edgeNormal[1][0] + obj.Faces_Triangles[index+7]*edgeNormal[1][1] + obj.Faces_Triangles[index+8]*edgeNormal[1][2];
-//							regiontest[2][1] =  xpos*edgeNormal[2][0] + ypos*edgeNormal[2][1] + zpos*edgeNormal[2][2] - obj.Faces_Triangles[index  ]*edgeNormal[1][0] - obj.Faces_Triangles[index+1]*edgeNormal[1][1] - obj.Faces_Triangles[index+2]*edgeNormal[1][2];
-//							
-//							if(etest[0] >= 0.0f && regiontest[0][0] < 0.0f && regiontest[0][1] < 0.0f)
-//							{
-//								float aa[POINTS_PER_VERTEX];
-//								float bb[POINTS_PER_VERTEX];
-//								float cc[POINTS_PER_VERTEX];
-//								float dd[POINTS_PER_VERTEX];
-//								
-//								aa[0] = xpos - obj.Faces_Triangles[index  ];
-//								aa[1] = ypos - obj.Faces_Triangles[index+1];
-//								aa[2] = zpos - obj.Faces_Triangles[index+2];
-//								bb[0] = xpos - obj.Faces_Triangles[index+3];
-//								bb[1] = ypos - obj.Faces_Triangles[index+4];
-//								bb[2] = zpos - obj.Faces_Triangles[index+5];
-//								cc[0] = obj.Faces_Triangles[index+3] - obj.Faces_Triangles[index  ];
-//								cc[1] = obj.Faces_Triangles[index+4] - obj.Faces_Triangles[index+1];
-//								cc[2] = obj.Faces_Triangles[index+5] - obj.Faces_Triangles[index+2];
-//								
-//								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
-//								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
-//								dd[2] = aa[0]*bb[1] - aa[1]*bb[0];
-//								
-//								float dist = sqrtf(dd[0]*dd[0]+dd[1]*dd[1]+dd[2]*dd[2])/sqrtf(cc[0]*cc[0]+cc[1]*cc[1]+cc[2]*cc[2]);
-//								
-//								dvalue = (dvalue >= 0.0f) ? dist : -dist;
-//								
-//							}
-//							else if(etest[1] >= 0.0f && regiontest[1][0] < 0.0f && regiontest[1][1] < 0.0f)
-//							{
-//								float aa[POINTS_PER_VERTEX];
-//								float bb[POINTS_PER_VERTEX];
-//								float cc[POINTS_PER_VERTEX];
-//								float dd[POINTS_PER_VERTEX];
-//								
-//								aa[0] = xpos - obj.Faces_Triangles[index+3];
-//								aa[1] = ypos - obj.Faces_Triangles[index+4];
-//								aa[2] = zpos - obj.Faces_Triangles[index+5];
-//								bb[0] = xpos - obj.Faces_Triangles[index+6];
-//								bb[1] = ypos - obj.Faces_Triangles[index+7];
-//								bb[2] = zpos - obj.Faces_Triangles[index+8];
-//								cc[0] = obj.Faces_Triangles[index+6] - obj.Faces_Triangles[index+3];
-//								cc[1] = obj.Faces_Triangles[index+7] - obj.Faces_Triangles[index+4];
-//								cc[2] = obj.Faces_Triangles[index+8] - obj.Faces_Triangles[index+5];
-//								
-//								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
-//								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
-//								dd[2] = aa[0]*bb[1] - aa[1]*bb[0];
-//								
-//								float dist = sqrtf(dd[0]*dd[0]+dd[1]*dd[1]+dd[2]*dd[2])/sqrtf(cc[0]*cc[0]+cc[1]*cc[1]+cc[2]*cc[2]);
-//								
-//								dvalue = (dvalue >= 0.0f) ? dist : -dist;
-//							}
-//							else if(etest[2] >= 0.0f && regiontest[2][0] < 0.0f && regiontest[2][1] < 0.0f)
-//							{
-//								float aa[POINTS_PER_VERTEX];
-//								float bb[POINTS_PER_VERTEX];
-//								float cc[POINTS_PER_VERTEX];
-//								float dd[POINTS_PER_VERTEX];
-//								
-//								aa[0] = xpos - obj.Faces_Triangles[index+6];
-//								aa[1] = ypos - obj.Faces_Triangles[index+7];
-//								aa[2] = zpos - obj.Faces_Triangles[index+8];
-//								bb[0] = xpos - obj.Faces_Triangles[index  ];
-//								bb[1] = ypos - obj.Faces_Triangles[index+1];
-//								bb[2] = zpos - obj.Faces_Triangles[index+2];
-//								cc[0] = obj.Faces_Triangles[index  ] - obj.Faces_Triangles[index+6];
-//								cc[1] = obj.Faces_Triangles[index+1] - obj.Faces_Triangles[index+7];
-//								cc[2] = obj.Faces_Triangles[index+2] - obj.Faces_Triangles[index+8];
-//								
-//								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
-//								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
-//								dd[2] = aa[0]*bb[1] - aa[1]*bb[0];
-//								
-//								float dist = sqrtf(dd[0]*dd[0]+dd[1]*dd[1]+dd[2]*dd[2])/sqrtf(cc[0]*cc[0]+cc[1]*cc[1]+cc[2]*cc[2]);
-//								
-//								dvalue = (dvalue >= 0.0f) ? dist : -dist;
-//							}
-//							else
-//							{
-//								float dist[3];
-//								dist[0] = sqrtf( (xpos-obj.Faces_Triangles[index  ])*(xpos - obj.Faces_Triangles[index  ]) + (ypos-obj.Faces_Triangles[index+1])*(ypos-obj.Faces_Triangles[index+1]) + (zpos-obj.Faces_Triangles[index+2])*(zpos-obj.Faces_Triangles[index+2]));
-//								dist[1] = sqrtf( (xpos-obj.Faces_Triangles[index+3])*(xpos - obj.Faces_Triangles[index+3]) + (ypos-obj.Faces_Triangles[index+4])*(ypos-obj.Faces_Triangles[index+4]) + (zpos-obj.Faces_Triangles[index+5])*(zpos-obj.Faces_Triangles[index+5]));
-//								dist[2] = sqrtf( (xpos-obj.Faces_Triangles[index+6])*(xpos - obj.Faces_Triangles[index+6]) + (ypos-obj.Faces_Triangles[index+7])*(ypos-obj.Faces_Triangles[index+7]) + (zpos-obj.Faces_Triangles[index+8])*(zpos-obj.Faces_Triangles[index+8]));
-//								
-//								dvalue = (dvalue >= 0.0f) ? std::min(dist[0], std::min(dist[1], dist[2])) : -std::min(dist[0], std::min(dist[1], dist[2]));
-//							}
-//						}
+						//build edge vectors
+						float edgeNormal[3][POINTS_PER_VERTEX];
+						
+						float edgenorm[9];
+						edgeNormal[0][0] = obj.Faces_Triangles[index+3] - obj.Faces_Triangles[index];
+						edgeNormal[0][1] = obj.Faces_Triangles[index+4] - obj.Faces_Triangles[index+1];
+						edgeNormal[0][2] = obj.Faces_Triangles[index+5] - obj.Faces_Triangles[index+2];
+						edgeNormal[1][0] = obj.Faces_Triangles[index+6] - obj.Faces_Triangles[index+3];
+						edgeNormal[1][1] = obj.Faces_Triangles[index+7] - obj.Faces_Triangles[index+4];
+						edgeNormal[1][2] = obj.Faces_Triangles[index+8] - obj.Faces_Triangles[index+5];
+						edgeNormal[2][0] = obj.Faces_Triangles[index]   - obj.Faces_Triangles[index+6];
+						edgeNormal[2][1] = obj.Faces_Triangles[index+1] - obj.Faces_Triangles[index+7];
+						edgeNormal[2][2] = obj.Faces_Triangles[index+2] - obj.Faces_Triangles[index+8];
+						
+						//build edge normal vectors by cross product with triangle normal
+						edgeNormal[0][0] = obj.normals[index+1] * edgeNormal[0][2] - obj.normals[index+2] * edgeNormal[0][1];
+						edgeNormal[0][1] = obj.normals[index+2] * edgeNormal[0][0] - obj.normals[index]   * edgeNormal[0][2];
+						edgeNormal[0][2] = obj.normals[index]   * edgeNormal[0][1] - obj.normals[index+1] * edgeNormal[0][0];
+						edgeNormal[1][0] = obj.normals[index+1] * edgeNormal[1][2] - obj.normals[index+2] * edgeNormal[1][1];
+						edgeNormal[1][1] = obj.normals[index+2] * edgeNormal[1][0] - obj.normals[index]   * edgeNormal[1][2];
+						edgeNormal[1][2] = obj.normals[index]   * edgeNormal[1][1] - obj.normals[index+1] * edgeNormal[1][0];
+						edgeNormal[2][0] = obj.normals[index+1] * edgeNormal[2][2] - obj.normals[index+2] * edgeNormal[2][1];
+						edgeNormal[2][1] = obj.normals[index+2] * edgeNormal[2][0] - obj.normals[index]   * edgeNormal[2][2];
+						edgeNormal[2][2] = obj.normals[index]   * edgeNormal[2][1] - obj.normals[index+1] * edgeNormal[2][0];
+						
+						//Test whether the point lies within the triangle voronoi region
+						float etest[3];
+						etest[0] = xpos*edgeNormal[0][0] + ypos*edgeNormal[0][1] + zpos*edgeNormal[0][2] - obj.Faces_Triangles[index  ]*edgeNormal[0][0] - obj.Faces_Triangles[index+1]*edgeNormal[0][1] - obj.Faces_Triangles[index+2]*edgeNormal[0][2];
+						etest[1] = xpos*edgeNormal[1][0] + ypos*edgeNormal[1][1] + zpos*edgeNormal[1][2] - obj.Faces_Triangles[index+3]*edgeNormal[1][0] - obj.Faces_Triangles[index+4]*edgeNormal[1][1] - obj.Faces_Triangles[index+5]*edgeNormal[1][2];
+						etest[2] = xpos*edgeNormal[2][0] + ypos*edgeNormal[2][1] + zpos*edgeNormal[2][2] - obj.Faces_Triangles[index+6]*edgeNormal[2][0] - obj.Faces_Triangles[index+7]*edgeNormal[2][1] - obj.Faces_Triangles[index+8]*edgeNormal[2][2];
+						
+						if(!(etest[0] < 0.0f && etest[1] < 0.0f && etest[2] < 0.0f))
+						{
+							//Cross products
+							edgeNormal[0][0] = obj.normals[index+1] * edgeNormal[0][2] - obj.normals[index+2] * edgeNormal[0][1];
+							edgeNormal[0][1] = obj.normals[index+2] * edgeNormal[0][0] - obj.normals[index]   * edgeNormal[0][2];
+							edgeNormal[0][2] = obj.normals[index]   * edgeNormal[0][1] - obj.normals[index+1] * edgeNormal[0][0];
+							edgeNormal[1][0] = obj.normals[index+1] * edgeNormal[1][2] - obj.normals[index+2] * edgeNormal[1][1];
+							edgeNormal[1][1] = obj.normals[index+2] * edgeNormal[1][0] - obj.normals[index]   * edgeNormal[1][2];
+							edgeNormal[1][2] = obj.normals[index]   * edgeNormal[1][1] - obj.normals[index+1] * edgeNormal[1][0];
+							edgeNormal[2][0] = obj.normals[index+1] * edgeNormal[2][2] - obj.normals[index+2] * edgeNormal[2][1];
+							edgeNormal[2][1] = obj.normals[index+2] * edgeNormal[2][0] - obj.normals[index]   * edgeNormal[2][2];
+							edgeNormal[2][2] = obj.normals[index]   * edgeNormal[2][1] - obj.normals[index+1] * edgeNormal[2][0];
+							
+							float regiontest[3][2];
+							
+							//Test if the point lies between the planes that define the first edge's voronoi region.
+							regiontest[0][0] = -xpos*edgeNormal[0][0] - ypos*edgeNormal[0][1] - zpos*edgeNormal[0][2] + obj.Faces_Triangles[index  ]*edgeNormal[0][0] + obj.Faces_Triangles[index+1]*edgeNormal[0][1] + obj.Faces_Triangles[index+2]*edgeNormal[0][2];
+							regiontest[0][1] =  xpos*edgeNormal[0][0] + ypos*edgeNormal[0][1] + zpos*edgeNormal[0][2] - obj.Faces_Triangles[index+3]*edgeNormal[0][0] - obj.Faces_Triangles[index+4]*edgeNormal[0][1] - obj.Faces_Triangles[index+5]*edgeNormal[0][2];
+							//Test if the point lies between the planes that define the second edge's voronoi region.
+							regiontest[1][0] = -xpos*edgeNormal[1][0] - ypos*edgeNormal[1][1] - zpos*edgeNormal[1][2] + obj.Faces_Triangles[index+3]*edgeNormal[1][0] + obj.Faces_Triangles[index+4]*edgeNormal[1][1] + obj.Faces_Triangles[index+5]*edgeNormal[1][2];
+							regiontest[1][1] =  xpos*edgeNormal[1][0] + ypos*edgeNormal[1][1] + zpos*edgeNormal[1][2] - obj.Faces_Triangles[index+6]*edgeNormal[1][0] - obj.Faces_Triangles[index+7]*edgeNormal[1][1] - obj.Faces_Triangles[index+8]*edgeNormal[1][2];
+							//Test if the point lies between the planes that define the third edge's voronoi region.
+							regiontest[2][0] = -xpos*edgeNormal[2][0] - ypos*edgeNormal[2][1] - zpos*edgeNormal[2][2] + obj.Faces_Triangles[index+6]*edgeNormal[1][0] + obj.Faces_Triangles[index+7]*edgeNormal[1][1] + obj.Faces_Triangles[index+8]*edgeNormal[1][2];
+							regiontest[2][1] =  xpos*edgeNormal[2][0] + ypos*edgeNormal[2][1] + zpos*edgeNormal[2][2] - obj.Faces_Triangles[index  ]*edgeNormal[1][0] - obj.Faces_Triangles[index+1]*edgeNormal[1][1] - obj.Faces_Triangles[index+2]*edgeNormal[1][2];
+							
+							if(etest[0] >= 0.0f && regiontest[0][0] < 0.0f && regiontest[0][1] < 0.0f)
+							{
+								float aa[POINTS_PER_VERTEX];
+								float bb[POINTS_PER_VERTEX];
+								float cc[POINTS_PER_VERTEX];
+								float dd[POINTS_PER_VERTEX];
+								
+								aa[0] = xpos - obj.Faces_Triangles[index  ];
+								aa[1] = ypos - obj.Faces_Triangles[index+1];
+								aa[2] = zpos - obj.Faces_Triangles[index+2];
+								bb[0] = xpos - obj.Faces_Triangles[index+3];
+								bb[1] = ypos - obj.Faces_Triangles[index+4];
+								bb[2] = zpos - obj.Faces_Triangles[index+5];
+								cc[0] = obj.Faces_Triangles[index+3] - obj.Faces_Triangles[index  ];
+								cc[1] = obj.Faces_Triangles[index+4] - obj.Faces_Triangles[index+1];
+								cc[2] = obj.Faces_Triangles[index+5] - obj.Faces_Triangles[index+2];
+								
+								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
+								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
+								dd[2] = aa[0]*bb[1] - aa[1]*bb[0];
+								
+								float dist = sqrtf(dd[0]*dd[0]+dd[1]*dd[1]+dd[2]*dd[2])/sqrtf(cc[0]*cc[0]+cc[1]*cc[1]+cc[2]*cc[2]);
+								
+								dvalue = (dvalue >= 0.0f) ? dist : -dist;
+								
+							}
+							else if(etest[1] >= 0.0f && regiontest[1][0] < 0.0f && regiontest[1][1] < 0.0f)
+							{
+								float aa[POINTS_PER_VERTEX];
+								float bb[POINTS_PER_VERTEX];
+								float cc[POINTS_PER_VERTEX];
+								float dd[POINTS_PER_VERTEX];
+								
+								aa[0] = xpos - obj.Faces_Triangles[index+3];
+								aa[1] = ypos - obj.Faces_Triangles[index+4];
+								aa[2] = zpos - obj.Faces_Triangles[index+5];
+								bb[0] = xpos - obj.Faces_Triangles[index+6];
+								bb[1] = ypos - obj.Faces_Triangles[index+7];
+								bb[2] = zpos - obj.Faces_Triangles[index+8];
+								cc[0] = obj.Faces_Triangles[index+6] - obj.Faces_Triangles[index+3];
+								cc[1] = obj.Faces_Triangles[index+7] - obj.Faces_Triangles[index+4];
+								cc[2] = obj.Faces_Triangles[index+8] - obj.Faces_Triangles[index+5];
+								
+								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
+								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
+								dd[2] = aa[0]*bb[1] - aa[1]*bb[0];
+								
+								float dist = sqrtf(dd[0]*dd[0]+dd[1]*dd[1]+dd[2]*dd[2])/sqrtf(cc[0]*cc[0]+cc[1]*cc[1]+cc[2]*cc[2]);
+								
+								dvalue = (dvalue >= 0.0f) ? dist : -dist;
+							}
+							else if(etest[2] >= 0.0f && regiontest[2][0] < 0.0f && regiontest[2][1] < 0.0f)
+							{
+								float aa[POINTS_PER_VERTEX];
+								float bb[POINTS_PER_VERTEX];
+								float cc[POINTS_PER_VERTEX];
+								float dd[POINTS_PER_VERTEX];
+								
+								aa[0] = xpos - obj.Faces_Triangles[index+6];
+								aa[1] = ypos - obj.Faces_Triangles[index+7];
+								aa[2] = zpos - obj.Faces_Triangles[index+8];
+								bb[0] = xpos - obj.Faces_Triangles[index  ];
+								bb[1] = ypos - obj.Faces_Triangles[index+1];
+								bb[2] = zpos - obj.Faces_Triangles[index+2];
+								cc[0] = obj.Faces_Triangles[index  ] - obj.Faces_Triangles[index+6];
+								cc[1] = obj.Faces_Triangles[index+1] - obj.Faces_Triangles[index+7];
+								cc[2] = obj.Faces_Triangles[index+2] - obj.Faces_Triangles[index+8];
+								
+								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
+								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
+								dd[2] = aa[0]*bb[1] - aa[1]*bb[0];
+								
+								float dist = sqrtf(dd[0]*dd[0]+dd[1]*dd[1]+dd[2]*dd[2])/sqrtf(cc[0]*cc[0]+cc[1]*cc[1]+cc[2]*cc[2]);
+								
+								dvalue = (dvalue >= 0.0f) ? dist : -dist;
+							}
+							else
+							{
+								float dist[3];
+								dist[0] = sqrtf( (xpos-obj.Faces_Triangles[index  ])*(xpos - obj.Faces_Triangles[index  ]) + (ypos-obj.Faces_Triangles[index+1])*(ypos-obj.Faces_Triangles[index+1]) + (zpos-obj.Faces_Triangles[index+2])*(zpos-obj.Faces_Triangles[index+2]));
+								dist[1] = sqrtf( (xpos-obj.Faces_Triangles[index+3])*(xpos - obj.Faces_Triangles[index+3]) + (ypos-obj.Faces_Triangles[index+4])*(ypos-obj.Faces_Triangles[index+4]) + (zpos-obj.Faces_Triangles[index+5])*(zpos-obj.Faces_Triangles[index+5]));
+								dist[2] = sqrtf( (xpos-obj.Faces_Triangles[index+6])*(xpos - obj.Faces_Triangles[index+6]) + (ypos-obj.Faces_Triangles[index+7])*(ypos-obj.Faces_Triangles[index+7]) + (zpos-obj.Faces_Triangles[index+8])*(zpos-obj.Faces_Triangles[index+8]));
+								
+								dvalue = (dvalue >= 0.0f) ? std::min(dist[0], std::min(dist[1], dist[2])) : -std::min(dist[0], std::min(dist[1], dist[2]));
+							}
+						}
 						
 						grid[xx][yy][zz] = (std::abs(dvalue) < std::abs(grid[xx][yy][zz])) ? dvalue : grid[xx][yy][zz];
+//						grid[xx][yy][zz] = dvalue;
 					}
 				}
 			}

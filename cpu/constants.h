@@ -25,6 +25,12 @@
 #define CELL_WIDTH		0.00275f
 #define CELL_HALF		0.001375f
 
+//#define DOMAIN_DIM		200
+//#define DOMAIN_WIDTH	0.275f
+//#define DOMAIN_HALF		0.1375f
+//#define CELL_WIDTH		0.001375f
+//#define CELL_HALF		0.0006875f
+
 //#define DOMAIN_DIM		5
 //#define DOMAIN_WIDTH	0.275f
 //#define DOMAIN_HALF		0.1375f
