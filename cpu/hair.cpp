@@ -652,19 +652,38 @@ namespace pilar
 		int numTriangles = obj.TotalConnectedTriangles / TOTAL_FLOATS_IN_TRIANGLE;
 		
 //		std::cout << numVertices << std::endl;
-		std::cout << numTriangles << std::endl;
+//		std::cout << numTriangles << std::endl;
 		
 		//read in each triangle with its normal data
 		for(int i = 0; i < numTriangles; i++)
 		{
 			//print triangle normals
-			int index = i * TOTAL_FLOATS_IN_TRIANGLE;
+//			int index = i * TOTAL_FLOATS_IN_TRIANGLE;
+			
+			float triangle[3][POINTS_PER_VERTEX];
+			for(int j = 0; j < POINTS_PER_VERTEX; j++)
+			{
+				triangle[j][0] = obj.Faces_Triangles[i*TOTAL_FLOATS_IN_TRIANGLE+j*3];
+				triangle[j][1] = obj.Faces_Triangles[i*TOTAL_FLOATS_IN_TRIANGLE+j*3+1];
+				triangle[j][2] = obj.Faces_Triangles[i*TOTAL_FLOATS_IN_TRIANGLE+j*3+2];
+			}
+			
+			float normal[POINTS_PER_VERTEX];
+			normal[0] = obj.normals[i*TOTAL_FLOATS_IN_TRIANGLE];
+			normal[1] = obj.normals[i*TOTAL_FLOATS_IN_TRIANGLE+1];
+			normal[2] = obj.normals[i*TOTAL_FLOATS_IN_TRIANGLE+2];
 			
 //			std::cout << "tri: " << i << std::endl;
-//			std::cout << "0: " << obj.Faces_Triangles[index  ] << " " << obj.Faces_Triangles[index+1] << " " << obj.Faces_Triangles[index+2] << std::endl;
-//			std::cout << "1: " << obj.Faces_Triangles[index+3] << " " << obj.Faces_Triangles[index+4] << " " << obj.Faces_Triangles[index+5] << std::endl;
-//			std::cout << "2: " << obj.Faces_Triangles[index+6] << " " << obj.Faces_Triangles[index+7] << " " << obj.Faces_Triangles[index+8] << std::endl;
-//			std::cout << "n: " << obj.normals[index] << " " << obj.normals[index+1] << " " << obj.normals[index+2] << std::endl;
+//			std::cout << "0: " << triangle[0][0] << " " << triangle[0][1] << " " << triangle[0][2] << std::endl;
+//			std::cout << "0: " << triangle[0][0] << " " << triangle[0][1] << " " << triangle[0][2] << std::endl;
+//			std::cout << "1: " << triangle[1][0] << " " << triangle[1][1] << " " << triangle[1][2] << std::endl;
+//			std::cout << "1: " << triangle[1][0] << " " << triangle[1][1] << " " << triangle[1][2] << std::endl;
+//			std::cout << "2: " << triangle[2][0] << " " << triangle[2][1] << " " << triangle[2][2] << std::endl;
+//			std::cout << "2: " << triangle[2][0] << " " << triangle[2][1] << " " << triangle[2][2] << std::endl;
+//			std::cout << "n: " << obj.normals[index] << " " << obj.normals[0][1] << " " << obj.normals[0][2] << std::endl;
+//			std::cout << "n: " << obj.normals[1][0] << " " << obj.normals[1][1] << " " << obj.normals[1][2] << std::endl;
+//			std::cout << "n: " << obj.normals[2][0] << " " << obj.normals[2][1] << " " << obj.normals[2][2] << std::endl;
+//			std::cout << "n: " << normal[0] << " " << normal[1] << " " << normal[2] << std::endl;
 //			std::cout << std::endl;
 			
 			//build prism
@@ -672,12 +691,12 @@ namespace pilar
 			
 			for(int j = 0; j < POINTS_PER_VERTEX; j++)
 			{
-				prism[j][0]   = obj.Faces_Triangles[index+j*3]   + echo * obj.normals[index+j*3];
-				prism[j][1]   = obj.Faces_Triangles[index+j*3+1] + echo * obj.normals[index+j*3+1];
-				prism[j][2]   = obj.Faces_Triangles[index+j*3+2] + echo * obj.normals[index+j*3+2];
-				prism[j+3][0] = obj.Faces_Triangles[index+j*3]   - echo * obj.normals[index+j*3];
-				prism[j+3][1] = obj.Faces_Triangles[index+j*3+1] - echo * obj.normals[index+j*3+1];
-				prism[j+3][2] = obj.Faces_Triangles[index+j*3+2] - echo * obj.normals[index+j*3+2];
+				prism[j][0]   = triangle[j][0] + echo * normal[0];
+				prism[j][1]   = triangle[j][1] + echo * normal[1];
+				prism[j][2]   = triangle[j][2] + echo * normal[2];
+				prism[j+3][0] = triangle[j][0] - echo * normal[0];
+				prism[j+3][1] = triangle[j][1] - echo * normal[1];
+				prism[j+3][2] = triangle[j][2] - echo * normal[2];
 			}
 			
 //			for(int j = 0; j < 6; j++)
@@ -749,6 +768,30 @@ namespace pilar
 //			std::cout << "nmax: " << std::setw(10) << std::setprecision(8) << iaabb[1][0] << " " << iaabb[1][1] << " " << iaabb[1][2] << std::endl;
 //			std::cout << std::endl;
 			
+			//build edge vectors
+			float edge[3][POINTS_PER_VERTEX];
+			edge[0][0] = triangle[1][0] - triangle[0][0];
+			edge[0][1] = triangle[1][1] - triangle[0][1];
+			edge[0][2] = triangle[1][2] - triangle[0][2];
+			edge[1][0] = triangle[2][0] - triangle[1][0];
+			edge[1][1] = triangle[2][1] - triangle[1][1];
+			edge[1][2] = triangle[2][2] - triangle[1][2];
+			edge[2][0] = triangle[0][0] - triangle[2][0];
+			edge[2][1] = triangle[0][1] - triangle[2][0];
+			edge[2][2] = triangle[0][2] - triangle[2][0];
+			
+			//build edge normal vectors by cross product with triangle normal
+			float edgeNormal[3][POINTS_PER_VERTEX];
+			edgeNormal[0][0] = normal[1] * edge[0][2] - normal[2] * edge[0][1];
+			edgeNormal[0][1] = normal[2] * edge[0][0] - normal[0] * edge[0][2];
+			edgeNormal[0][2] = normal[0] * edge[0][1] - normal[1] * edge[0][0];
+			edgeNormal[1][0] = normal[1] * edge[1][2] - normal[2] * edge[1][1];
+			edgeNormal[1][1] = normal[2] * edge[1][0] - normal[0] * edge[1][2];
+			edgeNormal[1][2] = normal[0] * edge[1][1] - normal[1] * edge[1][0];
+			edgeNormal[2][0] = normal[1] * edge[2][2] - normal[2] * edge[2][1];
+			edgeNormal[2][1] = normal[2] * edge[2][0] - normal[0] * edge[2][2];
+			edgeNormal[2][2] = normal[0] * edge[2][1] - normal[1] * edge[2][0];
+			
 			for(int xx = iaabb[0][0]; xx <= iaabb[1][0]; xx++)
 			{
 				for(int yy = iaabb[0][1]; yy <= iaabb[1][1]; yy++)
@@ -761,80 +804,55 @@ namespace pilar
 						float zpos = zz * CELL_WIDTH - DOMAIN_HALF + CELL_HALF;
 						
 						//dot product between gridpoint and triangle normal
-						float dvalue = (xpos - obj.Faces_Triangles[index]) * obj.normals[index] + (ypos - obj.Faces_Triangles[index+1]) * obj.normals[index+1] + (zpos - obj.Faces_Triangles[index+2]) * obj.normals[index+2];
-						
-						//build edge vectors
-						float edgeNormal[3][POINTS_PER_VERTEX];
-						
-						float edgenorm[9];
-						edgeNormal[0][0] = obj.Faces_Triangles[index+3] - obj.Faces_Triangles[index];
-						edgeNormal[0][1] = obj.Faces_Triangles[index+4] - obj.Faces_Triangles[index+1];
-						edgeNormal[0][2] = obj.Faces_Triangles[index+5] - obj.Faces_Triangles[index+2];
-						edgeNormal[1][0] = obj.Faces_Triangles[index+6] - obj.Faces_Triangles[index+3];
-						edgeNormal[1][1] = obj.Faces_Triangles[index+7] - obj.Faces_Triangles[index+4];
-						edgeNormal[1][2] = obj.Faces_Triangles[index+8] - obj.Faces_Triangles[index+5];
-						edgeNormal[2][0] = obj.Faces_Triangles[index]   - obj.Faces_Triangles[index+6];
-						edgeNormal[2][1] = obj.Faces_Triangles[index+1] - obj.Faces_Triangles[index+7];
-						edgeNormal[2][2] = obj.Faces_Triangles[index+2] - obj.Faces_Triangles[index+8];
-						
-						//build edge normal vectors by cross product with triangle normal
-						edgeNormal[0][0] = obj.normals[index+1] * edgeNormal[0][2] - obj.normals[index+2] * edgeNormal[0][1];
-						edgeNormal[0][1] = obj.normals[index+2] * edgeNormal[0][0] - obj.normals[index]   * edgeNormal[0][2];
-						edgeNormal[0][2] = obj.normals[index]   * edgeNormal[0][1] - obj.normals[index+1] * edgeNormal[0][0];
-						edgeNormal[1][0] = obj.normals[index+1] * edgeNormal[1][2] - obj.normals[index+2] * edgeNormal[1][1];
-						edgeNormal[1][1] = obj.normals[index+2] * edgeNormal[1][0] - obj.normals[index]   * edgeNormal[1][2];
-						edgeNormal[1][2] = obj.normals[index]   * edgeNormal[1][1] - obj.normals[index+1] * edgeNormal[1][0];
-						edgeNormal[2][0] = obj.normals[index+1] * edgeNormal[2][2] - obj.normals[index+2] * edgeNormal[2][1];
-						edgeNormal[2][1] = obj.normals[index+2] * edgeNormal[2][0] - obj.normals[index]   * edgeNormal[2][2];
-						edgeNormal[2][2] = obj.normals[index]   * edgeNormal[2][1] - obj.normals[index+1] * edgeNormal[2][0];
+						float dvalue = (xpos - triangle[0][0]) * normal[0] + (ypos - triangle[0][1]) * normal[1] + (zpos - triangle[0][2]) * normal[2];
 						
 						//Test whether the point lies within the triangle voronoi region
-						float etest[3];
-						etest[0] = xpos*edgeNormal[0][0] + ypos*edgeNormal[0][1] + zpos*edgeNormal[0][2] - obj.Faces_Triangles[index  ]*edgeNormal[0][0] - obj.Faces_Triangles[index+1]*edgeNormal[0][1] - obj.Faces_Triangles[index+2]*edgeNormal[0][2];
-						etest[1] = xpos*edgeNormal[1][0] + ypos*edgeNormal[1][1] + zpos*edgeNormal[1][2] - obj.Faces_Triangles[index+3]*edgeNormal[1][0] - obj.Faces_Triangles[index+4]*edgeNormal[1][1] - obj.Faces_Triangles[index+5]*edgeNormal[1][2];
-						etest[2] = xpos*edgeNormal[2][0] + ypos*edgeNormal[2][1] + zpos*edgeNormal[2][2] - obj.Faces_Triangles[index+6]*edgeNormal[2][0] - obj.Faces_Triangles[index+7]*edgeNormal[2][1] - obj.Faces_Triangles[index+8]*edgeNormal[2][2];
+						float planeTest[3];
+						planeTest[0] = xpos*edgeNormal[0][0] + ypos*edgeNormal[0][1] + zpos*edgeNormal[0][2] - triangle[0][0]*edgeNormal[0][0] - triangle[0][1]*edgeNormal[0][1] - triangle[0][2]*edgeNormal[0][2];
+						planeTest[1] = xpos*edgeNormal[1][0] + ypos*edgeNormal[1][1] + zpos*edgeNormal[1][2] - triangle[1][0]*edgeNormal[1][0] - triangle[1][1]*edgeNormal[1][1] - triangle[1][2]*edgeNormal[1][2];
+						planeTest[2] = xpos*edgeNormal[2][0] + ypos*edgeNormal[2][1] + zpos*edgeNormal[2][2] - triangle[2][0]*edgeNormal[2][0] - triangle[2][1]*edgeNormal[2][1] - triangle[2][2]*edgeNormal[2][2];
 						
-						if(!(etest[0] < 0.0f && etest[1] < 0.0f && etest[2] < 0.0f))
+						if(!(planeTest[0] < 0.0f && planeTest[1] < 0.0f && planeTest[2] < 0.0f))
 						{
 							//Cross products
-							edgeNormal[0][0] = obj.normals[index+1] * edgeNormal[0][2] - obj.normals[index+2] * edgeNormal[0][1];
-							edgeNormal[0][1] = obj.normals[index+2] * edgeNormal[0][0] - obj.normals[index]   * edgeNormal[0][2];
-							edgeNormal[0][2] = obj.normals[index]   * edgeNormal[0][1] - obj.normals[index+1] * edgeNormal[0][0];
-							edgeNormal[1][0] = obj.normals[index+1] * edgeNormal[1][2] - obj.normals[index+2] * edgeNormal[1][1];
-							edgeNormal[1][1] = obj.normals[index+2] * edgeNormal[1][0] - obj.normals[index]   * edgeNormal[1][2];
-							edgeNormal[1][2] = obj.normals[index]   * edgeNormal[1][1] - obj.normals[index+1] * edgeNormal[1][0];
-							edgeNormal[2][0] = obj.normals[index+1] * edgeNormal[2][2] - obj.normals[index+2] * edgeNormal[2][1];
-							edgeNormal[2][1] = obj.normals[index+2] * edgeNormal[2][0] - obj.normals[index]   * edgeNormal[2][2];
-							edgeNormal[2][2] = obj.normals[index]   * edgeNormal[2][1] - obj.normals[index+1] * edgeNormal[2][0];
+							float regionNormal[3][POINTS_PER_VERTEX];
+							regionNormal[0][0] = normal[1] * edgeNormal[0][2] - normal[2] * edgeNormal[0][1];
+							regionNormal[0][1] = normal[2] * edgeNormal[0][0] - normal[0] * edgeNormal[0][2];
+							regionNormal[0][2] = normal[0] * edgeNormal[0][1] - normal[1] * edgeNormal[0][0];
+							regionNormal[1][0] = normal[1] * edgeNormal[1][2] - normal[2] * edgeNormal[1][1];
+							regionNormal[1][1] = normal[2] * edgeNormal[1][0] - normal[0] * edgeNormal[1][2];
+							regionNormal[1][2] = normal[0] * edgeNormal[1][1] - normal[1] * edgeNormal[1][0];
+							regionNormal[2][0] = normal[1] * edgeNormal[2][2] - normal[2] * edgeNormal[2][1];
+							regionNormal[2][1] = normal[2] * edgeNormal[2][0] - normal[0] * edgeNormal[2][2];
+							regionNormal[2][2] = normal[0] * edgeNormal[2][1] - normal[1] * edgeNormal[2][0];
 							
-							float regiontest[3][2];
-							
+							float regionTest[3][2];
 							//Test if the point lies between the planes that define the first edge's voronoi region.
-							regiontest[0][0] = -xpos*edgeNormal[0][0] - ypos*edgeNormal[0][1] - zpos*edgeNormal[0][2] + obj.Faces_Triangles[index  ]*edgeNormal[0][0] + obj.Faces_Triangles[index+1]*edgeNormal[0][1] + obj.Faces_Triangles[index+2]*edgeNormal[0][2];
-							regiontest[0][1] =  xpos*edgeNormal[0][0] + ypos*edgeNormal[0][1] + zpos*edgeNormal[0][2] - obj.Faces_Triangles[index+3]*edgeNormal[0][0] - obj.Faces_Triangles[index+4]*edgeNormal[0][1] - obj.Faces_Triangles[index+5]*edgeNormal[0][2];
+							regionTest[0][0] = -xpos*regionNormal[0][0] - ypos*regionNormal[0][1] - zpos*regionNormal[0][2] + triangle[0][0]*regionNormal[0][0] + triangle[0][1]*regionNormal[0][1] + triangle[0][2]*regionNormal[0][2];
+							regionTest[0][1] =  xpos*regionNormal[0][0] + ypos*regionNormal[0][1] + zpos*regionNormal[0][2] - triangle[1][0]*regionNormal[0][0] - triangle[1][1]*regionNormal[0][1] - triangle[1][2]*regionNormal[0][2];
 							//Test if the point lies between the planes that define the second edge's voronoi region.
-							regiontest[1][0] = -xpos*edgeNormal[1][0] - ypos*edgeNormal[1][1] - zpos*edgeNormal[1][2] + obj.Faces_Triangles[index+3]*edgeNormal[1][0] + obj.Faces_Triangles[index+4]*edgeNormal[1][1] + obj.Faces_Triangles[index+5]*edgeNormal[1][2];
-							regiontest[1][1] =  xpos*edgeNormal[1][0] + ypos*edgeNormal[1][1] + zpos*edgeNormal[1][2] - obj.Faces_Triangles[index+6]*edgeNormal[1][0] - obj.Faces_Triangles[index+7]*edgeNormal[1][1] - obj.Faces_Triangles[index+8]*edgeNormal[1][2];
+							regionTest[1][0] = -xpos*regionNormal[1][0] - ypos*regionNormal[1][1] - zpos*regionNormal[1][2] + triangle[1][0]*regionNormal[1][0] + triangle[1][1]*regionNormal[1][1] + triangle[1][2]*regionNormal[1][2];
+							regionTest[1][1] =  xpos*regionNormal[1][0] + ypos*regionNormal[1][1] + zpos*regionNormal[1][2] - triangle[2][0]*regionNormal[1][0] - triangle[2][1]*regionNormal[1][1] - triangle[2][2]*regionNormal[1][2];
 							//Test if the point lies between the planes that define the third edge's voronoi region.
-							regiontest[2][0] = -xpos*edgeNormal[2][0] - ypos*edgeNormal[2][1] - zpos*edgeNormal[2][2] + obj.Faces_Triangles[index+6]*edgeNormal[1][0] + obj.Faces_Triangles[index+7]*edgeNormal[1][1] + obj.Faces_Triangles[index+8]*edgeNormal[1][2];
-							regiontest[2][1] =  xpos*edgeNormal[2][0] + ypos*edgeNormal[2][1] + zpos*edgeNormal[2][2] - obj.Faces_Triangles[index  ]*edgeNormal[1][0] - obj.Faces_Triangles[index+1]*edgeNormal[1][1] - obj.Faces_Triangles[index+2]*edgeNormal[1][2];
+							regionTest[2][0] = -xpos*regionNormal[2][0] - ypos*regionNormal[2][1] - zpos*regionNormal[2][2] + triangle[2][0]*regionNormal[1][0] + triangle[2][1]*regionNormal[1][1] + triangle[2][2]*regionNormal[1][2];
+							regionTest[2][1] =  xpos*regionNormal[2][0] + ypos*regionNormal[2][1] + zpos*regionNormal[2][2] - triangle[0][0]*regionNormal[1][0] - triangle[0][1]*regionNormal[1][1] - triangle[0][2]*regionNormal[1][2];
 							
-							if(etest[0] >= 0.0f && regiontest[0][0] < 0.0f && regiontest[0][1] < 0.0f)
+							if(planeTest[0] >= 0.0f && regionTest[0][0] < 0.0f && regionTest[0][1] < 0.0f)
 							{
 								float aa[POINTS_PER_VERTEX];
 								float bb[POINTS_PER_VERTEX];
 								float cc[POINTS_PER_VERTEX];
 								float dd[POINTS_PER_VERTEX];
 								
-								aa[0] = xpos - obj.Faces_Triangles[index  ];
-								aa[1] = ypos - obj.Faces_Triangles[index+1];
-								aa[2] = zpos - obj.Faces_Triangles[index+2];
-								bb[0] = xpos - obj.Faces_Triangles[index+3];
-								bb[1] = ypos - obj.Faces_Triangles[index+4];
-								bb[2] = zpos - obj.Faces_Triangles[index+5];
-								cc[0] = obj.Faces_Triangles[index+3] - obj.Faces_Triangles[index  ];
-								cc[1] = obj.Faces_Triangles[index+4] - obj.Faces_Triangles[index+1];
-								cc[2] = obj.Faces_Triangles[index+5] - obj.Faces_Triangles[index+2];
+								aa[0] = xpos - triangle[0][0];
+								aa[1] = ypos - triangle[0][1];
+								aa[2] = zpos - triangle[0][2];
+								bb[0] = xpos - triangle[1][0];
+								bb[1] = ypos - triangle[1][1];
+								bb[2] = zpos - triangle[1][2];
+								cc[0] = triangle[1][0] - triangle[0][0];
+								cc[1] = triangle[1][1] - triangle[0][1];
+								cc[2] = triangle[1][2] - triangle[0][2];
 								
 								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
 								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
@@ -845,22 +863,22 @@ namespace pilar
 								dvalue = (dvalue >= 0.0f) ? dist : -dist;
 								
 							}
-							else if(etest[1] >= 0.0f && regiontest[1][0] < 0.0f && regiontest[1][1] < 0.0f)
+							else if(planeTest[1] >= 0.0f && regionTest[1][0] < 0.0f && regionTest[1][1] < 0.0f)
 							{
 								float aa[POINTS_PER_VERTEX];
 								float bb[POINTS_PER_VERTEX];
 								float cc[POINTS_PER_VERTEX];
 								float dd[POINTS_PER_VERTEX];
 								
-								aa[0] = xpos - obj.Faces_Triangles[index+3];
-								aa[1] = ypos - obj.Faces_Triangles[index+4];
-								aa[2] = zpos - obj.Faces_Triangles[index+5];
-								bb[0] = xpos - obj.Faces_Triangles[index+6];
-								bb[1] = ypos - obj.Faces_Triangles[index+7];
-								bb[2] = zpos - obj.Faces_Triangles[index+8];
-								cc[0] = obj.Faces_Triangles[index+6] - obj.Faces_Triangles[index+3];
-								cc[1] = obj.Faces_Triangles[index+7] - obj.Faces_Triangles[index+4];
-								cc[2] = obj.Faces_Triangles[index+8] - obj.Faces_Triangles[index+5];
+								aa[0] = xpos - triangle[1][0];
+								aa[1] = ypos - triangle[1][1];
+								aa[2] = zpos - triangle[1][2];
+								bb[0] = xpos - triangle[2][0];
+								bb[1] = ypos - triangle[2][1];
+								bb[2] = zpos - triangle[2][2];
+								cc[0] = triangle[2][0] - triangle[1][0];
+								cc[1] = triangle[2][1] - triangle[1][1];
+								cc[2] = triangle[2][2] - triangle[1][2];
 								
 								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
 								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
@@ -870,22 +888,22 @@ namespace pilar
 								
 								dvalue = (dvalue >= 0.0f) ? dist : -dist;
 							}
-							else if(etest[2] >= 0.0f && regiontest[2][0] < 0.0f && regiontest[2][1] < 0.0f)
+							else if(planeTest[2] >= 0.0f && regionTest[2][0] < 0.0f && regionTest[2][1] < 0.0f)
 							{
 								float aa[POINTS_PER_VERTEX];
 								float bb[POINTS_PER_VERTEX];
 								float cc[POINTS_PER_VERTEX];
 								float dd[POINTS_PER_VERTEX];
 								
-								aa[0] = xpos - obj.Faces_Triangles[index+6];
-								aa[1] = ypos - obj.Faces_Triangles[index+7];
-								aa[2] = zpos - obj.Faces_Triangles[index+8];
-								bb[0] = xpos - obj.Faces_Triangles[index  ];
-								bb[1] = ypos - obj.Faces_Triangles[index+1];
-								bb[2] = zpos - obj.Faces_Triangles[index+2];
-								cc[0] = obj.Faces_Triangles[index  ] - obj.Faces_Triangles[index+6];
-								cc[1] = obj.Faces_Triangles[index+1] - obj.Faces_Triangles[index+7];
-								cc[2] = obj.Faces_Triangles[index+2] - obj.Faces_Triangles[index+8];
+								aa[0] = xpos - triangle[2][0];
+								aa[1] = ypos - triangle[2][1];
+								aa[2] = zpos - triangle[2][2];
+								bb[0] = xpos - triangle[0][0];
+								bb[1] = ypos - triangle[0][1];
+								bb[2] = zpos - triangle[0][2];
+								cc[0] = triangle[0][0] - triangle[2][0];
+								cc[1] = triangle[0][1] - triangle[2][1];
+								cc[2] = triangle[0][2] - triangle[2][2];
 								
 								dd[0] = aa[1]*bb[2] - aa[2]*bb[1];
 								dd[1] = aa[2]*bb[0] - aa[0]*bb[2];
@@ -898,16 +916,15 @@ namespace pilar
 							else
 							{
 								float dist[3];
-								dist[0] = sqrtf( (xpos-obj.Faces_Triangles[index  ])*(xpos - obj.Faces_Triangles[index  ]) + (ypos-obj.Faces_Triangles[index+1])*(ypos-obj.Faces_Triangles[index+1]) + (zpos-obj.Faces_Triangles[index+2])*(zpos-obj.Faces_Triangles[index+2]));
-								dist[1] = sqrtf( (xpos-obj.Faces_Triangles[index+3])*(xpos - obj.Faces_Triangles[index+3]) + (ypos-obj.Faces_Triangles[index+4])*(ypos-obj.Faces_Triangles[index+4]) + (zpos-obj.Faces_Triangles[index+5])*(zpos-obj.Faces_Triangles[index+5]));
-								dist[2] = sqrtf( (xpos-obj.Faces_Triangles[index+6])*(xpos - obj.Faces_Triangles[index+6]) + (ypos-obj.Faces_Triangles[index+7])*(ypos-obj.Faces_Triangles[index+7]) + (zpos-obj.Faces_Triangles[index+8])*(zpos-obj.Faces_Triangles[index+8]));
+								dist[0] = sqrtf( (xpos-triangle[0][0])*(xpos - triangle[0][0]) + (ypos-triangle[0][1])*(ypos-triangle[0][1]) + (zpos-triangle[0][2])*(zpos-triangle[0][2]));
+								dist[1] = sqrtf( (xpos-triangle[1][0])*(xpos - triangle[1][0]) + (ypos-triangle[1][1])*(ypos-triangle[1][1]) + (zpos-triangle[1][2])*(zpos-triangle[1][2]));
+								dist[2] = sqrtf( (xpos-triangle[2][0])*(xpos - triangle[2][0]) + (ypos-triangle[2][1])*(ypos-triangle[2][1]) + (zpos-triangle[2][2])*(zpos-triangle[2][2]));
 								
 								dvalue = (dvalue >= 0.0f) ? std::min(dist[0], std::min(dist[1], dist[2])) : -std::min(dist[0], std::min(dist[1], dist[2]));
 							}
 						}
 						
 						grid[xx][yy][zz] = (std::abs(dvalue) < std::abs(grid[xx][yy][zz])) ? dvalue : grid[xx][yy][zz];
-//						grid[xx][yy][zz] = dvalue;
 					}
 				}
 			}
