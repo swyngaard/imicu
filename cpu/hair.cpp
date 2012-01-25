@@ -673,18 +673,12 @@ namespace pilar
 			normal[1] = obj.normals[i*TOTAL_FLOATS_IN_TRIANGLE+1];
 			normal[2] = obj.normals[i*TOTAL_FLOATS_IN_TRIANGLE+2];
 			
-//			std::cout << "tri: " << i << std::endl;
-//			std::cout << "0: " << triangle[0][0] << " " << triangle[0][1] << " " << triangle[0][2] << std::endl;
-//			std::cout << "0: " << triangle[0][0] << " " << triangle[0][1] << " " << triangle[0][2] << std::endl;
-//			std::cout << "1: " << triangle[1][0] << " " << triangle[1][1] << " " << triangle[1][2] << std::endl;
-//			std::cout << "1: " << triangle[1][0] << " " << triangle[1][1] << " " << triangle[1][2] << std::endl;
-//			std::cout << "2: " << triangle[2][0] << " " << triangle[2][1] << " " << triangle[2][2] << std::endl;
-//			std::cout << "2: " << triangle[2][0] << " " << triangle[2][1] << " " << triangle[2][2] << std::endl;
-//			std::cout << "n: " << obj.normals[index] << " " << obj.normals[0][1] << " " << obj.normals[0][2] << std::endl;
-//			std::cout << "n: " << obj.normals[1][0] << " " << obj.normals[1][1] << " " << obj.normals[1][2] << std::endl;
-//			std::cout << "n: " << obj.normals[2][0] << " " << obj.normals[2][1] << " " << obj.normals[2][2] << std::endl;
-//			std::cout << "n: " << normal[0] << " " << normal[1] << " " << normal[2] << std::endl;
-//			std::cout << std::endl;
+			std::cout << "tri: " << i << std::endl;
+			std::cout << "0: " << triangle[0][0] << " " << triangle[0][1] << " " << triangle[0][2] << std::endl;
+			std::cout << "1: " << triangle[1][0] << " " << triangle[1][1] << " " << triangle[1][2] << std::endl;
+			std::cout << "2: " << triangle[2][0] << " " << triangle[2][1] << " " << triangle[2][2] << std::endl;
+			std::cout << "n: " << normal[0] << " " << normal[1] << " " << normal[2] << std::endl;
+			std::cout << std::endl;
 			
 			//build prism
 			float prism[6][POINTS_PER_VERTEX];
