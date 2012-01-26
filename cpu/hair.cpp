@@ -918,7 +918,26 @@ namespace pilar
 							}
 						}
 						
-						grid[xx][yy][zz] = (std::abs(dvalue) < std::abs(grid[xx][yy][zz])) ? dvalue : grid[xx][yy][zz];
+						if(grid[xx][yy][zz] < FLT_MAX)
+						{
+							if(std::abs(dvalue) < std::abs(grid[xx][yy][zz]) && dvalue > 0.0f && grid[xx][yy][zz] < 0.0f)
+							{
+								grid[xx][yy][zz] = dvalue;
+							}
+							else if(std::abs(dvalue) < std::abs(grid[xx][yy][zz]) && dvalue >= 0.0f && grid[xx][yy][zz] > 0.0f)
+							{
+								grid[xx][yy][zz] = dvalue;
+							}
+							else if(std::abs(dvalue) < std::abs(grid[xx][yy][zz]) && dvalue <= 0.0f && grid[xx][yy][zz] < 0.0f)
+							{
+								grid[xx][yy][zz] = dvalue;
+							}
+						}
+						else
+						{
+							grid[xx][yy][zz] = dvalue;
+						}
+						
 					}
 				}
 			}
