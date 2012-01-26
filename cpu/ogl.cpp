@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
 void init()
 {
-	obj.Load("cubehalf.obj");
+	obj.Load("spherehalf.obj");
 	
 	pilar::Vector3f root;
 	std::vector<pilar::Vector3f> roots;
@@ -157,7 +157,7 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.10f,
+	gluLookAt(	0.0f, -0.13f, -0.15f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
