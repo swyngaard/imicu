@@ -503,6 +503,59 @@ namespace pilar
 		}
 	}
 	
+	void Strand::objectCollisions()
+	{
+		//Transform particle coordinates to collision grid coordinates
+//		for(int i = 1; i < numParticles; i++)
+//		{
+//			Vector3f position;
+//			position.x = (particle[i]->position.x + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
+//			position.y = (particle[i]->position.y + DOMAIN_HALF+0.125f-CELL_HALF)/CELL_WIDTH;
+//			position.z = (particle[i]->position.z + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
+//		}
+		
+		Vector3f position;
+		position.x = (particle[25]->position.x + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
+		position.y = (particle[25]->position.y + DOMAIN_HALF+0.125f-CELL_HALF)/CELL_WIDTH;
+		position.z = (particle[25]->position.z + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
+		
+		std::cout << position.x << " " << position.y << " " << position.z << std::endl;
+		
+		Vector3f cube[8];
+		cube[0].x = std::floor(position.x);
+		cube[0].y = std::floor(position.y);
+		cube[0].z = std::floor(position.z);
+		
+		cube[1].x = std::ceil(position.x);
+		cube[1].y = std::floor(position.y);
+		cube[1].z = std::floor(position.z);
+		
+		cube[2].x = std::floor(position.x);
+		cube[2].y = std::floor(position.y);
+		cube[2].z = std::ceil(position.z);
+		
+		cube[3].x = std::ceil(position.x);
+		cube[3].y = std::floor(position.y);
+		cube[3].z = std::ceil(position.z);
+		
+		cube[4].x = std::floor(position.x);
+		cube[4].y = std::ceil(position.y);
+		cube[4].z = std::floor(position.z);
+		
+		cube[5].x = std::ceil(position.x);
+		cube[5].y = std::ceil(position.y);
+		cube[5].z = std::floor(position.z);
+		
+		cube[6].x = std::floor(position.x);
+		cube[6].y = std::ceil(position.y);
+		cube[6].z = std::ceil(position.z);
+		
+		cube[7].x = std::ceil(position.x);
+		cube[7].y = std::ceil(position.y);
+		cube[7].z = std::ceil(position.z);
+		
+	}
+	
 	void Strand::update(float dt)
 	{
 		//Reset forces on particles
@@ -536,6 +589,9 @@ namespace pilar
 		
 		//Calculate half velocity and new velocity
 		updateParticles2(dt);
+		
+		//Check geometry collisions and adjust velocities and positions
+		objectCollisions();
 	}
 	
 	//Clean up

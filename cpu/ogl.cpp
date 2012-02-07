@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
 void init()
 {
-	obj.Load("spherehalf.obj");
+	obj.Load("monkeyhalf.obj");
 	
 	pilar::Vector3f root;
 	std::vector<pilar::Vector3f> roots;
@@ -157,7 +157,7 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.15f,
+	gluLookAt(	0.0f, -0.13f, -0.35f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
@@ -235,7 +235,8 @@ void render(void) {
 				{
 					glPushMatrix();
 						glTranslatef(xx*CELL_WIDTH, yy*CELL_WIDTH, zz*CELL_WIDTH);
-						if(hair->grid[xx][yy][zz] < FLT_MAX && hair->grid[xx][yy][zz] < 0.0f)
+//						if(hair->grid[xx][yy][zz] < FLT_MAX && hair->grid[xx][yy][zz] < 0.0f)
+						if(xx == 99 && yy == 99 && zz == 99)
 						{
 							glColor3f(0.0f, 0.0f, 0.0f);
 							glBegin(GL_POINTS);

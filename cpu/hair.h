@@ -98,6 +98,7 @@ namespace pilar
 		void updateParticles2(float dt);
 		void conjugate(int N, const float *A, const float *b, float *x);
 		void calcVelocities(float dt);
+		void objectCollisions();
 		
 	public:
 		int numParticles;
