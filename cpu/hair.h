@@ -98,7 +98,7 @@ namespace pilar
 		void updateParticles2(float dt);
 		void conjugate(int N, const float *A, const float *b, float *x);
 		void calcVelocities(float dt);
-		void objectCollisions();
+		void objectCollisions(const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
 		
 	public:
 		int numParticles;
@@ -116,7 +116,7 @@ namespace pilar
 			   float d_extra,
 			   float length,
 			   Vector3f root);
-		void update(float dt);
+		void update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
 		void release();
 		void applyForce(Vector3f force);
 		void applyStrainLimiting(float dt);

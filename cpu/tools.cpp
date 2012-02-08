@@ -130,5 +130,19 @@ namespace pilar
 
 		return Vector3f(x / length, y / length, z / length);
 	}
+	
+	Vector3i::Vector3i()
+	{
+		x = 0;
+		y = 0;
+		z = 0;
+	}
+	
+	Vector3i::Vector3i(int x, int y, int z)
+	{
+		this->x = x;
+		this->y = y;
+		this->z = z;
+	}
 }
 

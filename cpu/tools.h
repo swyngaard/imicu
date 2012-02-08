@@ -32,6 +32,17 @@ namespace pilar
 		void unitize();
 		Vector3f unit();
 	};
+	
+	class Vector3i
+	{
+	public:
+		int x;
+		int y;
+		int z;
+		
+		Vector3i();
+		Vector3i(int x, int y, int z);
+	};
 }
 
 #endif
