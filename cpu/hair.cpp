@@ -557,6 +557,11 @@ namespace pilar
 		
 		std::cout << "grid[" << cube[0].x << "][" << cube[0].y << "][" << cube[0].z << "]: " << grid[cube[0].x][cube[0].y][cube[0].z] << std::endl;
 		std::cout << "grid[" << cube[1].x << "][" << cube[1].y << "][" << cube[1].z << "]: " << grid[cube[1].x][cube[1].y][cube[1].z] << std::endl;
+		
+		float y = grid[cube[0].x][cube[0].y][cube[0].z] + (position.x-cube[0].x)*(grid[cube[1].x][cube[1].y][cube[1].z]-grid[cube[0].x][cube[0].y][cube[0].z])/(cube[1].x-cube[0].x);
+		
+		std::cout << "inter: " << y << std::endl;
+		
 		std::cout << std::endl;
 		
 	}
