@@ -236,7 +236,7 @@ void render(void) {
 					glPushMatrix();
 						glTranslatef(xx*CELL_WIDTH, yy*CELL_WIDTH, zz*CELL_WIDTH);
 //						if(hair->grid[xx][yy][zz] < FLT_MAX && hair->grid[xx][yy][zz] < 0.0f)
-						if(xx == 99 && yy == 99 && zz == 99)
+						if((xx == 99 && yy == 0 && zz == 99) || (xx == 99 && yy == 0 && zz == 99))
 						{
 							glColor3f(0.0f, 0.0f, 0.0f);
 							glBegin(GL_POINTS);

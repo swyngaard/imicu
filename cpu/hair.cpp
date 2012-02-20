@@ -558,9 +558,12 @@ namespace pilar
 		std::cout << "grid[" << cube[0].x << "][" << cube[0].y << "][" << cube[0].z << "]: " << grid[cube[0].x][cube[0].y][cube[0].z] << std::endl;
 		std::cout << "grid[" << cube[1].x << "][" << cube[1].y << "][" << cube[1].z << "]: " << grid[cube[1].x][cube[1].y][cube[1].z] << std::endl;
 		
-		float y = grid[cube[0].x][cube[0].y][cube[0].z] + (position.x-cube[0].x)*(grid[cube[1].x][cube[1].y][cube[1].z]-grid[cube[0].x][cube[0].y][cube[0].z])/(cube[1].x-cube[0].x);
+		float y0 = grid[cube[0].x][cube[0].y][cube[0].z] + (position.x-cube[0].x)*(grid[cube[1].x][cube[1].y][cube[1].z]-grid[cube[0].x][cube[0].y][cube[0].z])/(cube[1].x-cube[0].x);
+		float y1 = grid[cube[2].x][cube[2].y][cube[2].z] + (position.x-cube[2].x)*(grid[cube[3].x][cube[3].y][cube[3].z]-grid[cube[2].x][cube[2].y][cube[2].z])/(cube[3].x-cube[2].x);
+		float y2 = grid[cube[4].x][cube[4].y][cube[4].z] + (position.x-cube[4].x)*(grid[cube[5].x][cube[5].y][cube[5].z]-grid[cube[4].x][cube[4].y][cube[4].z])/(cube[5].x-cube[4].x);
+		float y3 = grid[cube[6].x][cube[6].y][cube[6].z] + (position.x-cube[6].x)*(grid[cube[7].x][cube[7].y][cube[7].z]-grid[cube[6].x][cube[6].y][cube[6].z])/(cube[7].x-cube[6].x);
 		
-		std::cout << "inter: " << y << std::endl;
+		std::cout << "inter: " << y0 << std::endl;
 		
 		std::cout << std::endl;
 		
