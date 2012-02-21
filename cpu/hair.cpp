@@ -572,10 +572,15 @@ namespace pilar
 		float y00 = y0 + (position.z - cube[0].z)*(y1-y0)/(cube[2].z-cube[0].z);
 		float y11 = y2 + (position.z - cube[4].z)*(y3-y2)/(cube[6].z-cube[4].z);
 		
+		float y000 = y00 + (position.y - cube[0].y)*(y11 - y00)/(cube[4].y-cube[0].y);
+		
 		std::cout << "inter0: " << y0 << std::endl;
 		std::cout << "inter1: " << y1 << std::endl;
 		std::cout << "inter2: " << y2 << std::endl;
 		std::cout << "inter3: " << y3 << std::endl;
+		std::cout << "inter00: " << y00 << std::endl;
+		std::cout << "inter11: " << y11 << std::endl;
+		std::cout << "inter000: " << y000 << std::endl;
 		
 		std::cout << std::endl;
 		
