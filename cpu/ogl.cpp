@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
 void init()
 {
-	obj.Load("monkeyhalf.obj");
+	obj.Load("spherehalf.obj");
 	
 	pilar::Vector3f root;
 	std::vector<pilar::Vector3f> roots;

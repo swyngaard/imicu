@@ -519,7 +519,7 @@ namespace pilar
 		position.y = (particle[25]->position.y + DOMAIN_HALF+0.125f-CELL_HALF)/CELL_WIDTH;
 		position.z = (particle[25]->position.z + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
 		
-		std::cout << "pos: " << position.x << " " << position.y << " " << position.z << std::endl;
+//		std::cout << "pos: " << position.x << " " << position.y << " " << position.z << std::endl;
 		
 		//get the 8 distance values surrounding the particle
 		Vector3i cube[8];
@@ -555,14 +555,14 @@ namespace pilar
 		cube[6].y = cube[7].y;
 		cube[6].z = cube[7].z;
 		
-		std::cout << "grid[" << cube[0].x << "][" << cube[0].y << "][" << cube[0].z << "]: " << grid[cube[0].x][cube[0].y][cube[0].z] << std::endl;
-		std::cout << "grid[" << cube[1].x << "][" << cube[1].y << "][" << cube[1].z << "]: " << grid[cube[1].x][cube[1].y][cube[1].z] << std::endl;
-		std::cout << "grid[" << cube[2].x << "][" << cube[2].y << "][" << cube[2].z << "]: " << grid[cube[2].x][cube[2].y][cube[2].z] << std::endl;
-		std::cout << "grid[" << cube[3].x << "][" << cube[3].y << "][" << cube[3].z << "]: " << grid[cube[3].x][cube[3].y][cube[3].z] << std::endl;
-		std::cout << "grid[" << cube[4].x << "][" << cube[4].y << "][" << cube[4].z << "]: " << grid[cube[4].x][cube[4].y][cube[4].z] << std::endl;
-		std::cout << "grid[" << cube[5].x << "][" << cube[5].y << "][" << cube[5].z << "]: " << grid[cube[5].x][cube[5].y][cube[5].z] << std::endl;
-		std::cout << "grid[" << cube[6].x << "][" << cube[6].y << "][" << cube[6].z << "]: " << grid[cube[6].x][cube[6].y][cube[6].z] << std::endl;
-		std::cout << "grid[" << cube[7].x << "][" << cube[7].y << "][" << cube[7].z << "]: " << grid[cube[7].x][cube[7].y][cube[7].z] << std::endl;
+//		std::cout << "grid[" << cube[0].x << "][" << cube[0].y << "][" << cube[0].z << "]: " << grid[cube[0].x][cube[0].y][cube[0].z] << std::endl;
+//		std::cout << "grid[" << cube[1].x << "][" << cube[1].y << "][" << cube[1].z << "]: " << grid[cube[1].x][cube[1].y][cube[1].z] << std::endl;
+//		std::cout << "grid[" << cube[2].x << "][" << cube[2].y << "][" << cube[2].z << "]: " << grid[cube[2].x][cube[2].y][cube[2].z] << std::endl;
+//		std::cout << "grid[" << cube[3].x << "][" << cube[3].y << "][" << cube[3].z << "]: " << grid[cube[3].x][cube[3].y][cube[3].z] << std::endl;
+//		std::cout << "grid[" << cube[4].x << "][" << cube[4].y << "][" << cube[4].z << "]: " << grid[cube[4].x][cube[4].y][cube[4].z] << std::endl;
+//		std::cout << "grid[" << cube[5].x << "][" << cube[5].y << "][" << cube[5].z << "]: " << grid[cube[5].x][cube[5].y][cube[5].z] << std::endl;
+//		std::cout << "grid[" << cube[6].x << "][" << cube[6].y << "][" << cube[6].z << "]: " << grid[cube[6].x][cube[6].y][cube[6].z] << std::endl;
+//		std::cout << "grid[" << cube[7].x << "][" << cube[7].y << "][" << cube[7].z << "]: " << grid[cube[7].x][cube[7].y][cube[7].z] << std::endl;
 		
 		float y0 = grid[cube[0].x][cube[0].y][cube[0].z] + (position.x-cube[0].x)*(grid[cube[1].x][cube[1].y][cube[1].z]-grid[cube[0].x][cube[0].y][cube[0].z])/(cube[1].x-cube[0].x);
 		float y1 = grid[cube[2].x][cube[2].y][cube[2].z] + (position.x-cube[2].x)*(grid[cube[3].x][cube[3].y][cube[3].z]-grid[cube[2].x][cube[2].y][cube[2].z])/(cube[3].x-cube[2].x);
@@ -574,15 +574,20 @@ namespace pilar
 		
 		float y000 = y00 + (position.y - cube[0].y)*(y11 - y00)/(cube[4].y-cube[0].y);
 		
-		std::cout << "inter0: " << y0 << std::endl;
-		std::cout << "inter1: " << y1 << std::endl;
-		std::cout << "inter2: " << y2 << std::endl;
-		std::cout << "inter3: " << y3 << std::endl;
-		std::cout << "inter00: " << y00 << std::endl;
-		std::cout << "inter11: " << y11 << std::endl;
-		std::cout << "inter000: " << y000 << std::endl;
+//		std::cout << "inter0: " << y0 << std::endl;
+//		std::cout << "inter1: " << y1 << std::endl;
+//		std::cout << "inter2: " << y2 << std::endl;
+//		std::cout << "inter3: " << y3 << std::endl;
+//		std::cout << "inter00: " << y00 << std::endl;
+//		std::cout << "inter11: " << y11 << std::endl;
+//		std::cout << "inter000: " << y000 << std::endl;
+//		
+//		std::cout << std::endl;
 		
-		std::cout << std::endl;
+		if(y000 < 0.005f)
+		{
+//			std::cout << "hit" << std::endl;
+		}
 		
 	}
 	
