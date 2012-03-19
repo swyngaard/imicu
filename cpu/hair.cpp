@@ -608,8 +608,15 @@ namespace pilar
 		
 		applyStrainLimiting(dt);
 		
+		//Stiction calculations
+		
 		//Calculate half velocity, half position and new position
 		updateParticles1(dt);
+		
+		//Check geometry collisions and adjust velocities and positions
+		objectCollisions(grid);
+		
+		//Self collisions
 		
 		//Reset forces on particles
 		clearForces();
@@ -625,8 +632,10 @@ namespace pilar
 		//Calculate half velocity and new velocity
 		updateParticles2(dt);
 		
-		//Check geometry collisions and adjust velocities and positions
-		objectCollisions(grid);
+		
+		
+		
+		//Self Collisions
 	}
 	
 	//Clean up
