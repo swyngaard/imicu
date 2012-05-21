@@ -584,9 +584,12 @@ namespace pilar
 //		
 //		std::cout << std::endl;
 		
-		if(y000 < 0.005f)
+		
+		//Check for surface collision
+		if(y000 < 0.002f)
 		{
-//			std::cout << "hit" << std::endl;
+			//Calculate normals
+			//Move particle to surface of mesh
 		}
 		
 	}
