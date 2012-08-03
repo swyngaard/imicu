@@ -13,6 +13,7 @@ namespace pilar
 	{
 	public:
 		float mass;
+		bool freeze;
 		
 		Vector3f posh;
 		Vector3f posc;
@@ -98,11 +99,20 @@ namespace pilar
 		void updateParticles2(float dt);
 		void conjugate(int N, const float *A, const float *b, float *x);
 		void calcVelocities(float dt);
+		void calcVelocities2(float dt);
 		void objectCollisions(const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
 		
 	public:
 		int numParticles;
 		Particle** particle;
+		
+		Particle* particle0;
+		Particle* particle1;
+//		Particle* particle2;
+		
+		Spring* springr0;
+		Spring* spring01;
+		Spring* spring12;
 		
 		Strand(int numParticles,
 			   float mass,

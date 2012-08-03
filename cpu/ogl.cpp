@@ -38,6 +38,56 @@ int leftMouseButtonActive = 0, middleMouseButtonActive = 0, rightMouseButtonActi
 // modifier state
 int shiftActive = 0, altActive = 0, ctrlActive = 0;
 
+
+
+void *font = GLUT_BITMAP_8_BY_13;
+int bitmapHeight = 13;
+int frame,timet,timebase=0;
+char s[30];
+
+void setOrthographicProjection() {
+
+	// switch to projection mode
+	glMatrixMode(GL_PROJECTION);
+	// save previous matrix which contains the 
+	//settings for the perspective projection
+	glPushMatrix();
+	// reset matrix
+	glLoadIdentity();
+	// set a 2D orthographic projection
+	gluOrtho2D(0, 800, 0, 600);
+	// invert the y axis, down is positive
+	glScalef(1, -1, 1);
+	// mover the origin from the bottom left corner
+	// to the upper left corner
+	glTranslatef(0, -600, 0);
+	glMatrixMode(GL_MODELVIEW);
+}
+
+void resetPerspectiveProjection() {
+	// set the current matrix to GL_PROJECTION
+	glMatrixMode(GL_PROJECTION);
+	// restore previous settings
+	glPopMatrix();
+	// get back to GL_MODELVIEW matrix
+	glMatrixMode(GL_MODELVIEW);
+}
+
+void renderBitmapString(float x, float y, void *font,char *string)
+{
+  
+  char *c;
+  // set position to start drawing fonts
+  glRasterPos2f(x, y);
+  // loop all the characters in the string
+  for (c=string; *c != '\0'; c++) {
+    glutBitmapCharacter(font, *c);
+  }
+}
+
+
+
+
 int main(int argc, char **argv)
 {
 	// init GLUT and create window
@@ -52,7 +102,7 @@ int main(int argc, char **argv)
 	glutDisplayFunc(render);
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
-	glutTimerFunc(20, animate, 20);
+	glutTimerFunc(6, animate, 6);
 	glutMouseFunc(mouseFunc);
 	glutMotionFunc(mouseMotionFunc);
 	
@@ -77,7 +127,7 @@ int main(int argc, char **argv)
 
 void init()
 {
-	obj.Load("spherehalf.obj");
+//	obj.Load("spherehalf.obj");
 	
 	pilar::Vector3f root;
 	std::vector<pilar::Vector3f> roots;
@@ -123,27 +173,28 @@ void reshape(int w, int h)
 	// Get Back to the Modelview
 	glMatrixMode(GL_MODELVIEW);
 	
-	glShadeModel( GL_SMOOTH );
-    glClearColor( 0.9f, 0.95f, 1.0f, 0.5f );
+	glShadeModel( GL_FLAT );
+    glClearColor( 0.2f, 0.2f, 0.2f, 0.5f );
     glClearDepth( 1.0f );
-    glEnable( GL_DEPTH_TEST );
-    glDepthFunc( GL_LEQUAL );
-    glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
+//    glEnable( GL_DEPTH_TEST );
+//    glDepthFunc( GL_LEQUAL );
+//    glHint( GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST );
  
-    GLfloat amb_light[] = { 0.1, 0.1, 0.1, 1.0 };
-    GLfloat diffuse[] = { 0.6, 0.6, 0.6, 1 };
-    GLfloat specular[] = { 0.7, 0.7, 0.3, 1 };
-    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, amb_light );
-    glLightfv( GL_LIGHT0, GL_DIFFUSE, diffuse );
-    glLightfv( GL_LIGHT0, GL_SPECULAR, specular );
-    glEnable( GL_LIGHT0 );
-    glEnable( GL_COLOR_MATERIAL );
-    glShadeModel( GL_SMOOTH );
-    glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE );
-    glDepthFunc( GL_LEQUAL );
-    glEnable( GL_DEPTH_TEST );
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0); 
+//    GLfloat amb_light[] = { 0.1, 0.1, 0.1, 1.0 };
+//    GLfloat diffuse[] = { 0.6, 0.6, 0.6, 1 };
+//    GLfloat specular[] = { 0.7, 0.7, 0.3, 1 };
+//    glLightModelfv( GL_LIGHT_MODEL_AMBIENT, amb_light );
+//    glLightfv( GL_LIGHT0, GL_DIFFUSE, diffuse );
+//    glLightfv( GL_LIGHT0, GL_SPECULAR, specular );
+//    glEnable( GL_LIGHT0 );
+//    glEnable( GL_COLOR_MATERIAL );
+////    glShadeModel( GL_SMOOTH );
+//	glShadeModel( GL_FLAT );
+//    glLightModeli( GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE );
+//    glDepthFunc( GL_LEQUAL );
+//    glEnable( GL_DEPTH_TEST );
+//    glEnable(GL_LIGHTING);
+//    glEnable(GL_LIGHT0); 
 }
 
 //float angle = 0.0f;
@@ -157,15 +208,15 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-	gluLookAt(	0.0f, -0.13f, -0.35f,
-				0.0f, -0.13f,  0.0f,
-				0.0f, 1.0f,  0.0f);
-	
-	
-	//closeup with damping
-//	gluLookAt(	0.0f, -0.25f, -0.65f,
-//				0.0f, -0.25f,  0.0f,
+//	gluLookAt(	0.0f, -0.13f, -0.35f,
+//				0.0f, -0.13f,  0.0f,
 //				0.0f, 1.0f,  0.0f);
+	
+	
+	//closeup
+	gluLookAt(	0.0f, 0.0f, -0.15f,
+				0.0f, 0.0f, 0.0f,
+				0.0f, 1.0f,  0.0f);
 	//Closeup without damping, lots of stretching
 //	gluLookAt(	0.0f, -0.4f, -1.0f,
 //				0.0f, -0.4f,  0.0f,
@@ -175,41 +226,45 @@ void render(void) {
 //	glRotatef( navigationRotation[0], 1.0f, 0.0f, 0.0f );
 	glRotatef( navigationRotation[1], 0.0f, -1.0f, 0.0f );
 	
-	glColor3f(1.0f, 0.7f, 1.0f);
-	glPushMatrix();
-		obj.Draw();
-	glPopMatrix();
+	//Draw model object
+//	glColor3f(1.0f, 0.7f, 1.0f);
+//	glPushMatrix();
+//		obj.Draw();
+//	glPopMatrix();
 	
 	//Draw hair
 	glBegin(GL_LINE_STRIP);
 	
-//	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 0.0f, 0.0f);
 	
 	for(int i = 0; i < hair->numStrands; i++)
 	{
-		for(int j = 0; j < hair->strand[i]->numParticles; j++)
-		{
-			pilar::Particle* particle = hair->strand[i]->particle[j];
-//			pilar::Particle* p0 = hair->strand[i]->particle[j-1];
-			
-			//Set the colour of the spring
-			switch(j%4)
-			{
-				case 0: glColor3f(1.0f, 1.0f, 1.0f); break; //WHITE
-				case 1: glColor3f(1.0f, 0.0f, 0.0f); break; //RED
-				case 2: glColor3f(0.0f, 1.0f, 0.0f); break; //GREEN
-				case 3: glColor3f(1.0f, 0.0f, 1.0f); break; //PINK
-			}
-			
-//			glVertex3f(p0->position.x, p0->position.y, p0->position.z);
-			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
-			
-//			if(j==(hair->strand[i]->numParticles-1))
-//				std::cout << particle->position.x << " " << particle->position.y << " " << particle->position.z << std::endl;
-		}
+//		for(int j = 0; j < hair->strand[i]->numParticles; j++)
+//		{
+//			pilar::Particle* particle = hair->strand[i]->particle[j];
+//			
+//			//Set the colour of the spring
+//			switch(j%4)
+//			{
+//				case 0: glColor3f(1.0f, 1.0f, 1.0f); break; //WHITE
+//				case 1: glColor3f(1.0f, 0.0f, 0.0f); break; //RED
+//				case 2: glColor3f(0.0f, 1.0f, 0.0f); break; //GREEN
+//				case 3: glColor3f(1.0f, 0.0f, 1.0f); break; //PINK
+//			}
+//			
+//			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
+//		}
+		//glVertex3f(hair->strand[i]->rootParticle->position.x, hair->strand[i]->rootParticle->position.y, hair->strand[i]->rootParticle->position.z);
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glVertex3f(hair->strand[i]->particle0->position.x, hair->strand[i]->particle0->position.y, hair->strand[i]->particle0->position.z);
+		glColor3f(1.0f, 0.0f, 0.0f);
+		glVertex3f(hair->strand[i]->particle1->position.x, hair->strand[i]->particle1->position.y, hair->strand[i]->particle1->position.z);
+//		glColor3f(1.0f, 0.0f, 1.0f);
+//		glVertex3f(hair->strand[i]->particle2->position.x, hair->strand[i]->particle2->position.y, hair->strand[i]->particle2->position.z);
 	}
 	
 	glEnd();
+	
 	
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_POINTS);
@@ -223,34 +278,52 @@ void render(void) {
 		glutWireCube(CELL_WIDTH * DOMAIN_DIM);
 	glPopMatrix();
 	
-	glPushMatrix();
+//	glPushMatrix();
+//	
+//		glTranslatef(-DOMAIN_HALF+CELL_HALF, -DOMAIN_HALF-0.125f+CELL_HALF, -DOMAIN_HALF+CELL_HALF);
+//		
+//		for(int xx = 0; xx < DOMAIN_DIM; xx++)
+//		{
+//			for(int yy = 0; yy < DOMAIN_DIM; yy++)
+//			{
+//				for(int zz = 0; zz < DOMAIN_DIM; zz++)
+//				{
+//					glPushMatrix();
+//						glTranslatef(xx*CELL_WIDTH, yy*CELL_WIDTH, zz*CELL_WIDTH);
+////						if(hair->grid[xx][yy][zz] < FLT_MAX && hair->grid[xx][yy][zz] < 0.0f)
+//						if((xx == 99 && yy == 0 && zz == 99) || (xx == 99 && yy == 0 && zz == 99))
+//						{
+//							glColor3f(0.0f, 0.0f, 0.0f);
+//							glBegin(GL_POINTS);
+//								glVertex3f(0.0f, 0.0f, 0.0f);
+//							glEnd();
+////							glutWireCube(CELL_WIDTH);
+//						}
+//						
+//					glPopMatrix();
+//				}
+//			}
+//		}
+//		
+//	glPopMatrix();
 	
-		glTranslatef(-DOMAIN_HALF+CELL_HALF, -DOMAIN_HALF-0.125f+CELL_HALF, -DOMAIN_HALF+CELL_HALF);
-		
-		for(int xx = 0; xx < DOMAIN_DIM; xx++)
-		{
-			for(int yy = 0; yy < DOMAIN_DIM; yy++)
-			{
-				for(int zz = 0; zz < DOMAIN_DIM; zz++)
-				{
-					glPushMatrix();
-						glTranslatef(xx*CELL_WIDTH, yy*CELL_WIDTH, zz*CELL_WIDTH);
-//						if(hair->grid[xx][yy][zz] < FLT_MAX && hair->grid[xx][yy][zz] < 0.0f)
-						if((xx == 99 && yy == 0 && zz == 99) || (xx == 99 && yy == 0 && zz == 99))
-						{
-							glColor3f(0.0f, 0.0f, 0.0f);
-							glBegin(GL_POINTS);
-								glVertex3f(0.0f, 0.0f, 0.0f);
-							glEnd();
-//							glutWireCube(CELL_WIDTH);
-						}
-						
-					glPopMatrix();
-				}
-			}
-		}
-		
+	frame++;
+	timet=glutGet(GLUT_ELAPSED_TIME);
+	if (timet - timebase > 1000) {
+		sprintf(s,"FPS:%4.2f",frame*1000.0/(timet-timebase));
+		timebase = timet;		
+		frame = 0;
+	}
+
+	glColor3f(0.0f,1.0f,0.0f);
+	setOrthographicProjection();
+	glPushMatrix();
+	glLoadIdentity();
+//	renderBitmapString(30,15,font,"GLUT Tutorial @ 3D Tech");
+	renderBitmapString(30,35,font,s);
+//	renderBitmapString(30,55,font,"Esc - Quit");
 	glPopMatrix();
+	resetPerspectiveProjection();
 	
 	glutSwapBuffers();
 }
