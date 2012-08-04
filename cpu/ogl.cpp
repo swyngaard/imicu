@@ -259,8 +259,8 @@ void render(void) {
 		glVertex3f(hair->strand[i]->particle0->position.x, hair->strand[i]->particle0->position.y, hair->strand[i]->particle0->position.z);
 		glColor3f(1.0f, 0.0f, 0.0f);
 		glVertex3f(hair->strand[i]->particle1->position.x, hair->strand[i]->particle1->position.y, hair->strand[i]->particle1->position.z);
-//		glColor3f(1.0f, 0.0f, 1.0f);
-//		glVertex3f(hair->strand[i]->particle2->position.x, hair->strand[i]->particle2->position.y, hair->strand[i]->particle2->position.z);
+		glColor3f(1.0f, 0.0f, 1.0f);
+		glVertex3f(hair->strand[i]->particle2->position.x, hair->strand[i]->particle2->position.y, hair->strand[i]->particle2->position.z);
 	}
 	
 	glEnd();

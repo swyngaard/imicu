@@ -108,7 +108,7 @@ namespace pilar
 		
 		Particle* particle0;
 		Particle* particle1;
-//		Particle* particle2;
+		Particle* particle2;
 		
 		Spring* springr0;
 		Spring* spring01;
