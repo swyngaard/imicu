@@ -224,6 +224,28 @@ void test3x3()
 	a[3] = -h*d10*d10;            a[4] = 1+h*d10*d10+h*d12*d12; a[5] = -h*d12*d12;
 	a[6] = 0.0f;                  a[7] = -h*d21*d21;            a[8] = 1+h*d21*d21;
 	
+	//for(int i = 0; i < 3; i++)
+	//{
+		//for(int j = 0; j < 3; j++)
+		//{
+			//cout << a[i*3+j] << " " << ends;
+		//}
+		
+		//cout << endl;
+	//}
+	
+	//cout << endl;
+	
+	//for(int i = 0; i < 3; i++)
+	//{
+		//for(int j = 0; j < 3; j++)
+		//{
+			//cout << AA(i, j, 3) << " " << ends;
+		//}
+		
+		//cout << endl;
+	//}
+	
 	b[0] =  8;
 	b[1] =  4;
 	b[2] = -8;
@@ -387,50 +409,9 @@ void test4x4()
 
 int main()
 {
-	//particle[0].x = 0.25f;
-	//particle[1].x = 0.5f;
-	//particle[2].x = 0.75f;
-	//particle[3].x = 1.0f;
-	
-	//float d00 = -particle[0].x/fabs(-particle[0].x);
-	//float d01 = (particle[1].x-particle[0].x)/fabs(particle[1].x-particle[0].x);
-	//float d10 = (particle[0].x-particle[1].x)/fabs(particle[0].x-particle[1].x);
-	//float d12 = (particle[2].x-particle[1].x)/fabs(particle[2].x-particle[1].x);
-	//float d21 = (particle[1].x-particle[2].x)/fabs(particle[1].x-particle[2].x);
-	
-	//float h = 1.25f;
-	
-	//float a[9];
-	
-	//a[0] = 1+h*d00*d00+h*d01*d01; a[1] = -h*d01*d01;            a[2] = 0.0f;
-	//a[3] = -h*d10*d10;            a[4] = 1+h*d10*d10+h*d12*d12; a[5] = -h*d12*d12;
-	//a[6] = 0.0f;                  a[7] = -h*d21*d21;            a[8] = 1+h*d21*d21;
-	
-	//for(int i = 0; i < 3; i++)
-	//{
-		//for(int j = 0; j < 3; j++)
-		//{
-			//cout << a[i*3+j] << " " << ends;
-		//}
-		
-		//cout << endl;
-	//}
-	
-	//cout << endl;
-	
-//	test3x3();
+	test3x3();
 	
 	test4x4();
-	
-	//for(int i = 0; i < 3; i++)
-	//{
-		//for(int j = 0; j < 3; j++)
-		//{
-			//cout << AA(i, j, 3) << " " << ends;
-		//}
-		
-		//cout << endl;
-	//}
 	
 	return 0;
 }
