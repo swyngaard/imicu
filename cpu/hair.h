@@ -17,6 +17,7 @@ namespace pilar
 		
 		Vector3f posh;
 		Vector3f posc;
+		Vector3f pos;
 		Vector3f position;
 		
 		Vector3f velh;
@@ -88,24 +89,18 @@ namespace pilar
 		
 		void buildSprings();
 		void clearForces();
-		void updateSprings1(float dt);
-		void updateSprings2(float dt);
+		void updateSprings(float dt);
 		void updateVelocities(float dt);
-		void updateParticles1(float dt);
-		void updateParticles2(float dt);
+		void updatePositions(float dt);
+		void updateParticles(float dt);
 		void conjugate(int N, const float *A, const float *b, float *x);
 		void calcVelocities(float dt);
-		void calcVelocities2(float dt);
 		void objectCollisions(const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
 		float getA(int i, int j);
 		
 	public:
 		int numParticles;
 		Particle** particle;
-		
-//		Particle* particle0;
-//		Particle* particle1;
-//		Particle* particle2;
 		
 		Spring* springr0;
 		Spring* spring01;

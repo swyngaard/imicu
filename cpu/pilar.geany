@@ -14,5 +14,10 @@ description=
 run_cmd=./gl
 
 [files]
-current_page=0
-FILE_NAME_0=0;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.cpp;0
+current_page=1
+FILE_NAME_0=1347;C;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.h;0
+FILE_NAME_1=12387;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.cpp;0
+FILE_NAME_2=207;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/unit/conjugate-mf.cpp;0
+FILE_NAME_3=206;Make;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/unit/Makefile;0
+FILE_NAME_4=96;C;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/constants.h;0
+FILE_NAME_5=6617;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/ogl.cpp;0
