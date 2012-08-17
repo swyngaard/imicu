@@ -142,17 +142,26 @@ namespace pilar
 		this->length = length;
 		this->mass  = mass;
 
-		this->particle0 = new Particle(mass);
-		this->particle0->position = Vector3f(0.0f, -length/2.0f, 0.0f);
-		this->particle0->posc = particle0->position;
+		//this->particle0 = new Particle(mass);
+		//this->particle0->position = Vector3f(0.0f, -length/2.0f, 0.0f);
+		//this->particle0->posc = particle0->position;
 		
-		this->particle1 = new Particle(mass);
-		this->particle1->position = Vector3f(0.0f, -length, 0.0f);
-		this->particle1->posc = particle1->position;
+		//this->particle1 = new Particle(mass);
+		//this->particle1->position = Vector3f(0.0f, -length, 0.0f);
+		//this->particle1->posc = particle1->position;
 		
-		this->particle2 = new Particle(mass);
-		this->particle2->position = Vector3f(0.0f, -length-length/2.0f, 0.0f);
-		this->particle2->posc = particle2->position;
+		//this->particle2 = new Particle(mass);
+		//this->particle2->position = Vector3f(0.0f, -length-length/2.0f, 0.0f);
+		//this->particle2->posc = particle2->position;
+		
+		particle = new Particle*[numParticles];
+		
+		for(int i = 0; i < numParticles; i++)
+		{
+			particle[i] = new Particle(mass);
+			particle[i]->position = Vector3f(0.0f, (i+1.0f)*(-length/2.0f), 0.0f);
+			particle[i]->posc = particle[i]->position;
+		}
 		
 //		buildSprings();		
 	}
@@ -190,9 +199,42 @@ namespace pilar
 	
 	void Strand::clearForces()
 	{
-		particle0->clearForces();
-		particle1->clearForces();
-		particle2->clearForces();
+		//particle0->clearForces();
+		//particle1->clearForces();
+		//particle2->clearForces();
+		
+		for(int i = 0; i < numParticles; i++)
+		{
+			particle[i]->clearForces();
+		}
+	}
+	
+	float Strand::getA(int i, int j)
+	{
+		float h = 1.25f;
+		int N = numParticles;
+		
+		if(i == j)
+		{
+			float d_above = (i == 0) ? -particle[i]->position.y/fabs(-particle[i]->position.y) : (particle[i-1]->position.y-particle[i]->position.y)/fabs(particle[i-1]->position.y-particle[i]->position.y);
+			float d_below = (i == (N-1)) ? 0.0f : (particle[i+1]->position.y-particle[i]->position.y)/fabs(particle[i+1]->position.y-particle[i]->position.y);
+			
+			return 1.0f + h*d_above*d_above + h*d_below*d_below;
+		}
+		else if(i != 0 && (i - j) == 1)
+		{
+			float d_above = (particle[i-1]->position.y-particle[i]->position.y)/fabs(particle[i-1]->position.y-particle[i]->position.y);
+			
+			return -h*d_above*d_above;
+		}
+		else if(i != (N-1) && (i - j) == -1)
+		{
+			float d_below = (particle[i+1]->position.y-particle[i]->position.y)/fabs(particle[i+1]->position.y-particle[i]->position.y);
+			
+			return -h*d_below*d_below;
+		}
+		
+		return 0.0f;
 	}
 	
 	void Strand::calcVelocities(float dt)
@@ -201,13 +243,13 @@ namespace pilar
 		float g = dt*k_edge/(2.0f*mass*length);
 		float h = dt*dt*k_edge/(4.0f*mass*length);
 		
-		float x0 = particle0->position.y;
-		float x1 = particle1->position.y;
-		float x2 = particle2->position.y;
+		float x0 = particle[0]->position.y;
+		float x1 = particle[1]->position.y;
+		float x2 = particle[2]->position.y;
 		
-		float v0 = particle0->velocity.y;
-		float v1 = particle1->velocity.y;
-		float v2 = particle2->velocity.y;
+		float v0 = particle[0]->velocity.y;
+		float v1 = particle[1]->velocity.y;
+		float v2 = particle[2]->velocity.y;
 		
 		float d0 = -x0/fabs(x0);
 		float d01 = (x1-x0)/fabs(x1-x0);
@@ -215,9 +257,18 @@ namespace pilar
 		float d12 = (x2-x1)/fabs(x2-x1);
 		float d21 = (x1-x2)/fabs(x1-x2);
 		
-		float b0 = v0 + g*(-x0*d0-length)*d0 + g*((x1-x0)*d01-length)*d01;
-		float b1 = v1 + g*((x0-x1)*d10-length)*d10 + g*((x2-x1)*d12-length)*d12;
-		float b2 = v2 + g*((x1-x2)*d21-length)*d21;
+		int n = 3;
+		
+		float* bb = new float[n];
+		float* x = new float[n];
+		
+		bb[0] = v0 + g*(-x0*d0-length)*d0 + g*((x1-x0)*d01-length)*d01;
+		bb[1] = v1 + g*((x0-x1)*d10-length)*d10 + g*((x2-x1)*d12-length)*d12;
+		bb[2] = v2 + g*((x1-x2)*d21-length)*d21;
+		
+		x[0] = v0;
+		x[1] = v1;
+		x[2] = v2;
 		
 		float a  = 1 + h*d0*d0 + h*d01*d01;
 		float b  = -h*d01*d01;
@@ -226,12 +277,18 @@ namespace pilar
 		float f  = -h*d12*d12;
 		float hh = -h*d21*d21;
 		float k  = 1 + h*d21*d21;
-		
 		float det = a*(e*k-f*hh) - b*(k*d);
 		
-		particle0->velh.y = (b0*(e*k-f*hh) + b1*(-b*k)  + b2*(b*f)    )/det;
-		particle1->velh.y = (b0*(-d*k)     + b1*(a*k)   + b2*(-a*f)   )/det;
-		particle2->velh.y = (b0*(d*hh)     + b1*(-a*hh) + b2*(a*e-b*d))/det;
+		//particle0->velh.y = x[0];
+		//particle1->velh.y = x[1];
+		//particle2->velh.y = x[2];
+		
+		particle[0]->velh.y = (bb[0]*(e*k-f*hh) + bb[1]*(-b*k)  + bb[2]*(b*f)    )/det;
+		particle[1]->velh.y = (bb[0]*(-d*k)     + bb[1]*(a*k)   + bb[2]*(-a*f)   )/det;
+		particle[2]->velh.y = (bb[0]*(d*hh)     + bb[1]*(-a*hh) + bb[2]*(a*e-b*d))/det;
+		
+		delete [] bb;
+		delete [] x;
 	}
 	
 	void Strand::calcVelocities2(float dt)
@@ -240,13 +297,13 @@ namespace pilar
 		float g = dt*k_edge/(2.0f*mass*length);
 		float h = dt*dt*k_edge/(4.0f*mass*length);
 		
-		float x0 = particle0->posh.y;
-		float x1 = particle1->posh.y;
-		float x2 = particle2->posh.y;
+		float x0 = particle[0]->posh.y;
+		float x1 = particle[1]->posh.y;
+		float x2 = particle[2]->posh.y;
 		
-		float v0 = particle0->velocity.y;
-		float v1 = particle1->velocity.y;
-		float v2 = particle2->velocity.y;
+		float v0 = particle[0]->velocity.y;
+		float v1 = particle[1]->velocity.y;
+		float v2 = particle[2]->velocity.y;
 		
 		float d0 = -x0/fabs(x0);
 		float d01 = (x1-x0)/fabs(x1-x0);
@@ -268,20 +325,20 @@ namespace pilar
 		
 		float det = a*(e*k-f*hh) - b*(k*d);
 		
-		particle0->velh.y = (b0*(e*k-f*hh) + b1*(-b*k)  + b2*(b*f)    )/det;
-		particle1->velh.y = (b0*(-d*k)     + b1*(a*k)   + b2*(-a*f)   )/det;
-		particle2->velh.y = (b0*(d*hh)     + b1*(-a*hh) + b2*(a*e-b*d))/det;
+		particle[0]->velh.y = (b0*(e*k-f*hh) + b1*(-b*k)  + b2*(b*f)    )/det;
+		particle[1]->velh.y = (b0*(-d*k)     + b1*(a*k)   + b2*(-a*f)   )/det;
+		particle[2]->velh.y = (b0*(d*hh)     + b1*(-a*hh) + b2*(a*e-b*d))/det;
 	}
 	
 	void Strand::updateSprings1(float dt)
 	{
-		float x0 = particle0->position.y;
-		float x1 = particle1->position.y;
-		float x2 = particle2->position.y;
+		float x0 = particle[0]->position.y;
+		float x1 = particle[1]->position.y;
+		float x2 = particle[2]->position.y;
 		
-		float v0 = particle0->velh.y;
-		float v1 = particle1->velh.y;
-		float v2 = particle2->velh.y;
+		float v0 = particle[0]->velh.y;
+		float v1 = particle[1]->velh.y;
+		float v2 = particle[2]->velh.y;
 		
 		float d0 = -x0/fabs(x0);
 		float d01 = (x1-x0)/fabs(x1-x0);
@@ -296,20 +353,20 @@ namespace pilar
 		float force1 = g*((x0-x1)*d10-length)*d10 + h*(v0-v1)*d10*d10 + g*((x2-x1)*d12-length)*d12 + h*(v2-v1)*d12*d12;
 		float force2 = g*((x1-x2)*d21-length)*d21 + h*(v1-v2)*d21*d21;
 		
-		particle0->applyForce(Vector3f(0.0f, force0, 0.0f));
-		particle1->applyForce(Vector3f(0.0f, force1, 0.0f));
-		particle2->applyForce(Vector3f(0.0f, force2, 0.0f));
+		particle[0]->applyForce(Vector3f(0.0f, force0, 0.0f));
+		particle[1]->applyForce(Vector3f(0.0f, force1, 0.0f));
+		particle[2]->applyForce(Vector3f(0.0f, force2, 0.0f));
 	}
 	
 	void Strand::updateSprings2(float dt)
 	{
-		float x0 = particle0->posh.y;
-		float x1 = particle1->posh.y;
-		float x2 = particle2->posh.y;
+		float x0 = particle[0]->posh.y;
+		float x1 = particle[1]->posh.y;
+		float x2 = particle[2]->posh.y;
 		
-		float v0 = particle0->velh.y;
-		float v1 = particle1->velh.y;
-		float v2 = particle2->velh.y;
+		float v0 = particle[0]->velh.y;
+		float v1 = particle[1]->velh.y;
+		float v2 = particle[2]->velh.y;
 		
 		float d0 = -x0/fabs(x0);
 		float d01 = (x1-x0)/fabs(x1-x0);
@@ -324,62 +381,62 @@ namespace pilar
 		float force1 = g*((x0-x1)*d10-length)*d10 + h*(v0-v1)*d10*d10 + g*((x2-x1)*d12-length)*d12 + h*(v2-v1)*d12*d12;
 		float force2 = g*((x1-x2)*d21-length)*d21 + h*(v1-v2)*d21*d21;
 		
-		particle0->applyForce(Vector3f(0.0f, force0, 0.0f));
-		particle1->applyForce(Vector3f(0.0f, force1, 0.0f));
-		particle2->applyForce(Vector3f(0.0f, force2, 0.0f));
+		particle[0]->applyForce(Vector3f(0.0f, force0, 0.0f));
+		particle[1]->applyForce(Vector3f(0.0f, force1, 0.0f));
+		particle[2]->applyForce(Vector3f(0.0f, force2, 0.0f));
 	}
 	
 	void Strand::updateVelocities(float dt)
 	{
-		particle0->updateVelocity(dt);
-		particle1->updateVelocity(dt);
-		particle2->updateVelocity(dt);
+		//particle0->updateVelocity(dt);
+		//particle1->updateVelocity(dt);
+		//particle2->updateVelocity(dt);
 		
-//		for(int i = 0; i < numParticles; i++)
-//		{
-//			particle[i]->updateVelocity(dt);
-//		}
+		for(int i = 0; i < numParticles; i++)
+		{
+			particle[i]->updateVelocity(dt);
+		}
 	}
 	
 	void Strand::updateParticles1(float dt)
 	{
-		particle0->updatePosition(dt);
-		particle1->updatePosition(dt);
-		particle2->updatePosition(dt);
+		//~ particle0->updatePosition(dt);
+		//~ particle1->updatePosition(dt);
+		//~ particle2->updatePosition(dt);
 		
-//		for(int i = 0; i < numParticles; i++)
-//		{
-//			particle[i]->updatePosition(dt);
-//		}
+		for(int i = 0; i < numParticles; i++)
+		{
+			particle[i]->updatePosition(dt);
+		}
 	}
 	
 	void Strand::updateParticles2(float dt)
 	{
-		particle0->updateVelocity(dt);
-		particle0->update(dt);
-		particle1->updateVelocity(dt);
-		particle1->update(dt);
-		particle2->updateVelocity(dt);
-		particle2->update(dt);
+		//~ particle0->updateVelocity(dt);
+		//~ particle0->update(dt);
+		//~ particle1->updateVelocity(dt);
+		//~ particle1->update(dt);
+		//~ particle2->updateVelocity(dt);
+		//~ particle2->update(dt);
 		
-//		for(int i = 0; i < numParticles; i++)
-//		{
-//			particle[i]->updateVelocity(dt);
-//			particle[i]->update(dt);
-//		}
+		for(int i = 0; i < numParticles; i++)
+		{
+			particle[i]->updateVelocity(dt);
+			particle[i]->update(dt);
+		}
 	}
 	
 	void Strand::applyForce(Vector3f force)
 	{
-		particle0->applyForce(force);
-		particle1->applyForce(force);
-		particle2->applyForce(force);
+		//~ particle0->applyForce(force);
+		//~ particle1->applyForce(force);
+		//~ particle2->applyForce(force);
 		
 		//Apply external forces like gravity here
-//		for(int i = 0; i < numParticles; i++)
-//		{
-//			particle[i]->applyForce(force);
-//		}
+		for(int i = 0; i < numParticles; i++)
+		{
+			particle[i]->applyForce(force);
+		}
 	}
 	
 	void Strand::update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM])
@@ -646,12 +703,12 @@ namespace pilar
 		
 		
 		//Particles
-//		for(int i = 0; i < numParticles; i++)
-//		{
-//			delete particle[i];
-//			particle[i] = NULL;
-//		}
-//		delete [] particle;
+		for(int i = 0; i < numParticles; i++)
+		{
+			delete particle[i];
+			particle[i] = NULL;
+		}
+		delete [] particle;
 		
 //		delete spring12;
 //		spring12 = NULL;
@@ -665,14 +722,14 @@ namespace pilar
 //		delete rootParticle;
 //		rootParticle = NULL;
 		
-		delete particle0;
-		particle0 = NULL;
-		
-		delete particle1;
-		particle1 = NULL;
-		
-		delete particle2;
-		particle2 = NULL;
+		//~ delete particle0;
+		//~ particle0 = NULL;
+		//~ 
+		//~ delete particle1;
+		//~ particle1 = NULL;
+		//~ 
+		//~ delete particle2;
+		//~ particle2 = NULL;
 	}
 	
 /////////////////////////// Hair Class /////////////////////////////////////////

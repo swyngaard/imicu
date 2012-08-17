@@ -86,10 +86,6 @@ namespace pilar
 		Spring** bend;
 		Spring** twist;
 		
-		float *A;
-		float *b;
-		float *x;
-		
 		void buildSprings();
 		void clearForces();
 		void updateSprings1(float dt);
@@ -101,14 +97,15 @@ namespace pilar
 		void calcVelocities(float dt);
 		void calcVelocities2(float dt);
 		void objectCollisions(const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
+		float getA(int i, int j);
 		
 	public:
 		int numParticles;
 		Particle** particle;
 		
-		Particle* particle0;
-		Particle* particle1;
-		Particle* particle2;
+//		Particle* particle0;
+//		Particle* particle1;
+//		Particle* particle2;
 		
 		Spring* springr0;
 		Spring* spring01;

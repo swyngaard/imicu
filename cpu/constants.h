@@ -3,7 +3,7 @@
 #define __CONSTANTS_H__
 
 #define NUMSTRANDS			1
-#define NUMPARTICLES		2 //Needs to be multiples of 7
+#define NUMPARTICLES		3 //Needs to be multiples of 7
 #define MASS				0.000000001f //0.000000001f particle mass is 0.01mg, total strand weight is 1mg
 #define K_EDGE				0.005f //(stable value) 0.005f
 #define K_BEND				0.004905f
