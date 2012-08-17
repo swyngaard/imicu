@@ -200,13 +200,13 @@ namespace pilar
 		}
 	}
 	
-	float Strand::getA(int i, int j)
+	float Strand::getA(int i, int j, float dt)
 	{
-		float h = 1.25f;
 		int N = numParticles;
 		
 		if(i == j)
 		{
+			float h = dt*dt*k_edge/(4.0f*mass*length);
 			float d_above = (i == 0) ? -particle[i]->position.y/fabs(-particle[i]->position.y) : (particle[i-1]->position.y-particle[i]->position.y)/fabs(particle[i-1]->position.y-particle[i]->position.y);
 			float d_below = (i == (N-1)) ? 0.0f : (particle[i+1]->position.y-particle[i]->position.y)/fabs(particle[i+1]->position.y-particle[i]->position.y);
 			
@@ -214,12 +214,14 @@ namespace pilar
 		}
 		else if(i != 0 && (i - j) == 1)
 		{
+			float h = dt*dt*k_edge/(4.0f*mass*length);
 			float d_above = (particle[i-1]->position.y-particle[i]->position.y)/fabs(particle[i-1]->position.y-particle[i]->position.y);
 			
 			return -h*d_above*d_above;
 		}
 		else if(i != (N-1) && (i - j) == -1)
 		{
+			float h = dt*dt*k_edge/(4.0f*mass*length);
 			float d_below = (particle[i+1]->position.y-particle[i]->position.y)/fabs(particle[i+1]->position.y-particle[i]->position.y);
 			
 			return -h*d_below*d_below;
@@ -251,35 +253,37 @@ namespace pilar
 		int n = numParticles;
 		
 		float* bb = new float[n];
-		float* x = new float[n];
+		float* xx = new float[n];
 		
 		bb[0] = v0 + g*(-x0*d0-length)*d0 + g*((x1-x0)*d01-length)*d01;
 		bb[1] = v1 + g*((x0-x1)*d10-length)*d10 + g*((x2-x1)*d12-length)*d12;
 		bb[2] = v2 + g*((x1-x2)*d21-length)*d21;
 		
-		x[0] = v0;
-		x[1] = v1;
-		x[2] = v2;
+		xx[0] = v0;
+		xx[1] = v1;
+		xx[2] = v2;
 		
-		float a  = 1 + h*d0*d0 + h*d01*d01;
-		float b  = -h*d01*d01;
-		float d  = -h*d10*d10;
-		float e  = 1 + h*d10*d10 + h*d12*d12;
-		float f  = -h*d12*d12;
-		float hh = -h*d21*d21;
-		float k  = 1 + h*d21*d21;
-		float det = a*(e*k-f*hh) - b*(k*d);
+		conjugate(bb, xx, dt);
 		
-		//particle0->velh.y = x[0];
-		//particle1->velh.y = x[1];
-		//particle2->velh.y = x[2];
+		//~ float a  = 1 + h*d0*d0 + h*d01*d01;
+		//~ float b  = -h*d01*d01;
+		//~ float d  = -h*d10*d10;
+		//~ float e  = 1 + h*d10*d10 + h*d12*d12;
+		//~ float f  = -h*d12*d12;
+		//~ float hh = -h*d21*d21;
+		//~ float k  = 1 + h*d21*d21;
+		//~ float det = a*(e*k-f*hh) - b*(k*d);
 		
-		particle[0]->velh.y = (bb[0]*(e*k-f*hh) + bb[1]*(-b*k)  + bb[2]*(b*f)    )/det;
-		particle[1]->velh.y = (bb[0]*(-d*k)     + bb[1]*(a*k)   + bb[2]*(-a*f)   )/det;
-		particle[2]->velh.y = (bb[0]*(d*hh)     + bb[1]*(-a*hh) + bb[2]*(a*e-b*d))/det;
+		particle[0]->velh.y = xx[0];
+		particle[1]->velh.y = xx[1];
+		particle[2]->velh.y = xx[2];
+		
+		//~ particle[0]->velh.y = (bb[0]*(e*k-f*hh) + bb[1]*(-b*k)  + bb[2]*(b*f)    )/det;
+		//~ particle[1]->velh.y = (bb[0]*(-d*k)     + bb[1]*(a*k)   + bb[2]*(-a*f)   )/det;
+		//~ particle[2]->velh.y = (bb[0]*(d*hh)     + bb[1]*(-a*hh) + bb[2]*(a*e-b*d))/det;
 		
 		delete [] bb;
-		delete [] x;
+		delete [] xx;
 	}
 	
 	void Strand::updateSprings(float dt)
@@ -391,31 +395,32 @@ namespace pilar
 		//Self Collisions
 	}
 	
-	void Strand::conjugate(int N, const float* A, const float* b, float* x)
+	void Strand::conjugate(const float* b, float* x, float dt)
 	{
+		int N = numParticles;
 		float r[N];
 		float p[N];
-	
+
 		for(int i = 0; i < N; i++)
 		{
 			//r = b - Ax
 			r[i] = b[i];
 			for(int j = 0; j < N; j++)
 			{
-				r[i] -= A[i*N+j]*x[j];
+				r[i] -= getA(i,j,dt)*x[j];
 			}
 		
 			//p = r
 			p[i] = r[i];
 		}
-	
+
 		float rsold = 0.0f;
-	
+
 		for(int i = 0; i < N; i ++)
 		{
 			rsold += r[i] * r[i];
 		}
-	
+
 		for(int i = 0; i < N; i++)
 		{
 			float Ap[N];
@@ -426,7 +431,7 @@ namespace pilar
 			
 				for(int k = 0; k < N; k++)
 				{
-					Ap[j] += A[j*N+k] * p[k];
+					Ap[j] += getA(j,k,dt) * p[k];
 				}
 			}
 		
