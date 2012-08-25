@@ -2,9 +2,10 @@
 [indentation]
 indent_width=4
 indent_type=1
-indent_hard_tab_width=8
+indent_hard_tab_width=4
 detect_indent=false
 indent_mode=2
+detect_indent_width=false
 
 [project]
 name=pilar
@@ -14,10 +15,22 @@ description=
 run_cmd=./gl
 
 [files]
-current_page=1
-FILE_NAME_0=1347;C;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.h;0
-FILE_NAME_1=12387;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.cpp;0
-FILE_NAME_2=207;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/unit/conjugate-mf.cpp;0
-FILE_NAME_3=206;Make;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/unit/Makefile;0
-FILE_NAME_4=96;C;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/constants.h;0
-FILE_NAME_5=6617;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/ogl.cpp;0
+current_page=2
+FILE_NAME_0=1666;C;0;16;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.h;0;4
+FILE_NAME_1=7170;C++;0;16;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.cpp;0;4
+FILE_NAME_2=97;C;0;16;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fconstants.h;0;4
+FILE_NAME_3=5854;C++;0;16;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fogl.cpp;0;4
+FILE_NAME_4=423;Make;0;16;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2FMakefile;0;4
+
+[file_prefs]
+final_new_line=true
+ensure_convert_new_lines=false
+strip_trailing_spaces=false
+replace_tabs=false
+
+[long line marker]
+long_line_behaviour=1
+long_line_column=80
+
+[VTE]
+last_dir=/home/swyngaard/Dropbox/pilar/cpu

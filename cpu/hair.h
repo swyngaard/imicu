@@ -97,7 +97,8 @@ namespace pilar
 		void objectCollisions(const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
 		
 		float getA(int i, int j, float dt);
-		void conjugate(const float *b, float *x, float dt);
+		float getB(int i, float dt);
+		void conjugate(float *x, float dt);
 		
 	public:
 		int numParticles;

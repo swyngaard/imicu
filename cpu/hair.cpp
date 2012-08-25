@@ -230,40 +230,161 @@ namespace pilar
 		return 0.0f;
 	}
 	
+	float Strand::getB(int i, float dt)
+	{
+		float g = dt*k_edge/(2.0f*mass*length);
+		
+		if(i == 0)
+		{
+			float x0 = particle[0]->pos.y;
+			float x1 = particle[1]->pos.y;
+			float v0 = particle[0]->velocity.y;
+			float d00 = -x0/fabs(x0);
+			float d01 = (x1-x0)/fabs(x1-x0);
+			
+			return v0 + g*(-x0*d00-length)*d00 + g*((x1-x0)*d01-length)*d01;
+		}
+		else if(i == (numParticles-1))
+		{
+			float xn0 = particle[i-1]->pos.y;
+			float xn1 = particle[i]->pos.y;
+			float vn1 = particle[i]->velocity.y;
+			float dn10 = (xn0-xn1)/fabs(xn0-xn1);
+			
+			return vn1 + g*((xn0-xn1)*dn10-length)*dn10;
+		}
+		else
+		{
+			float xn0 = particle[i-1]->pos.y;
+			float xn1 = particle[i]->pos.y;
+			float xn2 = particle[i+1]->pos.y;
+			float vn1 = particle[i]->velocity.y;
+			
+			float dn10 = (xn0-xn1)/fabs(xn0-xn1);
+			float dn12 = (xn2-xn1)/fabs(xn2-xn1);
+			
+			return vn1 + g*((xn0-xn1)*dn10-length)*dn10 + g*((xn2-xn1)*dn12-length)*dn12;
+		}
+		
+		//Shouldn't reach this point in the code
+		return 0.0f;
+	}
+	
+	void Strand::conjugate(float* x, float dt)
+	{
+		int N = numParticles;
+		float r[N];
+		float p[N];
+
+		for(int i = 0; i < N; i++)
+		{
+			//r = b - Ax
+			//~ r[i] = getB(i,dt);
+			r[i] = getB(i,dt);
+			for(int j = 0; j < N; j++)
+			{
+				r[i] -= getA(i,j,dt)*x[j];
+			}
+		
+			//p = r
+			p[i] = r[i];
+		}
+
+		float rsold = 0.0f;
+
+		for(int i = 0; i < N; i ++)
+		{
+			rsold += r[i] * r[i];
+		}
+
+		for(int i = 0; i < N; i++)
+		{
+			float Ap[N];
+		
+			for(int j = 0; j < N; j++)
+			{
+				Ap[j] = 0.0f;
+			
+				for(int k = 0; k < N; k++)
+				{
+					Ap[j] += getA(j,k,dt) * p[k];
+				}
+			}
+		
+			float abot = 0.0f;
+		
+			for(int j = 0; j < N; j++)
+			{
+				abot += p[j] * Ap[j];
+			}
+		
+			float alpha = rsold / abot;
+		
+			for(int j = 0; j < N; j++)
+			{
+				x[j] = x[j] + alpha * p[j];
+			
+				r[j] = r[j] - alpha * Ap[j];
+			}
+		
+			float rsnew = 0.0f;
+		
+			for(int j = 0; j < N; j++)
+			{
+				rsnew += r[j] * r[j];
+			}
+		
+			if(rsnew < 1e-10f)
+			{
+	//			cout << "break " << i << endl;
+				break;
+			}
+			
+			for(int j = 0; j < N; j++)
+			{
+				p[j] = r[j] + rsnew / rsold * p[j];
+			}
+		
+			rsold = rsnew;
+		}
+	}
+	
 	void Strand::calcVelocities(float dt)
 	{
 		//Calculate the velocities of each particle
-		float g = dt*k_edge/(2.0f*mass*length);
-		float h = dt*dt*k_edge/(4.0f*mass*length);
 		
-		float x0 = particle[0]->pos.y;
-		float x1 = particle[1]->pos.y;
-		float x2 = particle[2]->pos.y;
+		//~ float g = dt*k_edge/(2.0f*mass*length);
+		//~ float h = dt*dt*k_edge/(4.0f*mass*length);
+		//~ 
+		//~ float x0 = particle[0]->pos.y;
+		//~ float x1 = particle[1]->pos.y;
+		//~ float x2 = particle[2]->pos.y;
+		//~ 
+		//~ float v0 = particle[0]->velocity.y;
+		//~ float v1 = particle[1]->velocity.y;
+		//~ float v2 = particle[2]->velocity.y;
+		//~ 
+		//~ float d0 = -x0/fabs(x0);
+		//~ float d01 = (x1-x0)/fabs(x1-x0);
+		//~ float d10 = (x0-x1)/fabs(x0-x1);
+		//~ float d12 = (x2-x1)/fabs(x2-x1);
+		//~ float d21 = (x1-x2)/fabs(x1-x2);
 		
-		float v0 = particle[0]->velocity.y;
-		float v1 = particle[1]->velocity.y;
-		float v2 = particle[2]->velocity.y;
+		//~ int n = numParticles;
 		
-		float d0 = -x0/fabs(x0);
-		float d01 = (x1-x0)/fabs(x1-x0);
-		float d10 = (x0-x1)/fabs(x0-x1);
-		float d12 = (x2-x1)/fabs(x2-x1);
-		float d21 = (x1-x2)/fabs(x1-x2);
+		//~ float* bb = new float[n];
+		float* xx = new float[numParticles];
 		
-		int n = numParticles;
+		//~ bb[0] = v0 + g*(-x0*d0-length)*d0 + g*((x1-x0)*d01-length)*d01;
+		//~ bb[1] = v1 + g*((x0-x1)*d10-length)*d10 + g*((x2-x1)*d12-length)*d12;
+		//~ bb[2] = v2 + g*((x1-x2)*d21-length)*d21;
 		
-		float* bb = new float[n];
-		float* xx = new float[n];
+		for(int i = 0; i < numParticles; i++)
+		{
+			xx[i] = particle[i]->velocity.y;
+		}
 		
-		bb[0] = v0 + g*(-x0*d0-length)*d0 + g*((x1-x0)*d01-length)*d01;
-		bb[1] = v1 + g*((x0-x1)*d10-length)*d10 + g*((x2-x1)*d12-length)*d12;
-		bb[2] = v2 + g*((x1-x2)*d21-length)*d21;
-		
-		xx[0] = v0;
-		xx[1] = v1;
-		xx[2] = v2;
-		
-		conjugate(bb, xx, dt);
+		conjugate(xx, dt);
 		
 		//~ float a  = 1 + h*d0*d0 + h*d01*d01;
 		//~ float b  = -h*d01*d01;
@@ -274,44 +395,95 @@ namespace pilar
 		//~ float k  = 1 + h*d21*d21;
 		//~ float det = a*(e*k-f*hh) - b*(k*d);
 		
-		particle[0]->velh.y = xx[0];
-		particle[1]->velh.y = xx[1];
-		particle[2]->velh.y = xx[2];
+		for(int i = 0; i < numParticles; i++)
+		{
+			particle[i]->velh.y = xx[i];
+		}
 		
 		//~ particle[0]->velh.y = (bb[0]*(e*k-f*hh) + bb[1]*(-b*k)  + bb[2]*(b*f)    )/det;
 		//~ particle[1]->velh.y = (bb[0]*(-d*k)     + bb[1]*(a*k)   + bb[2]*(-a*f)   )/det;
 		//~ particle[2]->velh.y = (bb[0]*(d*hh)     + bb[1]*(-a*hh) + bb[2]*(a*e-b*d))/det;
 		
-		delete [] bb;
+		//~ delete [] bb;
 		delete [] xx;
 	}
 	
 	void Strand::updateSprings(float dt)
 	{
-		float x0 = particle[0]->pos.y;
-		float x1 = particle[1]->pos.y;
-		float x2 = particle[2]->pos.y;
-		
-		float v0 = particle[0]->velh.y;
-		float v1 = particle[1]->velh.y;
-		float v2 = particle[2]->velh.y;
-		
-		float d0 = -x0/fabs(x0);
-		float d01 = (x1-x0)/fabs(x1-x0);
-		float d10 = (x0-x1)/fabs(x0-x1);
-		float d12 = (x2-x1)/fabs(x2-x1);
-		float d21 = (x1-x2)/fabs(x1-x2);
-		
+		//~ float x0 = particle[0]->pos.y;
+		//~ float x1 = particle[1]->pos.y;
+		//~ float x2 = particle[2]->pos.y;
+		//~ 
+		//~ float v0 = particle[0]->velh.y;
+		//~ float v1 = particle[1]->velh.y;
+		//~ float v2 = particle[2]->velh.y;
+		//~ 
+		//~ float d0 = -x0/fabs(x0);
+		//~ float d01 = (x1-x0)/fabs(x1-x0);
+		//~ float d10 = (x0-x1)/fabs(x0-x1);
+		//~ float d12 = (x2-x1)/fabs(x2-x1);
+		//~ float d21 = (x1-x2)/fabs(x1-x2);
+		//~ 
 		float g = k_edge/length;
 		float h = dt*k_edge/(2.0f*length);
+		//~ 
+		//~ float force0 = g*(-x0*d0-length)*d0 - h*v0*d0*d0 + g*((x1-x0)*d01-length)*d01 + h*(v1-v0)*d01*d01;
+		//~ float force1 = g*((x0-x1)*d10-length)*d10 + h*(v0-v1)*d10*d10 + g*((x2-x1)*d12-length)*d12 + h*(v2-v1)*d12*d12;
+		//~ float force2 = g*((x1-x2)*d21-length)*d21 + h*(v1-v2)*d21*d21;
+		//~ 
+		//~ particle[0]->applyForce(Vector3f(0.0f, force0, 0.0f));
+		//~ particle[1]->applyForce(Vector3f(0.0f, force1, 0.0f));
+		//~ particle[2]->applyForce(Vector3f(0.0f, force2, 0.0f));
 		
-		float force0 = g*(-x0*d0-length)*d0 - h*v0*d0*d0 + g*((x1-x0)*d01-length)*d01 + h*(v1-v0)*d01*d01;
-		float force1 = g*((x0-x1)*d10-length)*d10 + h*(v0-v1)*d10*d10 + g*((x2-x1)*d12-length)*d12 + h*(v2-v1)*d12*d12;
-		float force2 = g*((x1-x2)*d21-length)*d21 + h*(v1-v2)*d21*d21;
-		
-		particle[0]->applyForce(Vector3f(0.0f, force0, 0.0f));
-		particle[1]->applyForce(Vector3f(0.0f, force1, 0.0f));
-		particle[2]->applyForce(Vector3f(0.0f, force2, 0.0f));
+		for(int i = 0; i < numParticles; i++)
+		{
+			if(i == 0)
+			{
+				float x0 = particle[i]->pos.y;
+				float x1 = particle[i+1]->pos.y;
+				
+				float v0 = particle[i]->velh.y;
+				float v1 = particle[i+1]->velh.y;
+				
+				float d00 = -x0/fabs(x0);
+				float d01 = (x1-x0)/fabs(x1-x0);
+				
+				float force = g*(-x0*d00-length)*d00 - h*v0*d00*d00 + g*((x1-x0)*d01-length)*d01 + h*(v1-v0)*d01*d01;
+				
+				particle[i]->applyForce(Vector3f(0.0f, force, 0.0f));
+			}
+			else if(i == (numParticles-1))
+			{
+				float xn1 = particle[i]->pos.y;
+				float xn0 = particle[i-1]->pos.y;
+				
+				float vn1 = particle[i]->velh.y;
+				float vn0 = particle[i-1]->velh.y;
+				
+				float dn10 = (xn0-xn1)/fabs(xn0-xn1);
+				
+				float force = g*((xn0-xn1)*dn10-length)*dn10 + h*(vn0-vn1)*dn10*dn10;
+				
+				particle[i]->applyForce(Vector3f(0.0f, force, 0.0f));
+			}
+			else
+			{
+				float xn1 = particle[i]->pos.y;
+				float xn0 = particle[i-1]->pos.y;
+				float xn2 = particle[i+1]->pos.y;
+				
+				float vn1 = particle[i]->velh.y;
+				float vn0 = particle[i-1]->velh.y;
+				float vn2 = particle[i+1]->velh.y;
+				
+				float dn10 = (xn0-xn1)/fabs(xn0-xn1);
+				float dn12 = (xn2-xn1)/fabs(xn2-xn1);
+				
+				float force = g*((xn0-xn1)*dn10-length)*dn10+h*(vn0-vn1)*dn10*dn10 + g*((xn2-xn1)*dn12-length)*dn12+h*(vn2-vn1)*dn12*dn12;
+				
+				particle[i]->applyForce(Vector3f(0.0f, force, 0.0f));
+			}
+		}
 	}
 	
 	void Strand::updateVelocities(float dt)
@@ -393,84 +565,6 @@ namespace pilar
 		updateParticles(dt);
 		
 		//Self Collisions
-	}
-	
-	void Strand::conjugate(const float* b, float* x, float dt)
-	{
-		int N = numParticles;
-		float r[N];
-		float p[N];
-
-		for(int i = 0; i < N; i++)
-		{
-			//r = b - Ax
-			r[i] = b[i];
-			for(int j = 0; j < N; j++)
-			{
-				r[i] -= getA(i,j,dt)*x[j];
-			}
-		
-			//p = r
-			p[i] = r[i];
-		}
-
-		float rsold = 0.0f;
-
-		for(int i = 0; i < N; i ++)
-		{
-			rsold += r[i] * r[i];
-		}
-
-		for(int i = 0; i < N; i++)
-		{
-			float Ap[N];
-		
-			for(int j = 0; j < N; j++)
-			{
-				Ap[j] = 0.0f;
-			
-				for(int k = 0; k < N; k++)
-				{
-					Ap[j] += getA(j,k,dt) * p[k];
-				}
-			}
-		
-			float abot = 0.0f;
-		
-			for(int j = 0; j < N; j++)
-			{
-				abot += p[j] * Ap[j];
-			}
-		
-			float alpha = rsold / abot;
-		
-			for(int j = 0; j < N; j++)
-			{
-				x[j] = x[j] + alpha * p[j];
-			
-				r[j] = r[j] - alpha * Ap[j];
-			}
-		
-			float rsnew = 0.0f;
-		
-			for(int j = 0; j < N; j++)
-			{
-				rsnew += r[j] * r[j];
-			}
-		
-			if(rsnew < 1e-10f)
-			{
-	//			cout << "break " << i << endl;
-				break;
-			}
-			
-			for(int j = 0; j < N; j++)
-			{
-				p[j] = r[j] + rsnew / rsold * p[j];
-			}
-		
-			rsold = rsnew;
-		}
 	}
 	
 	void Strand::applyStrainLimiting(float dt)

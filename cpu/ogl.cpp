@@ -239,28 +239,28 @@ void render(void) {
 	
 	for(int i = 0; i < hair->numStrands; i++)
 	{
-//		for(int j = 0; j < hair->strand[i]->numParticles; j++)
-//		{
-//			pilar::Particle* particle = hair->strand[i]->particle[j];
-//			
-//			//Set the colour of the spring
-//			switch(j%4)
-//			{
-//				case 0: glColor3f(1.0f, 1.0f, 1.0f); break; //WHITE
-//				case 1: glColor3f(1.0f, 0.0f, 0.0f); break; //RED
-//				case 2: glColor3f(0.0f, 1.0f, 0.0f); break; //GREEN
-//				case 3: glColor3f(1.0f, 0.0f, 1.0f); break; //PINK
-//			}
-//			
-//			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
-//		}
+		for(int j = 0; j < hair->strand[i]->numParticles; j++)
+		{
+			pilar::Particle* particle = hair->strand[i]->particle[j];
+			
+			//Set the colour of the spring
+			switch(j%4)
+			{
+				case 0: glColor3f(1.0f, 1.0f, 1.0f); break; //WHITE
+				case 1: glColor3f(1.0f, 0.0f, 0.0f); break; //RED
+				case 2: glColor3f(0.0f, 1.0f, 0.0f); break; //GREEN
+				case 3: glColor3f(1.0f, 0.0f, 1.0f); break; //PINK
+			}
+			
+			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
+		}
 		//glVertex3f(hair->strand[i]->rootParticle->position.x, hair->strand[i]->rootParticle->position.y, hair->strand[i]->rootParticle->position.z);
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glVertex3f(hair->strand[i]->particle[0]->position.x, hair->strand[i]->particle[0]->position.y, hair->strand[i]->particle[0]->position.z);
-		glColor3f(1.0f, 0.0f, 0.0f);
-		glVertex3f(hair->strand[i]->particle[1]->position.x, hair->strand[i]->particle[1]->position.y, hair->strand[i]->particle[1]->position.z);
-		glColor3f(1.0f, 0.0f, 1.0f);
-		glVertex3f(hair->strand[i]->particle[2]->position.x, hair->strand[i]->particle[2]->position.y, hair->strand[i]->particle[2]->position.z);
+		//~ glColor3f(1.0f, 1.0f, 1.0f);
+		//~ glVertex3f(hair->strand[i]->particle[0]->position.x, hair->strand[i]->particle[0]->position.y, hair->strand[i]->particle[0]->position.z);
+		//~ glColor3f(1.0f, 0.0f, 0.0f);
+		//~ glVertex3f(hair->strand[i]->particle[1]->position.x, hair->strand[i]->particle[1]->position.y, hair->strand[i]->particle[1]->position.z);
+		//~ glColor3f(1.0f, 0.0f, 1.0f);
+		//~ glVertex3f(hair->strand[i]->particle[2]->position.x, hair->strand[i]->particle[2]->position.y, hair->strand[i]->particle[2]->position.z);
 	}
 	
 	glEnd();
