@@ -202,26 +202,24 @@ namespace pilar
 	
 	float Strand::getA(int i, int j, float dt)
 	{
-		int N = numParticles;
-		
 		if(i == j)
 		{
-			float h = dt*dt*k_edge/(4.0f*mass*length);
+			float h = dt*dt*k_edge/(4.0f*mass*length) + d_edge*dt/(2.0f*mass);
 			float d_above = (i == 0) ? -particle[i]->position.y/fabs(-particle[i]->position.y) : (particle[i-1]->position.y-particle[i]->position.y)/fabs(particle[i-1]->position.y-particle[i]->position.y);
-			float d_below = (i == (N-1)) ? 0.0f : (particle[i+1]->position.y-particle[i]->position.y)/fabs(particle[i+1]->position.y-particle[i]->position.y);
+			float d_below = (i == (numParticles-1)) ? 0.0f : (particle[i+1]->position.y-particle[i]->position.y)/fabs(particle[i+1]->position.y-particle[i]->position.y);
 			
 			return 1.0f + h*d_above*d_above + h*d_below*d_below;
 		}
 		else if(i != 0 && (i - j) == 1)
 		{
-			float h = dt*dt*k_edge/(4.0f*mass*length);
+			float h = dt*dt*k_edge/(4.0f*mass*length) + d_edge*dt/(2.0f*mass);
 			float d_above = (particle[i-1]->position.y-particle[i]->position.y)/fabs(particle[i-1]->position.y-particle[i]->position.y);
 			
 			return -h*d_above*d_above;
 		}
-		else if(i != (N-1) && (i - j) == -1)
+		else if(i != (numParticles-1) && (i - j) == -1)
 		{
-			float h = dt*dt*k_edge/(4.0f*mass*length);
+			float h = dt*dt*k_edge/(4.0f*mass*length) + d_edge*dt/(2.0f*mass);
 			float d_below = (particle[i+1]->position.y-particle[i]->position.y)/fabs(particle[i+1]->position.y-particle[i]->position.y);
 			
 			return -h*d_below*d_below;
@@ -425,7 +423,7 @@ namespace pilar
 		//~ float d21 = (x1-x2)/fabs(x1-x2);
 		//~ 
 		float g = k_edge/length;
-		float h = dt*k_edge/(2.0f*length);
+		float h = dt*k_edge/(2.0f*length) + d_edge;
 		//~ 
 		//~ float force0 = g*(-x0*d0-length)*d0 - h*v0*d0*d0 + g*((x1-x0)*d01-length)*d01 + h*(v1-v0)*d01*d01;
 		//~ float force1 = g*((x0-x1)*d10-length)*d10 + h*(v0-v1)*d10*d10 + g*((x2-x1)*d12-length)*d12 + h*(v2-v1)*d12*d12;

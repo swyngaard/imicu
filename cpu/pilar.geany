@@ -15,12 +15,9 @@ description=
 run_cmd=./gl
 
 [files]
-current_page=2
-FILE_NAME_0=1666;C;0;16;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.h;0;4
-FILE_NAME_1=7170;C++;0;16;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.cpp;0;4
-FILE_NAME_2=97;C;0;16;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fconstants.h;0;4
-FILE_NAME_3=5854;C++;0;16;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fogl.cpp;0;4
-FILE_NAME_4=423;Make;0;16;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2FMakefile;0;4
+current_page=0
+FILE_NAME_0=5765;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.cpp;0
+FILE_NAME_1=525;C;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/constants.h;0
 
 [file_prefs]
 final_new_line=true
@@ -33,4 +30,4 @@ long_line_behaviour=1
 long_line_column=80
 
 [VTE]
-last_dir=/home/swyngaard/Dropbox/pilar/cpu
+last_dir=/home/swyngaard/Dropbox/pilar/cpu/unit

@@ -10,10 +10,10 @@
 #define K_TWIST				0.004905f
 #define K_EXTRA				0.004905f
 #define LENGTH				0.005f //5 millimetres separation between particles
-#define D_EDGE				0.000000125f
-#define D_BEND				0.000000125f
-#define D_TWIST				0.000000125f
-#define D_EXTRA				0.000000125f
+#define D_EDGE				10.0f
+#define D_BEND				0.125f
+#define D_TWIST				0.125f
+#define D_EXTRA				0.125f
 #define GRAVITY				-9.81f//(stable value) -9.81f
 
 #define MAX_LENGTH			0.0055f //Maximum length of a spring
