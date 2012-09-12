@@ -13,11 +13,10 @@ base_path=/home/swyngaard/Dropbox/pilar/cpu
 make_in_base_path=true
 description=
 run_cmd=./gl
+file_patterns=
 
 [files]
 current_page=0
-FILE_NAME_0=5765;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.cpp;0
-FILE_NAME_1=525;C;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/constants.h;0
 
 [file_prefs]
 final_new_line=true
@@ -30,4 +29,9 @@ long_line_behaviour=1
 long_line_column=80
 
 [VTE]
-last_dir=/home/swyngaard/Dropbox/pilar/cpu/unit
+last_dir=/home/swyngaard/Dropbox/pilar/cpu
+
+[build-menu]
+EX_00_LB=_Execute
+EX_00_CM=./gl
+EX_00_WD=/home/swyngaard/Dropbox/pilar/cpu

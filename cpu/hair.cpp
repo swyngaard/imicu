@@ -148,6 +148,8 @@ namespace pilar
 		this->length = length;
 		this->mass  = mass;
 		
+		xx = new float[numParticles];
+		
 		particle = new Particle*[numParticles];
 		
 		for(int i = 0; i < numParticles; i++)
@@ -371,7 +373,7 @@ namespace pilar
 		//~ int n = numParticles;
 		
 		//~ float* bb = new float[n];
-		float* xx = new float[numParticles];
+		//~ float* xx = new float[numParticles];
 		
 		//~ bb[0] = v0 + g*(-x0*d0-length)*d0 + g*((x1-x0)*d01-length)*d01;
 		//~ bb[1] = v1 + g*((x0-x1)*d10-length)*d10 + g*((x2-x1)*d12-length)*d12;
@@ -403,7 +405,7 @@ namespace pilar
 		//~ particle[2]->velh.y = (bb[0]*(d*hh)     + bb[1]*(-a*hh) + bb[2]*(a*e-b*d))/det;
 		
 		//~ delete [] bb;
-		delete [] xx;
+		//~ delete [] xx;
 	}
 	
 	void Strand::updateSprings(float dt)
@@ -700,6 +702,8 @@ namespace pilar
 			particle[i] = NULL;
 		}
 		delete [] particle;
+		
+		delete [] xx;
 	}
 	
 /////////////////////////// Hair Class /////////////////////////////////////////

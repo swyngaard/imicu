@@ -83,6 +83,10 @@ namespace pilar
 		float length;
 		float mass;
 		
+		float* xx;
+		float* AA;
+		float* bb;
+		
 		Spring** edge;
 		Spring** bend;
 		Spring** twist;
