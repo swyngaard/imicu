@@ -155,7 +155,7 @@ namespace pilar
 		for(int i = 0; i < numParticles; i++)
 		{
 			particle[i] = new Particle(mass);
-			particle[i]->position = Vector3f(0.0f, (i+1.0f)*(-length/2.0f), 0.0f);
+			particle[i]->position = Vector3f(0.0f,(i+1.0f)*(-length/2.0f), 0.0f);
 			particle[i]->posc = particle[i]->position;
 			particle[i]->pos = particle[i]->position;
 		}
@@ -207,22 +207,22 @@ namespace pilar
 		if(i == j)
 		{
 			float h = dt*dt*k_edge/(4.0f*mass*length) + d_edge*dt/(2.0f*mass);
-			float d_above = (i == 0) ? -particle[i]->position.y/fabs(-particle[i]->position.y) : (particle[i-1]->position.y-particle[i]->position.y)/fabs(particle[i-1]->position.y-particle[i]->position.y);
-			float d_below = (i == (numParticles-1)) ? 0.0f : (particle[i+1]->position.y-particle[i]->position.y)/fabs(particle[i+1]->position.y-particle[i]->position.y);
+			float d_above = (i == 0) ? -particle[i]->pos.y/fabs(-particle[i]->pos.y) : (particle[i-1]->pos.y-particle[i]->pos.y)/fabs(particle[i-1]->pos.y-particle[i]->pos.y);
+			float d_below = (i == (numParticles-1)) ? 0.0f : (particle[i+1]->pos.y-particle[i]->pos.y)/fabs(particle[i+1]->pos.y-particle[i]->pos.y);
 			
 			return 1.0f + h*d_above*d_above + h*d_below*d_below;
 		}
 		else if(i != 0 && (i - j) == 1)
 		{
 			float h = dt*dt*k_edge/(4.0f*mass*length) + d_edge*dt/(2.0f*mass);
-			float d_above = (particle[i-1]->position.y-particle[i]->position.y)/fabs(particle[i-1]->position.y-particle[i]->position.y);
+			float d_above = (particle[i-1]->pos.y-particle[i]->pos.y)/fabs(particle[i-1]->pos.y-particle[i]->pos.y);
 			
 			return -h*d_above*d_above;
 		}
 		else if(i != (numParticles-1) && (i - j) == -1)
 		{
 			float h = dt*dt*k_edge/(4.0f*mass*length) + d_edge*dt/(2.0f*mass);
-			float d_below = (particle[i+1]->position.y-particle[i]->position.y)/fabs(particle[i+1]->position.y-particle[i]->position.y);
+			float d_below = (particle[i+1]->pos.y-particle[i]->pos.y)/fabs(particle[i+1]->pos.y-particle[i]->pos.y);
 			
 			return -h*d_below*d_below;
 		}

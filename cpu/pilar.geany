@@ -17,6 +17,8 @@ file_patterns=
 
 [files]
 current_page=0
+FILE_NAME_0=5929;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.cpp;0
+FILE_NAME_1=1265;C;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.h;0
 
 [file_prefs]
 final_new_line=true
