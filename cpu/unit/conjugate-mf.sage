@@ -42,3 +42,4 @@ b4 = vector([v0 + g*(-x0*d00-length)*d00 + g*((x1-x0)*d01-length)*d01,
 			 v3 + g*((x2-x3)*d32-length)*d32]);
 
 x4 = a4 \ b4;
+

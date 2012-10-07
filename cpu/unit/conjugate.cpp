@@ -1,8 +1,25 @@
 //Conjugate Gradient Method Unit Tests
 
 #include <iostream>
+#include <math.h>
+
+#define NUMPARTICLES	4
+#define NUMCOMPONENTS	2
 
 using namespace std;
+
+struct Particle
+{
+	float x;
+	float y;
+	float vx;
+	float vy;
+};
+
+Particle particle[NUMPARTICLES];
+float AA[NUMPARTICLES*NUMCOMPONENTS*NUMPARTICLES*NUMCOMPONENTS];
+float bb[NUMPARTICLES*NUMCOMPONENTS];
+float xx[NUMPARTICLES*NUMCOMPONENTS];
 
 void conjugate(int N, const float* A, const float* b, float* x)
 {
@@ -79,6 +96,149 @@ void conjugate(int N, const float* A, const float* b, float* x)
 	
 		rsold = rsnew;
 	}
+}
+
+void buildAB()
+{
+	
+	float length = 0.005f;
+	float mass = 0.000000001f;
+	float k_edge = 0.009f;
+	float d_edge = 0.0f;
+	float dt = 0.006f;
+	float h = dt*dt*k_edge/(4.0f*mass*length) + d_edge*dt/(2.0f*mass);
+	float g = dt*k_edge/(2.0f*mass*length);
+	
+	Particle du0;
+	Particle dd0;
+	du0.x = -particle[0].x/sqrtf(-particle[0].x*-particle[0].x+-particle[0].y*-particle[0].y);
+	du0.y = -particle[0].y/sqrtf(-particle[0].x*-particle[0].x+-particle[0].y*-particle[0].y);
+	dd0.x = (particle[1].x-particle[0].x)/sqrtf((particle[1].x-particle[0].x)*(particle[1].x-particle[0].x)+(particle[1].y-particle[0].y)*(particle[1].y-particle[0].y));
+	dd0.y = (particle[1].y-particle[0].y)/sqrtf((particle[1].x-particle[0].x)*(particle[1].x-particle[0].x)+(particle[1].y-particle[0].y)*(particle[1].y-particle[0].y));
+	
+	AA[0] = 1.0f + h*du0.x*du0.x + h*dd0.x*dd0.x;
+	AA[1] = h*du0.x*du0.y + h*dd0.x*dd0.y;
+	AA[2] = -h*dd0.x*dd0.x;
+	AA[3] = -h*dd0.x*dd0.y;
+	
+	AA[NUMPARTICLES*NUMCOMPONENTS  ] = h*du0.x*du0.y + h*dd0.x*dd0.y;
+	AA[NUMPARTICLES*NUMCOMPONENTS+1] = 1.0f + h*du0.y*du0.y + h*dd0.y*dd0.y;
+	AA[NUMPARTICLES*NUMCOMPONENTS+2] = -h*dd0.x*dd0.y;
+	AA[NUMPARTICLES*NUMCOMPONENTS+3] = -h*dd0.y*dd0.y;
+	
+	bb[0] = particle[0].vx + g*(-particle[0].x*du0.x-particle[0].y*du0.y-length)*du0.x + g*((particle[1].x-particle[0].x)*dd0.x+(particle[1].y-particle[0].y)*dd0.y-length)*dd0.x;
+	bb[1] = particle[0].vy + g*(-particle[0].x*du0.x-particle[0].y*du0.y-length)*du0.y + g*((particle[1].x-particle[0].x)*dd0.x+(particle[1].y-particle[0].y)*dd0.y-length)*dd0.y;
+	
+	//~ cout << bb[0] << " " << bb[1] << endl;
+	
+	for(int i = 1; i < (NUMPARTICLES-1); i++)
+	{
+		Particle du;
+		Particle dd;
+		du.x = (particle[i-1].x-particle[i].x)/sqrtf((particle[i-1].x-particle[i].x)*(particle[i-1].x-particle[i].x)+(particle[i-1].y-particle[i].y)*(particle[i-1].y-particle[i].y));
+		du.y = (particle[i-1].y-particle[i].y)/sqrtf((particle[i-1].x-particle[i].x)*(particle[i-1].x-particle[i].x)+(particle[i-1].y-particle[i].y)*(particle[i-1].y-particle[i].y));
+		dd.x = (particle[i+1].x-particle[i].x)/sqrtf((particle[i+1].x-particle[i].x)*(particle[i+1].x-particle[i].x)+(particle[i+1].y-particle[i].y)*(particle[i+1].y-particle[i].y));
+		dd.y = (particle[i+1].y-particle[i].y)/sqrtf((particle[i+1].x-particle[i].x)*(particle[i+1].x-particle[i].x)+(particle[i+1].y-particle[i].y)*(particle[i+1].y-particle[i].y));
+		
+		AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS-2] = -h*du.x*du.x;
+		AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS-1] = -h*du.x*du.y;
+		AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS  ] = 1.0f + h*du.x*du.x + h*dd.x*dd.x; //Diagonal
+		AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS+1] = h*du.x*du.y + h*dd.x*dd.y;
+		AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS+2] = -h*dd.x*dd.x;
+		AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS+3] = -h*dd.x*dd.y;
+		
+		AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS-2] = -h*du.x*du.y;
+		AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS-1] = -h*du.y*du.y;
+		AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS  ] = h*du.x*du.y + h*dd.x*dd.y;
+		AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS+1] = 1.0f + h*du.y*du.y + h*dd.y*dd.y; //Diagonal
+		AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS+2] = -h*dd.x*dd.y;
+		AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*NUMPARTICLES + i*NUMCOMPONENTS+3] = -h*dd.y*dd.y;
+		
+		bb[i*NUMCOMPONENTS  ] = particle[i].vx + g*((particle[i-1].x-particle[i].x)*du.x+(particle[i-1].y-particle[i].y)*du.y-length)*du.x + g*((particle[i+1].x-particle[i].x)*dd.x+(particle[i+1].y-particle[i].y)*dd.y-length)*dd.x;
+		bb[i*NUMCOMPONENTS+1] = particle[i].vy + g*((particle[i-1].x-particle[i].x)*du.x+(particle[i-1].y-particle[i].y)*du.y-length)*du.y + g*((particle[i+1].x-particle[i].x)*dd.x+(particle[i+1].y-particle[i].y)*dd.y-length)*dd.y;
+		
+		//~ cout << bb[i*NUMCOMPONENTS  ] << " " << bb[i*NUMCOMPONENTS+1] << endl;
+	}
+	
+	Particle duN;
+	duN.x = (particle[NUMPARTICLES-2].x-particle[NUMPARTICLES-1].x)/sqrtf((particle[NUMPARTICLES-2].x-particle[NUMPARTICLES-1].x)*(particle[NUMPARTICLES-2].x-particle[NUMPARTICLES-1].x)+(particle[NUMPARTICLES-2].y-particle[NUMPARTICLES-1].y)*(particle[NUMPARTICLES-2].y-particle[NUMPARTICLES-1].y));
+	duN.y = (particle[NUMPARTICLES-2].y-particle[NUMPARTICLES-1].y)/sqrtf((particle[NUMPARTICLES-2].x-particle[NUMPARTICLES-1].x)*(particle[NUMPARTICLES-2].x-particle[NUMPARTICLES-1].x)+(particle[NUMPARTICLES-2].y-particle[NUMPARTICLES-1].y)*(particle[NUMPARTICLES-2].y-particle[NUMPARTICLES-1].y));
+	
+	AA[(NUMPARTICLES-1)*NUMCOMPONENTS*NUMPARTICLES*NUMCOMPONENTS + NUMPARTICLES*NUMCOMPONENTS-4] = -h*duN.x*duN.x;
+	AA[(NUMPARTICLES-1)*NUMCOMPONENTS*NUMPARTICLES*NUMCOMPONENTS + NUMPARTICLES*NUMCOMPONENTS-3] = -h*duN.x*duN.y;
+	AA[(NUMPARTICLES-1)*NUMCOMPONENTS*NUMPARTICLES*NUMCOMPONENTS + NUMPARTICLES*NUMCOMPONENTS-2] = 1.0f + h*duN.x*duN.x;
+	AA[(NUMPARTICLES-1)*NUMCOMPONENTS*NUMPARTICLES*NUMCOMPONENTS + NUMPARTICLES*NUMCOMPONENTS-1] = h*duN.x*duN.y;
+	
+	AA[NUMPARTICLES*NUMCOMPONENTS*NUMPARTICLES*NUMCOMPONENTS - 4] = -h*duN.x*duN.y;
+	AA[NUMPARTICLES*NUMCOMPONENTS*NUMPARTICLES*NUMCOMPONENTS - 3] = -h*duN.y*duN.y;
+	AA[NUMPARTICLES*NUMCOMPONENTS*NUMPARTICLES*NUMCOMPONENTS - 2] = h*duN.x*duN.y;
+	AA[NUMPARTICLES*NUMCOMPONENTS*NUMPARTICLES*NUMCOMPONENTS - 1] = 1.0f + h*duN.y*duN.y;
+	
+	bb[NUMPARTICLES*NUMCOMPONENTS-2] = particle[NUMPARTICLES-1].vx + g*((particle[NUMPARTICLES-2].x-particle[NUMPARTICLES-1].x)*duN.x+(particle[NUMPARTICLES-2].y-particle[NUMPARTICLES-1].y)*duN.y-length)*duN.x;
+	bb[NUMPARTICLES*NUMCOMPONENTS-1] = particle[NUMPARTICLES-1].vy + g*((particle[NUMPARTICLES-2].x-particle[NUMPARTICLES-1].x)*duN.x+(particle[NUMPARTICLES-2].y-particle[NUMPARTICLES-1].y)*duN.y-length)*duN.y;
+	
+	//~ cout << bb[NUMPARTICLES*NUMCOMPONENTS-2] << " " << bb[NUMPARTICLES*NUMCOMPONENTS-1] << endl;
+	
+	cout << "AA:" << endl;
+	for(int i = 0; i < NUMPARTICLES*NUMCOMPONENTS; i++)
+	{
+		cout << "[" << ends;
+		for(int j = 0; j < NUMPARTICLES*NUMCOMPONENTS; j++)
+		{
+			cout.width(12);
+			cout.precision(8);
+			cout << AA[i*NUMPARTICLES*NUMCOMPONENTS+j];
+			
+			if(j < (NUMCOMPONENTS*NUMPARTICLES-1))
+				cout << ", " << ends;
+		}
+		
+		cout << "]," << endl;
+	}
+	
+	cout << "bb:" << endl;
+	cout << "[" << ends;
+	for(int i = 0; i < NUMPARTICLES*NUMCOMPONENTS; i++)
+	{
+		cout.precision(8);
+		cout << bb[i] << ends;
+		
+		if(i < (NUMPARTICLES*NUMCOMPONENTS-1))
+			cout << ", " << ends;
+	}
+	cout << "]" << endl;
+}
+
+void test2D()
+{
+	for(int i = 0; i < NUMPARTICLES; i++)
+	{
+		particle[i].x = (i+1.0f)*(-0.005f/2.0f);
+		particle[i].y = 0.0f;
+		particle[i].vx = 0.0f;
+		particle[i].vx = 0.0f;
+		
+		//~ cout.width(12);
+		//~ cout << particle[i].x << " " << particle[i].y << endl;
+	}
+	
+	cout << endl;
+	
+	buildAB();
+	
+	conjugate(NUMPARTICLES*NUMCOMPONENTS, AA, bb, xx);
+	
+	cout << "xx:" << endl;
+	cout << "[" << ends;
+	for(int i = 0; i < NUMPARTICLES*NUMCOMPONENTS; i++)
+	{
+		cout.precision(8);
+		cout << xx[i] << ends; 
+		
+		if(i < (NUMPARTICLES*NUMCOMPONENTS-1))
+			cout << ", " << ends;
+	}
+	cout << "]" << endl;
 }
 
 void test3x3()
@@ -191,9 +351,11 @@ void test4x4()
 
 int main()
 {
-	test3x3();
+	//~ test3x3();
 	
-	test4x4();
+	//~ test4x4();
+	
+	test2D();
 	
 	return 0;
 }
