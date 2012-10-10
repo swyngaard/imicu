@@ -87,6 +87,11 @@ namespace pilar
 		float* AA;
 		float* bb;
 		
+		bool once;
+		bool twice;
+		bool thrice;
+		bool fourth;
+		
 		Spring** edge;
 		Spring** bend;
 		Spring** twist;
@@ -102,7 +107,8 @@ namespace pilar
 		
 		float getA(int i, int j, float dt);
 		float getB(int i, float dt);
-		void conjugate(float *x, float dt);
+		void buildAB(float dt);
+		void conjugate();
 		
 	public:
 		int numParticles;

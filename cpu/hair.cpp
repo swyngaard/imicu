@@ -2,7 +2,7 @@
 #include "constants.h"
 
 #include <iostream>
-#include <iomanip>
+//#include <iomanip>
 //#include <algorithm>
 #include <cstring>
 #include <cfloat>
@@ -148,17 +148,25 @@ namespace pilar
 		this->length = length;
 		this->mass  = mass;
 		
-		xx = new float[numParticles];
+		xx = new float[numParticles*NUMCOMPONENTS];
+		bb = new float[numParticles*NUMCOMPONENTS];
+		AA = new float[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS];
 		
 		particle = new Particle*[numParticles];
 		
 		for(int i = 0; i < numParticles; i++)
 		{
 			particle[i] = new Particle(mass);
-			particle[i]->position = Vector3f(0.0f,(i+1.0f)*(-length/2.0f), 0.0f);
+			//~ particle[i]->position = Vector3f(0.0f,(i+1.0f)*(-length/2.0f), 0.0f);
+			particle[i]->position = Vector3f((i+1.0f)*(-length/2.0f), 0.0f, 0.0f);
 			particle[i]->posc = particle[i]->position;
 			particle[i]->pos = particle[i]->position;
 		}
+		
+		once = false;
+		twice = false;
+		thrice = false;
+		fourth = false;
 		
 //		buildSprings();		
 	}
@@ -270,9 +278,9 @@ namespace pilar
 		return 0.0f;
 	}
 	
-	void Strand::conjugate(float* x, float dt)
+	void Strand::conjugate()
 	{
-		int N = numParticles;
+		int N = numParticles*NUMCOMPONENTS;
 		float r[N];
 		float p[N];
 
@@ -280,10 +288,10 @@ namespace pilar
 		{
 			//r = b - Ax
 			//~ r[i] = getB(i,dt);
-			r[i] = getB(i,dt);
+			r[i] = bb[i];
 			for(int j = 0; j < N; j++)
 			{
-				r[i] -= getA(i,j,dt)*x[j];
+				r[i] -= AA[i*N+j]*xx[j];
 			}
 		
 			//p = r
@@ -307,7 +315,7 @@ namespace pilar
 			
 				for(int k = 0; k < N; k++)
 				{
-					Ap[j] += getA(j,k,dt) * p[k];
+					Ap[j] += AA[j*N+k] * p[k];
 				}
 			}
 		
@@ -322,7 +330,7 @@ namespace pilar
 		
 			for(int j = 0; j < N; j++)
 			{
-				x[j] = x[j] + alpha * p[j];
+				xx[j] = xx[j] + alpha * p[j];
 			
 				r[j] = r[j] - alpha * Ap[j];
 			}
@@ -349,141 +357,144 @@ namespace pilar
 		}
 	}
 	
+	void Strand::buildAB(float dt)
+	{
+		memset(AA, 0, sizeof(float)*numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS);
+		
+		float h = dt*dt*k_edge/(4.0f*mass*length) + d_edge*dt/(2.0f*mass);
+		float g = dt*k_edge/(2.0f*mass*length);
+		Vector3f gravity(0.0f, GRAVITY, 0.0f);
+		
+		
+		//First particle boundary condition
+		Vector3f du0(-particle[0]->pos);
+		Vector3f dd0(particle[1]->pos-particle[0]->pos);
+		du0.unitize();
+		dd0.unitize();
+		
+		AA[0] = 1.0f + h*du0.x*du0.x + h*dd0.x*dd0.x;
+		AA[1] = h*du0.x*du0.y + h*dd0.x*dd0.y;
+		AA[2] = -h*dd0.x*dd0.x;
+		AA[3] = -h*dd0.x*dd0.y;
+		
+		AA[numParticles*NUMCOMPONENTS  ] = h*du0.x*du0.y + h*dd0.x*dd0.y;
+		AA[numParticles*NUMCOMPONENTS+1] = 1.0f + h*du0.y*du0.y + h*dd0.y*dd0.y;
+		AA[numParticles*NUMCOMPONENTS+2] = -h*dd0.x*dd0.y;
+		AA[numParticles*NUMCOMPONENTS+3] = -h*dd0.y*dd0.y;
+		
+		bb[0] = particle[0]->velocity.x + g*(-particle[0]->pos.x*du0.x-particle[0]->pos.y*du0.y-length)*du0.x + g*((particle[1]->pos.x-particle[0]->pos.x)*dd0.x+(particle[1]->pos.y-particle[0]->pos.y)*dd0.y-length)*dd0.x + gravity.x*(dt/2.0f);
+		bb[1] = particle[0]->velocity.y + g*(-particle[0]->pos.x*du0.x-particle[0]->pos.y*du0.y-length)*du0.y + g*((particle[1]->pos.x-particle[0]->pos.x)*dd0.x+(particle[1]->pos.y-particle[0]->pos.y)*dd0.y-length)*dd0.y + gravity.y*(dt/2.0f);
+		
+		
+		//Build in-between values of matrix A and vector b
+		for(int i = 1; i < (numParticles-1); i++)
+		{
+			Vector3f du(particle[i-1]->pos-particle[i]->pos);
+			Vector3f dd(particle[i+1]->pos-particle[i]->pos);
+			du.unitize();
+			dd.unitize();
+			
+			AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS-2] = -h*du.x*du.x;
+			AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS-1] = -h*du.x*du.y;
+			AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS  ] = 1.0f + h*du.x*du.x + h*dd.x*dd.x; //Diagonal
+			AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS+1] = h*du.x*du.y + h*dd.x*dd.y;
+			AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS+2] = -h*dd.x*dd.x;
+			AA[(i*NUMCOMPONENTS)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS+3] = -h*dd.x*dd.y;
+			
+			AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS-2] = -h*du.x*du.y;
+			AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS-1] = -h*du.y*du.y;
+			AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS  ] = h*du.x*du.y + h*dd.x*dd.y;
+			AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS+1] = 1.0f + h*du.y*du.y + h*dd.y*dd.y; //Diagonal
+			AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS+2] = -h*dd.x*dd.y;
+			AA[(i*NUMCOMPONENTS+1)*NUMCOMPONENTS*numParticles + i*NUMCOMPONENTS+3] = -h*dd.y*dd.y;
+			
+			bb[i*NUMCOMPONENTS  ] = particle[i]->velocity.x + g*((particle[i-1]->pos.x-particle[i]->pos.x)*du.x+(particle[i-1]->pos.y-particle[i]->pos.y)*du.y-length)*du.x + g*((particle[i+1]->pos.x-particle[i]->pos.x)*dd.x+(particle[i+1]->pos.y-particle[i]->pos.y)*dd.y-length)*dd.x + gravity.x*(dt/2.0f);
+			bb[i*NUMCOMPONENTS+1] = particle[i]->velocity.y + g*((particle[i-1]->pos.x-particle[i]->pos.x)*du.x+(particle[i-1]->pos.y-particle[i]->pos.y)*du.y-length)*du.y + g*((particle[i+1]->pos.x-particle[i]->pos.x)*dd.x+(particle[i+1]->pos.y-particle[i]->pos.y)*dd.y-length)*dd.y + gravity.y*(dt/2.0f);
+		}
+		
+		//Last particle boundary condition
+		Vector3f duN(particle[numParticles-2]->pos-particle[numParticles-1]->pos);
+		duN.unitize();
+		
+		AA[(numParticles-1)*NUMCOMPONENTS*numParticles*NUMCOMPONENTS + numParticles*NUMCOMPONENTS-4] = -h*duN.x*duN.x;
+		AA[(numParticles-1)*NUMCOMPONENTS*numParticles*NUMCOMPONENTS + numParticles*NUMCOMPONENTS-3] = -h*duN.x*duN.y;
+		AA[(numParticles-1)*NUMCOMPONENTS*numParticles*NUMCOMPONENTS + numParticles*NUMCOMPONENTS-2] = 1.0f + h*duN.x*duN.x;
+		AA[(numParticles-1)*NUMCOMPONENTS*numParticles*NUMCOMPONENTS + numParticles*NUMCOMPONENTS-1] = h*duN.x*duN.y;
+		
+		AA[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 4] = -h*duN.x*duN.y;
+		AA[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 3] = -h*duN.y*duN.y;
+		AA[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 2] = h*duN.x*duN.y;
+		AA[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 1] = 1.0f + h*duN.y*duN.y;
+		
+		bb[numParticles*NUMCOMPONENTS-2] = particle[numParticles-1]->velocity.x + g*((particle[numParticles-2]->pos.x-particle[numParticles-1]->pos.x)*duN.x+(particle[numParticles-2]->pos.y-particle[numParticles-1]->pos.y)*duN.y-length)*duN.x + gravity.x*(dt/2.0f);
+		bb[numParticles*NUMCOMPONENTS-1] = particle[numParticles-1]->velocity.y + g*((particle[numParticles-2]->pos.x-particle[numParticles-1]->pos.x)*duN.x+(particle[numParticles-2]->pos.y-particle[numParticles-1]->pos.y)*duN.y-length)*duN.y + gravity.y*(dt/2.0f);
+	}
+	
 	void Strand::calcVelocities(float dt)
 	{
 		//Calculate the velocities of each particle
 		
-		//~ float g = dt*k_edge/(2.0f*mass*length);
-		//~ float h = dt*dt*k_edge/(4.0f*mass*length);
-		//~ 
-		//~ float x0 = particle[0]->pos.y;
-		//~ float x1 = particle[1]->pos.y;
-		//~ float x2 = particle[2]->pos.y;
-		//~ 
-		//~ float v0 = particle[0]->velocity.y;
-		//~ float v1 = particle[1]->velocity.y;
-		//~ float v2 = particle[2]->velocity.y;
-		//~ 
-		//~ float d0 = -x0/fabs(x0);
-		//~ float d01 = (x1-x0)/fabs(x1-x0);
-		//~ float d10 = (x0-x1)/fabs(x0-x1);
-		//~ float d12 = (x2-x1)/fabs(x2-x1);
-		//~ float d21 = (x1-x2)/fabs(x1-x2);
-		
-		//~ int n = numParticles;
-		
-		//~ float* bb = new float[n];
-		//~ float* xx = new float[numParticles];
-		
-		//~ bb[0] = v0 + g*(-x0*d0-length)*d0 + g*((x1-x0)*d01-length)*d01;
-		//~ bb[1] = v1 + g*((x0-x1)*d10-length)*d10 + g*((x2-x1)*d12-length)*d12;
-		//~ bb[2] = v2 + g*((x1-x2)*d21-length)*d21;
+		//Build matrix and vector of coefficients of linear equations		
+		buildAB(dt);
 		
 		for(int i = 0; i < numParticles; i++)
 		{
-			xx[i] = particle[i]->velocity.y;
+			xx[i*NUMCOMPONENTS  ] = particle[i]->velocity.x;
+			xx[i*NUMCOMPONENTS+1] = particle[i]->velocity.y;
 		}
 		
-		conjugate(xx, dt);
-		
-		//~ float a  = 1 + h*d0*d0 + h*d01*d01;
-		//~ float b  = -h*d01*d01;
-		//~ float d  = -h*d10*d10;
-		//~ float e  = 1 + h*d10*d10 + h*d12*d12;
-		//~ float f  = -h*d12*d12;
-		//~ float hh = -h*d21*d21;
-		//~ float k  = 1 + h*d21*d21;
-		//~ float det = a*(e*k-f*hh) - b*(k*d);
+		//Solve for velocity using conjugate gradient method
+		conjugate();
 		
 		for(int i = 0; i < numParticles; i++)
 		{
-			particle[i]->velh.y = xx[i];
+			particle[i]->velh.x = xx[i*NUMCOMPONENTS  ];
+			particle[i]->velh.y = xx[i*NUMCOMPONENTS+1];
 		}
-		
-		//~ particle[0]->velh.y = (bb[0]*(e*k-f*hh) + bb[1]*(-b*k)  + bb[2]*(b*f)    )/det;
-		//~ particle[1]->velh.y = (bb[0]*(-d*k)     + bb[1]*(a*k)   + bb[2]*(-a*f)   )/det;
-		//~ particle[2]->velh.y = (bb[0]*(d*hh)     + bb[1]*(-a*hh) + bb[2]*(a*e-b*d))/det;
-		
-		//~ delete [] bb;
-		//~ delete [] xx;
 	}
 	
 	void Strand::updateSprings(float dt)
 	{
-		//~ float x0 = particle[0]->pos.y;
-		//~ float x1 = particle[1]->pos.y;
-		//~ float x2 = particle[2]->pos.y;
-		//~ 
-		//~ float v0 = particle[0]->velh.y;
-		//~ float v1 = particle[1]->velh.y;
-		//~ float v2 = particle[2]->velh.y;
-		//~ 
-		//~ float d0 = -x0/fabs(x0);
-		//~ float d01 = (x1-x0)/fabs(x1-x0);
-		//~ float d10 = (x0-x1)/fabs(x0-x1);
-		//~ float d12 = (x2-x1)/fabs(x2-x1);
-		//~ float d21 = (x1-x2)/fabs(x1-x2);
-		//~ 
 		float g = k_edge/length;
 		float h = dt*k_edge/(2.0f*length) + d_edge;
-		//~ 
-		//~ float force0 = g*(-x0*d0-length)*d0 - h*v0*d0*d0 + g*((x1-x0)*d01-length)*d01 + h*(v1-v0)*d01*d01;
-		//~ float force1 = g*((x0-x1)*d10-length)*d10 + h*(v0-v1)*d10*d10 + g*((x2-x1)*d12-length)*d12 + h*(v2-v1)*d12*d12;
-		//~ float force2 = g*((x1-x2)*d21-length)*d21 + h*(v1-v2)*d21*d21;
-		//~ 
-		//~ particle[0]->applyForce(Vector3f(0.0f, force0, 0.0f));
-		//~ particle[1]->applyForce(Vector3f(0.0f, force1, 0.0f));
-		//~ particle[2]->applyForce(Vector3f(0.0f, force2, 0.0f));
 		
-		for(int i = 0; i < numParticles; i++)
+		//Calculate force for first particle
+		Vector3f uu0(-particle[0]->pos);
+		Vector3f ud0(particle[1]->pos-particle[0]->pos);
+		Vector3f du0(uu0.unit());
+		Vector3f dd0(ud0.unit());
+		Vector3f vu0(-particle[0]->velh);
+		Vector3f vd0(particle[1]->velh-particle[0]->velh);
+		
+		Vector3f force0 = du0*( g*(uu0.x*du0.x+uu0.y*du0.y-length) + h*(vu0.x*du0.x+vu0.y*du0.y) ) + \
+						  dd0*( g*(ud0.x*dd0.x+ud0.y*dd0.y-length) + h*(vd0.x*dd0.x+vd0.y*dd0.y) );
+		
+		particle[0]->applyForce(force0);
+		
+		//Calculate force for all particles between first and last
+		for(int i = 1; i < (numParticles-1); i++)
 		{
-			if(i == 0)
-			{
-				float x0 = particle[i]->pos.y;
-				float x1 = particle[i+1]->pos.y;
-				
-				float v0 = particle[i]->velh.y;
-				float v1 = particle[i+1]->velh.y;
-				
-				float d00 = -x0/fabs(x0);
-				float d01 = (x1-x0)/fabs(x1-x0);
-				
-				float force = g*(-x0*d00-length)*d00 - h*v0*d00*d00 + g*((x1-x0)*d01-length)*d01 + h*(v1-v0)*d01*d01;
-				
-				particle[i]->applyForce(Vector3f(0.0f, force, 0.0f));
-			}
-			else if(i == (numParticles-1))
-			{
-				float xn1 = particle[i]->pos.y;
-				float xn0 = particle[i-1]->pos.y;
-				
-				float vn1 = particle[i]->velh.y;
-				float vn0 = particle[i-1]->velh.y;
-				
-				float dn10 = (xn0-xn1)/fabs(xn0-xn1);
-				
-				float force = g*((xn0-xn1)*dn10-length)*dn10 + h*(vn0-vn1)*dn10*dn10;
-				
-				particle[i]->applyForce(Vector3f(0.0f, force, 0.0f));
-			}
-			else
-			{
-				float xn1 = particle[i]->pos.y;
-				float xn0 = particle[i-1]->pos.y;
-				float xn2 = particle[i+1]->pos.y;
-				
-				float vn1 = particle[i]->velh.y;
-				float vn0 = particle[i-1]->velh.y;
-				float vn2 = particle[i+1]->velh.y;
-				
-				float dn10 = (xn0-xn1)/fabs(xn0-xn1);
-				float dn12 = (xn2-xn1)/fabs(xn2-xn1);
-				
-				float force = g*((xn0-xn1)*dn10-length)*dn10+h*(vn0-vn1)*dn10*dn10 + g*((xn2-xn1)*dn12-length)*dn12+h*(vn2-vn1)*dn12*dn12;
-				
-				particle[i]->applyForce(Vector3f(0.0f, force, 0.0f));
-			}
+			Vector3f uu(particle[i-1]->pos-particle[i]->pos);
+			Vector3f ud(particle[i+1]->pos-particle[i]->pos);
+			Vector3f du(uu.unit());
+			Vector3f dd(ud.unit());
+			Vector3f vu(particle[i-1]->velh-particle[i]->velh);
+			Vector3f vd(particle[i+1]->velh-particle[i]->velh);
+			
+			Vector3f force = du*( g*(uu.x*du.x+uu.y*du.y-length) + h*(vu.x*du.x+vu.y*du.y) ) + \
+							 dd*( g*(ud.x*dd.x+ud.y*dd.y-length) + h*(vd.x*dd.x+vd.y*dd.y) );
+			
+			particle[i]->applyForce(force);
 		}
+		
+		//Calculate force for last particle
+		Vector3f uuN(particle[numParticles-2]->pos-particle[numParticles-1]->pos);
+		Vector3f duN(uuN.unit());
+		Vector3f vuN(particle[numParticles-2]->velh-particle[numParticles-1]->velh);
+		
+		Vector3f forceN = duN*( g*(uuN.x*duN.x+uuN.y*duN.y-length) + h*(vuN.x*duN.x+vuN.y*duN.y) );
+		
+		particle[numParticles-1]->applyForce(forceN);
 	}
 	
 	void Strand::updateVelocities(float dt)
@@ -704,6 +715,8 @@ namespace pilar
 		delete [] particle;
 		
 		delete [] xx;
+		delete [] bb;
+		delete [] AA;
 	}
 	
 /////////////////////////// Hair Class /////////////////////////////////////////

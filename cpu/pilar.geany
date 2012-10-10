@@ -16,9 +16,11 @@ run_cmd=./gl
 file_patterns=
 
 [files]
-current_page=0
-FILE_NAME_0=5929;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.cpp;0
-FILE_NAME_1=1265;C;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.h;0
+current_page=2
+FILE_NAME_0=1281;C;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.h;0
+FILE_NAME_1=13426;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/hair.cpp;0
+FILE_NAME_2=9727;C++;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/unit/conjugate.cpp;0
+FILE_NAME_3=1207;None;0;16;1;1;0;/home/swyngaard/Dropbox/pilar/cpu/unit/conjugate.sage;0
 
 [file_prefs]
 final_new_line=true

@@ -105,7 +105,7 @@ void buildAB()
 	float mass = 0.000000001f;
 	float k_edge = 0.009f;
 	float d_edge = 0.0f;
-	float dt = 0.006f;
+	float dt = 0.008f;
 	float h = dt*dt*k_edge/(4.0f*mass*length) + d_edge*dt/(2.0f*mass);
 	float g = dt*k_edge/(2.0f*mass*length);
 	
