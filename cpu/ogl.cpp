@@ -271,6 +271,7 @@ void render(void) {
 		glVertex3f(0.0f, 0.0f, 0.0f);
 		glVertex3f(0.0f, -0.25f, 0.0f);
 		glVertex3f(0.0f, -DOMAIN_HALF, 0.0f);
+		glVertex3f(0.0f, -0.005f, 0.0f);
 	glEnd();
 	
 	glPushMatrix();

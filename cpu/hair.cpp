@@ -548,7 +548,7 @@ namespace pilar
 		//Calculate half velocities using forces
 		updateVelocities(dt);
 		
-//		applyStrainLimiting(dt);
+		applyStrainLimiting(dt);
 		
 		//Stiction calculations
 		
@@ -587,24 +587,25 @@ namespace pilar
 		{
 			strained = false;
 			
-			for(int i = 1; i < numParticles; i++)
+			for(int i = 0; i < numParticles; i++)
 			{
 				//Calculate candidate position using half velocity
-				particle[i]->posc = particle[i]->position + particle[i]->velh * dt;
-			
+				particle[i]->posc = particle[i]->pos + particle[i]->velh * dt;
+				
 				//Determine the direction of the spring between the particles
-				Vector3f dir = particle[i]->posc - particle[i-1]->posc;
-			
+				Vector3f dir = (i > 0) ? (particle[i]->posc - particle[i-1]->posc) : (particle[i]->posc - Vector3f(0.0f, 0.0f, 0.0f));
+				
 				if(dir.length_sqr() > MAX_LENGTH_SQUARED)
 				{
 					strained = true;
 					
 					//Find a valid candidate position
-					particle[i]->posc = particle[i-1]->posc + (dir * (MAX_LENGTH*dir.length_inverse())); //fast length calculation
+					particle[i]->posc = (i > 0) ? (particle[i-1]->posc + (dir * (MAX_LENGTH*dir.length_inverse()))) : (Vector3f(0.0f, 0.0f, 0.0f) + (dir * (MAX_LENGTH*dir.length_inverse()))); //fast length calculation
+					
 //					particle[i]->posc = particle[i-1]->posc + (dir * (MAX_LENGTH/dir.length())); //slower length calculation
-
+					
 					//Calculate new half velocity based on valid candidate position, i.e. add a velocity impulse
-					particle[i]->velh = (particle[i]->posc - particle[i]->position)/dt;
+					particle[i]->velh = (particle[i]->posc - particle[i]->pos)/dt;
 				}
 			}
 		}
