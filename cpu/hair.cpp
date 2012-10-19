@@ -580,33 +580,23 @@ namespace pilar
 	
 	void Strand::applyStrainLimiting(float dt)
 	{
-		bool strained = true;
-		
-		//TODO faster iterative strain limiting!!!
-		while(strained)
+		for(int i = 0; i < numParticles; i++)
 		{
-			strained = false;
+			//Calculate candidate position using half velocity
+			particle[i]->posc = particle[i]->pos + particle[i]->velh * dt;
 			
-			for(int i = 0; i < numParticles; i++)
+			//Determine the direction of the spring between the particles
+			Vector3f dir = (i > 0) ? (particle[i]->posc - particle[i-1]->posc) : (particle[i]->posc - Vector3f(0.0f, 0.0f, 0.0f));
+			
+			if(dir.length_sqr() > MAX_LENGTH_SQUARED)
 			{
-				//Calculate candidate position using half velocity
-				particle[i]->posc = particle[i]->pos + particle[i]->velh * dt;
+				//Find a valid candidate position
+				particle[i]->posc = (i > 0) ? (particle[i-1]->posc + (dir * (MAX_LENGTH*dir.length_inverse()))) : (Vector3f(0.0f, 0.0f, 0.0f) + (dir * (MAX_LENGTH*dir.length_inverse()))); //fast length calculation
 				
-				//Determine the direction of the spring between the particles
-				Vector3f dir = (i > 0) ? (particle[i]->posc - particle[i-1]->posc) : (particle[i]->posc - Vector3f(0.0f, 0.0f, 0.0f));
+				//~ particle[i]->posc = particle[i-1]->posc + (dir * (MAX_LENGTH/dir.length())); //slower length calculation
 				
-				if(dir.length_sqr() > MAX_LENGTH_SQUARED)
-				{
-					strained = true;
-					
-					//Find a valid candidate position
-					particle[i]->posc = (i > 0) ? (particle[i-1]->posc + (dir * (MAX_LENGTH*dir.length_inverse()))) : (Vector3f(0.0f, 0.0f, 0.0f) + (dir * (MAX_LENGTH*dir.length_inverse()))); //fast length calculation
-					
-//					particle[i]->posc = particle[i-1]->posc + (dir * (MAX_LENGTH/dir.length())); //slower length calculation
-					
-					//Calculate new half velocity based on valid candidate position, i.e. add a velocity impulse
-					particle[i]->velh = (particle[i]->posc - particle[i]->pos)/dt;
-				}
+				//Calculate new half velocity based on valid candidate position, i.e. add a velocity impulse
+				particle[i]->velh = (particle[i]->posc - particle[i]->pos)/dt;
 			}
 		}
 	}
