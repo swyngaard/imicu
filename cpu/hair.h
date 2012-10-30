@@ -104,7 +104,7 @@ namespace pilar
 		void updatePositions(float dt);
 		void updateParticles(float dt);
 		void calcVelocities(float dt);
-		void objectCollisions(const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
+		void objectCollisions(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
 		
 		float getA(int i, int j, float dt);
 		float getB(int i, float dt);

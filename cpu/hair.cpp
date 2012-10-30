@@ -3,7 +3,7 @@
 
 #include <iostream>
 //#include <iomanip>
-//#include <algorithm>
+#include <algorithm>
 #include <cstring>
 #include <cfloat>
 #include <cmath>
@@ -563,7 +563,7 @@ namespace pilar
 		updatePositions(dt);
 		
 		//Check geometry collisions and adjust velocities and positions
-		objectCollisions(grid);
+		objectCollisions(dt, grid);
 		
 		//Self collisions
 		
@@ -608,7 +608,7 @@ namespace pilar
 		}
 	}
 	
-	void Strand::objectCollisions(const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM])
+	void Strand::objectCollisions(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM])
 	{
 		for(int i = 0; i < numParticles; i++)
 		{
@@ -645,34 +645,45 @@ namespace pilar
 			
 			float c000 = c00 * (1 - d.y) + c11 * d.y;
 			
+			//Calculate normal
+			Vector3f normal;
+			
+			normal.x = -v000*d.y*d.z + v001*d.y*d.z + v010*d.y*d.z - v011*d.y*d.z + v100*d.y*d.z - v101*d.y*d.z - v110*d.y*d.z + v111*d.y*d.z + v000*d.y + v000*d.z - v001*d.y - v010*d.z - v100*d.y - v100*d.z + v101*d.y + v110*d.z - v000 + v100;
+			normal.y = -v000*d.x*d.z + v001*d.x*d.z + v010*d.x*d.z - v011*d.x*d.z + v100*d.x*d.z - v101*d.x*d.z - v110*d.x*d.z + v111*d.x*d.z + v000*d.x + v000*d.z - v001*d.x - v001*d.z - v010*d.z + v011*d.z - v100*d.x + v101*d.x - v000 + v001;
+			normal.z = -v000*d.x*d.y + v001*d.x*d.y + v010*d.x*d.y - v011*d.x*d.y + v100*d.x*d.y - v101*d.x*d.y - v110*d.x*d.y + v111*d.x*d.y + v000*d.x + v000*d.y - v001*d.y - v010*d.x - v010*d.y + v011*d.y - v100*d.x + v110*d.x - v000 + v010;
+			
+			//Normalise
+			normal.unitize();
+			
+			float phi = c000 + dt * (particle[i]->velocity.x*normal.x+particle[i]->velocity.y*normal.y+particle[i]->velocity.z*normal.z);
+			
 			//Check for surface collision
-			if(c000 < 0.002f)
+			if(phi < 0.0f)
 			{
-				//Calculate normal
-				Vector3f normal;
-				
-				normal.x = -v000*d.y*d.z + v001*d.y*d.z + v010*d.y*d.z - v011*d.y*d.z + v100*d.y*d.z - v101*d.y*d.z - v110*d.y*d.z + v111*d.y*d.z + v000*d.y + v000*d.z - v001*d.y - v010*d.z - v100*d.y - v100*d.z + v101*d.y + v110*d.z - v000 + v100;
-				normal.y = -v000*d.x*d.z + v001*d.x*d.z + v010*d.x*d.z - v011*d.x*d.z + v100*d.x*d.z - v101*d.x*d.z - v110*d.x*d.z + v111*d.x*d.z + v000*d.x + v000*d.z - v001*d.x - v001*d.z - v010*d.z + v011*d.z - v100*d.x + v101*d.x - v000 + v001;
-				normal.z = -v000*d.x*d.y + v001*d.x*d.y + v010*d.x*d.y - v011*d.x*d.y + v100*d.x*d.y - v101*d.x*d.y - v110*d.x*d.y + v111*d.x*d.y + v000*d.x + v000*d.y - v001*d.y - v010*d.x - v010*d.y + v011*d.y - v100*d.x + v110*d.x - v000 + v010;
-				
-				//Normalise
-				normal.unitize();
-				
 				//~ std::cout << "hit" << std::endl;
 				//~ std::cout << c000 << std::endl;
 				
 				//~ particle[13]->freeze = true;
 				
 				//Move particle along normal to surface of mesh
-				particle[i]->position = particle[i]->position + normal*(0.002f-c000);
+				//~ particle[i]->position = particle[i]->position + normal*(0.002f-c000);
 				
 				//Calculate new half position
-				particle[i]->posh = (particle[i]->position + particle[i]->poso)/2.0f;
+				//~ particle[i]->posh = (particle[i]->position + particle[i]->poso)/2.0f;
 				
-				particle[i]->pos = particle[i]->posh;
+				//~ particle[i]->pos = particle[i]->posh;
 				
 				//Reflect direction of previous velocity across normal
-				particle[i]->velocity = particle[i]->velocity - normal*(2.0f*(particle[i]->velocity.x*normal.x+particle[i]->velocity.y*normal.y+particle[i]->velocity.z*normal.z));
+				//~ particle[i]->velocity = particle[i]->velocity - normal*(2.0f*(particle[i]->velocity.x*normal.x+particle[i]->velocity.y*normal.y+particle[i]->velocity.z*normal.z));
+				
+				float vn = particle[i]->velocity.x * normal.x + particle[i]->velocity.y * normal.y + particle[i]->velocity.z * normal.z;
+				Vector3f vt = particle[i]->velocity - normal*vn;
+				
+				float vnew = vn - phi/dt;
+				float friction = 1.0f - 0.3f*(vnew-vn)/vt.length();
+				Vector3f vrel = (0.0f > friction) ? vt*0.0f : vt*friction;
+				
+				particle[i]->velocity = normal*vnew + vrel;
 			}
 		}
 	}
