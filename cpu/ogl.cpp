@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 
 void init()
 {
-//	obj.Load("spherehalf.obj");
+	obj.Load("spherehalf.obj");
 	
 	pilar::Vector3f root;
 	std::vector<pilar::Vector3f> roots;
@@ -208,15 +208,15 @@ void render(void) {
 	glLoadIdentity();
 	// Set the camera
 	//Ideal camera closeup
-//	gluLookAt(	0.0f, -0.13f, -0.35f,
-//				0.0f, -0.13f,  0.0f,
-//				0.0f, 1.0f,  0.0f);
+	gluLookAt(	0.0f, -0.13f, -0.35f,
+				0.0f, -0.13f,  0.0f,
+				0.0f, 1.0f,  0.0f);
 	
 	
 	//closeup
-	gluLookAt(	0.0f, 0.0f, -0.15f,
-				0.0f, 0.0f, 0.0f,
-				0.0f, 1.0f,  0.0f);
+	//~ gluLookAt(	0.0f, 0.0f, -0.15f,
+				//~ 0.0f, 0.0f, 0.0f,
+				//~ 0.0f, 1.0f,  0.0f);
 	//Closeup without damping, lots of stretching
 //	gluLookAt(	0.0f, -0.4f, -1.0f,
 //				0.0f, -0.4f,  0.0f,
@@ -227,10 +227,10 @@ void render(void) {
 	glRotatef( navigationRotation[1], 0.0f, -1.0f, 0.0f );
 	
 	//Draw model object
-//	glColor3f(1.0f, 0.7f, 1.0f);
-//	glPushMatrix();
-//		obj.Draw();
-//	glPopMatrix();
+	glColor3f(1.0f, 0.7f, 1.0f);
+	glPushMatrix();
+		obj.Draw();
+	glPopMatrix();
 	
 	//Draw hair
 	glBegin(GL_LINE_STRIP);

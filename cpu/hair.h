@@ -15,10 +15,11 @@ namespace pilar
 		float mass;
 		bool freeze;
 		
-		Vector3f posh;
-		Vector3f posc;
-		Vector3f pos;
-		Vector3f position;
+		Vector3f posh; //half
+		Vector3f posc; //candidate
+		Vector3f pos;  //current
+		Vector3f poso; //old
+		Vector3f position; //previous
 		
 		Vector3f velh;
 		Vector3f velocity;

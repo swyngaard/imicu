@@ -31,25 +31,32 @@ namespace pilar
 	
 	void Particle::update(float dt)
 	{
-			velocity = velh * 2 - velocity;
-			
-			//Use previous position in current calculations
-			pos = position;
+		//Extrapolate new velocity
+		velocity = velh * 2 - velocity;
+		
+		//Use previous position in current calculations
+		pos = position;
 	}
 	
 	void Particle::updateVelocity(float dt)
 	{
-			velh = velocity + force * (dt / 2.0f);
+		//Calculate half velocity
+		velh = velocity + force * (dt / 2.0f);
 	}
 	
 	void Particle::updatePosition(float dt)
 	{
-			Vector3f newPosition = position + velh * dt;
-			posh = (position + newPosition)/2.0f;
-			position = newPosition;
-			
-			//Use half position in current calculations
-			pos = posh;
+		//Save old position
+		poso = position;
+		
+		//Calculate new position
+		position = poso + velh * dt;
+		
+		//Calculate half position
+		posh = (poso + position)/2.0f;
+		
+		//Use half position in current calculations
+		pos = posh;
 	}
 
 ////////////////////////////// Spring Class ////////////////////////////////////
@@ -158,7 +165,7 @@ namespace pilar
 		{
 			particle[i] = new Particle(mass);
 			//~ particle[i]->position = Vector3f(0.0f,(i+1.0f)*(-length/2.0f), 0.0f);
-			particle[i]->position = Vector3f((i+1.0f)*(-length/2.0f), 0.0f, 0.0f);
+			particle[i]->position = Vector3f((i+1.0f)*(length/2.0f), 0.0f, 0.0f);
 			particle[i]->posc = particle[i]->position;
 			particle[i]->pos = particle[i]->position;
 		}
@@ -556,7 +563,7 @@ namespace pilar
 		updatePositions(dt);
 		
 		//Check geometry collisions and adjust velocities and positions
-//		objectCollisions(grid);
+		objectCollisions(grid);
 		
 		//Self collisions
 		
@@ -603,67 +610,71 @@ namespace pilar
 	
 	void Strand::objectCollisions(const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM])
 	{
-		//Transform particle coordinates to collision grid coordinates
-		Vector3f position;
-		position.x = (particle[25]->position.x + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
-		position.y = (particle[25]->position.y + DOMAIN_HALF+0.125f-CELL_HALF)/CELL_WIDTH;
-		position.z = (particle[25]->position.z + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
-		
-		Vector3i min (int(position.x), int(position.y), int(position.z));
-		Vector3i max (min.x+1, min.y+1, min.z+1);
-		
-		float v000 = grid[min.x][min.y][min.z];
-		float v100 = grid[max.x][min.y][min.z];
-		float v001 = grid[min.x][min.y][max.z];
-		float v101 = grid[max.x][min.y][max.z];
-		float v010 = grid[min.x][max.y][min.z];
-		float v110 = grid[max.x][max.y][min.z];
-		float v011 = grid[min.x][max.y][max.z];
-		float v111 = grid[max.x][max.y][max.z];
-		
-		Vector3f d;
-		d.x = (position.x - min.x)/(max.x - min.x);
-		d.y = (position.y - min.y)/(max.y - min.y);
-		d.z = (position.z - min.z)/(max.z - min.z);
-		
-		float c0 = v000 * (1 - d.x) + v100 * d.x;
-		float c1 = v001 * (1 - d.x) + v101 * d.x;
-		float c2 = v010 * (1 - d.x) + v110 * d.x;
-		float c3 = v011 * (1 - d.x) + v111 * d.x;
-		
-		float c00 = c0 * (1 - d.z) + c1 * d.z;
-		float c11 = c2 * (1 - d.z) + c3 * d.z;
-		
-		float c000 = c00 * (1 - d.y) + c11 * d.y;
-		
-		//Check for surface collision
-		if(c000 < 0.002f)
+		for(int i = 0; i < numParticles; i++)
 		{
-			//Calculate normal
-			Vector3f normal;
+			//Transform particle coordinates to collision grid coordinates
+			Vector3f position;
+			position.x = (particle[i]->position.x + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
+			position.y = (particle[i]->position.y + DOMAIN_HALF+0.125f-CELL_HALF)/CELL_WIDTH;
+			position.z = (particle[i]->position.z + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
 			
-			normal.x = -v000*d.y*d.z + v001*d.y*d.z + v010*d.y*d.z - v011*d.y*d.z + v100*d.y*d.z - v101*d.y*d.z - v110*d.y*d.z + v111*d.y*d.z + v000*d.y + v000*d.z - v001*d.y - v010*d.z - v100*d.y - v100*d.z + v101*d.y + v110*d.z - v000 + v100;
-			normal.y = -v000*d.x*d.z + v001*d.x*d.z + v010*d.x*d.z - v011*d.x*d.z + v100*d.x*d.z - v101*d.x*d.z - v110*d.x*d.z + v111*d.x*d.z + v000*d.x + v000*d.z - v001*d.x - v001*d.z - v010*d.z + v011*d.z - v100*d.x + v101*d.x - v000 + v001;
-			normal.z = -v000*d.x*d.y + v001*d.x*d.y + v010*d.x*d.y - v011*d.x*d.y + v100*d.x*d.y - v101*d.x*d.y - v110*d.x*d.y + v111*d.x*d.y + v000*d.x + v000*d.y - v001*d.y - v010*d.x - v010*d.y + v011*d.y - v100*d.x + v110*d.x - v000 + v010;
+			Vector3i min (int(position.x), int(position.y), int(position.z));
+			Vector3i max (min.x+1, min.y+1, min.z+1);
 			
-			//Normalise
-			normal.unitize();
+			float v000 = grid[min.x][min.y][min.z];
+			float v100 = grid[max.x][min.y][min.z];
+			float v001 = grid[min.x][min.y][max.z];
+			float v101 = grid[max.x][min.y][max.z];
+			float v010 = grid[min.x][max.y][min.z];
+			float v110 = grid[max.x][max.y][min.z];
+			float v011 = grid[min.x][max.y][max.z];
+			float v111 = grid[max.x][max.y][max.z];
 			
-//			particle[25]->freeze = true;			
-						
-//			particle[25]->velc = Vector3f();
-//			particle[25]->velh = Vector3f();
-//			particle[25]->velocity = Vector3f();
-//			particle[25]->posc = Vector3f();
-//			particle[25]->posh = Vector3f();
-//			particle[25]->position = Vector3f();
+			Vector3f d;
+			d.x = (position.x - min.x)/(max.x - min.x);
+			d.y = (position.y - min.y)/(max.y - min.y);
+			d.z = (position.z - min.z)/(max.z - min.z);
 			
-			//Move particle to surface of mesh
+			float c0 = v000 * (1 - d.x) + v100 * d.x;
+			float c1 = v001 * (1 - d.x) + v101 * d.x;
+			float c2 = v010 * (1 - d.x) + v110 * d.x;
+			float c3 = v011 * (1 - d.x) + v111 * d.x;
 			
-			//Change direction of velocity
+			float c00 = c0 * (1 - d.z) + c1 * d.z;
+			float c11 = c2 * (1 - d.z) + c3 * d.z;
 			
+			float c000 = c00 * (1 - d.y) + c11 * d.y;
+			
+			//Check for surface collision
+			if(c000 < 0.002f)
+			{
+				//Calculate normal
+				Vector3f normal;
+				
+				normal.x = -v000*d.y*d.z + v001*d.y*d.z + v010*d.y*d.z - v011*d.y*d.z + v100*d.y*d.z - v101*d.y*d.z - v110*d.y*d.z + v111*d.y*d.z + v000*d.y + v000*d.z - v001*d.y - v010*d.z - v100*d.y - v100*d.z + v101*d.y + v110*d.z - v000 + v100;
+				normal.y = -v000*d.x*d.z + v001*d.x*d.z + v010*d.x*d.z - v011*d.x*d.z + v100*d.x*d.z - v101*d.x*d.z - v110*d.x*d.z + v111*d.x*d.z + v000*d.x + v000*d.z - v001*d.x - v001*d.z - v010*d.z + v011*d.z - v100*d.x + v101*d.x - v000 + v001;
+				normal.z = -v000*d.x*d.y + v001*d.x*d.y + v010*d.x*d.y - v011*d.x*d.y + v100*d.x*d.y - v101*d.x*d.y - v110*d.x*d.y + v111*d.x*d.y + v000*d.x + v000*d.y - v001*d.y - v010*d.x - v010*d.y + v011*d.y - v100*d.x + v110*d.x - v000 + v010;
+				
+				//Normalise
+				normal.unitize();
+				
+				//~ std::cout << "hit" << std::endl;
+				//~ std::cout << c000 << std::endl;
+				
+				//~ particle[13]->freeze = true;
+				
+				//Move particle along normal to surface of mesh
+				particle[i]->position = particle[i]->position + normal*(0.002f-c000);
+				
+				//Calculate new half position
+				particle[i]->posh = (particle[i]->position + particle[i]->poso)/2.0f;
+				
+				particle[i]->pos = particle[i]->posh;
+				
+				//Reflect direction of previous velocity across normal
+				particle[i]->velocity = particle[i]->velocity - normal*(2.0f*(particle[i]->velocity.x*normal.x+particle[i]->velocity.y*normal.y+particle[i]->velocity.z*normal.z));
+			}
 		}
-		
 	}
 	
 	//Clean up
