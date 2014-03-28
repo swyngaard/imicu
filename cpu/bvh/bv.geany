@@ -1,0 +1,56 @@
+[file_prefs]
+final_new_line=true
+ensure_convert_new_lines=false
+strip_trailing_spaces=false
+replace_tabs=false
+
+[indentation]
+indent_width=4
+indent_type=1
+indent_hard_tab_width=8
+detect_indent=false
+detect_indent_width=false
+indent_mode=2
+
+[project]
+name=bv
+base_path=/home/swyngaard/Desktop/bv
+description=
+file_patterns=
+
+[long line marker]
+long_line_behaviour=1
+long_line_column=80
+
+[files]
+current_page=2
+FILE_NAME_0=774;Make;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2FMakefile;0;4
+FILE_NAME_1=375;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Fkdop.h;0;4
+FILE_NAME_2=330;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Fkdop.cpp;0;4
+FILE_NAME_3=260;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestKDOP.h;0;4
+FILE_NAME_4=21742;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestKDOP.cpp;0;4
+FILE_NAME_5=0;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestTools.h;0;4
+FILE_NAME_6=0;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestTools.cpp;0;4
+FILE_NAME_7=252;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2Fmain.cpp;0;4
+FILE_NAME_8=629;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Fogl.cpp;0;4
+FILE_NAME_9=252;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftree.h;0;4
+FILE_NAME_10=850;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftree.cpp;0;4
+FILE_NAME_11=431;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestTree.h;0;4
+FILE_NAME_12=689;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestTree.cpp;0;4
+
+[VTE]
+last_dir=/home/swyngaard/Desktop/bv
+
+[build-menu]
+EX_00_LB=_Execute
+EX_00_CM=./kdop
+EX_00_WD=%p
+NF_00_LB=_Make
+NF_00_CM=make
+NF_00_WD=%p
+EX_01_LB=Execute Units Tests
+EX_01_CM=make check
+EX_01_WD=%p
+NF_03_LB=Memory Check
+NF_03_CM=make memcheck
+NF_03_WD=%p

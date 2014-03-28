@@ -5,3 +5,9 @@ frame???.png
 output
 gl
 conjugate
+kdop
+tests/test
+kdop.o
+ogl.o
+tools.o
+tree.o
