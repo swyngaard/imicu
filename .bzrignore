@@ -12,3 +12,5 @@ ogl.o
 tools.o
 tree.o
 .~lock.notes.odg#
+cpu/bvh/tests/test
+cpu/bvh/kdop

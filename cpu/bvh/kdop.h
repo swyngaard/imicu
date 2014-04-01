@@ -41,6 +41,7 @@ public:
 	void update(std::vector<Vector3f>& vertex);
 	
 	bool collides(const KDOP* kdop);
+	bool merge(const KDOP* kdop);
 	
 	std::vector<Vector3i>& getNormals();
 	bool** getDegenerateMatrix();

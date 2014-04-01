@@ -872,3 +872,21 @@ bool KDOP::collides(const KDOP* kdop)
 	
 	return true;
 }
+
+//Returns true if this KDOP can merge with the given KDOP
+bool KDOP::merge(const KDOP* kdop)
+{
+	//Can't compare objects with a different number of planes
+	if(kdop->K != K)
+		return false;
+	
+	int halfK = K/2;
+	
+	for(int i = 0; i < halfK; i++)
+	{
+		distance[i] = std::min(kdop->distance[i], distance[i]);
+		distance[halfK+i] = std::max(kdop->distance[halfK+i], distance[halfK+i]);
+	}
+	
+	return true;
+}
