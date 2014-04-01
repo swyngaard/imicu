@@ -14,7 +14,7 @@ indent_mode=2
 
 [project]
 name=bv
-base_path=/home/swyngaard/Desktop/bv
+base_path=/home/swyngaard/Dropbox/pilar/cpu/bvh
 description=
 file_patterns=
 
@@ -23,20 +23,14 @@ long_line_behaviour=1
 long_line_column=80
 
 [files]
-current_page=2
-FILE_NAME_0=774;Make;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2FMakefile;0;4
-FILE_NAME_1=375;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Fkdop.h;0;4
-FILE_NAME_2=330;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Fkdop.cpp;0;4
-FILE_NAME_3=260;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestKDOP.h;0;4
-FILE_NAME_4=21742;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestKDOP.cpp;0;4
-FILE_NAME_5=0;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestTools.h;0;4
-FILE_NAME_6=0;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestTools.cpp;0;4
-FILE_NAME_7=252;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2Fmain.cpp;0;4
-FILE_NAME_8=629;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Fogl.cpp;0;4
-FILE_NAME_9=252;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftree.h;0;4
-FILE_NAME_10=850;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftree.cpp;0;4
-FILE_NAME_11=431;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestTree.h;0;4
-FILE_NAME_12=689;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDesktop%2Fbv%2Ftests%2FtestTree.cpp;0;4
+current_page=6
+FILE_NAME_0=322;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Fkdop.h;0;4
+FILE_NAME_1=147;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Fkdop.cpp;0;4
+FILE_NAME_2=1596;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestTree.cpp;0;4
+FILE_NAME_3=0;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestTree.h;0;4
+FILE_NAME_4=0;Python;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestKDOP.py;0;4
+FILE_NAME_5=384;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestKDOP.h;0;4
+FILE_NAME_6=15906;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestKDOP.cpp;0;4
 
 [VTE]
 last_dir=/home/swyngaard/Desktop/bv

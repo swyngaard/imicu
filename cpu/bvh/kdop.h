@@ -29,6 +29,7 @@ class KDOP
 {
 public:
 	
+	KDOP(int k = 14);
 	KDOP(std::vector<Vector3f>& vertex, int k = 14);
 	~KDOP();
 	
@@ -54,6 +55,8 @@ protected:
 	
 	float *distance;
 	bool **ndg;
+	
+	void initialise(int k);
 	
 	void build6(std::vector<Vector3f>& vertex);
 	void build14(std::vector<Vector3f>& vertex);

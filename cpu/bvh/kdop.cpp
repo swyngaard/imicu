@@ -4,10 +4,9 @@
 #include <iostream>
 #include <cfloat>
 
-KDOP::KDOP(std::vector<Vector3f>& vertex, int k)
+void KDOP::initialise(int k)
 {
 	//Make sure that only a valid value of K is set
-	
 	switch(k)
 	{
 		case  6: addNormals6(); break;
@@ -30,6 +29,16 @@ KDOP::KDOP(std::vector<Vector3f>& vertex, int k)
 		distance[i] = 0.0f;
 	
 	setDegenerateMatrix();
+}
+
+KDOP::KDOP(int k)
+{
+	initialise(k);
+}
+
+KDOP::KDOP(std::vector<Vector3f>& vertex, int k)
+{
+	initialise(k);
 	
 	update(vertex);
 }

@@ -385,6 +385,31 @@ void KDOPTest::testSetDegenerateMatrix()
 
 void KDOPTest::testPlaneDistances()
 {
+	//Default constructor zero vertices
+	KDOP input00_6 (6);
+	KDOP input00_14(14);
+	KDOP input00_18(18);
+	KDOP input00_26(26);
+	
+	float expected00 = 0.0f;
+	
+	const float* actual00_6  = input00_6.getDistances();
+	const float* actual00_14 = input00_14.getDistances();
+	const float* actual00_18 = input00_18.getDistances();
+	const float* actual00_26 = input00_26.getDistances();
+	
+	for(int i = 0; i < input00_6.K; i++)
+		CPPUNIT_ASSERT_EQUAL(expected00, actual00_6[i]);
+	
+	for(int i = 0; i < input00_14.K; i++)
+		CPPUNIT_ASSERT_EQUAL(expected00, actual00_14[i]);
+	
+	for(int i = 0; i < input00_18.K; i++)
+		CPPUNIT_ASSERT_EQUAL(expected00, actual00_18[i]);
+	
+	for(int i = 0; i < input00_26.K; i++)
+		CPPUNIT_ASSERT_EQUAL(expected00, actual00_26[i]);
+	
 	//Zero vertices
 	std::vector<Vector3f> inputVerts0;
 	
