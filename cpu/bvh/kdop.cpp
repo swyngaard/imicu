@@ -876,7 +876,7 @@ bool KDOP::collides(const KDOP* kdop)
 //Returns true if this KDOP can merge with the given KDOP
 bool KDOP::merge(const KDOP* kdop)
 {
-	//Can't compare objects with a different number of planes
+	//Can't merge objects with a different number of planes
 	if(kdop->K != K)
 		return false;
 	

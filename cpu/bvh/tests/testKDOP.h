@@ -17,7 +17,7 @@ public:
 	void testSetDegenerateMatrix();
 	void testPlaneDistances();
 	void testCollisions();
-	
+	void testMerge();
 	
 	CPPUNIT_TEST_SUITE( KDOPTest );
 	
@@ -26,6 +26,7 @@ public:
 	CPPUNIT_TEST( testSetDegenerateMatrix );
 	CPPUNIT_TEST( testPlaneDistances );
 	CPPUNIT_TEST( testCollisions );
+	CPPUNIT_TEST( testMerge );
 	
 	CPPUNIT_TEST_SUITE_END();
 };

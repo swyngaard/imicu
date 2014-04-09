@@ -1174,3 +1174,200 @@ void KDOPTest::testCollisions()
 	CPPUNIT_ASSERT_EQUAL(expectedCubeCubeFH_18, actualCubeCubeFH_18);
 	CPPUNIT_ASSERT_EQUAL(expectedCubeCubeFH_26, actualCubeCubeFH_26);
 }
+
+void KDOPTest::testMerge()
+{
+	//Non-overlapping case
+	std::vector<Vector3f> redVerts;
+	redVerts.push_back(Vector3f( 5.5f,  2.3f, -7.9f));
+	redVerts.push_back(Vector3f(-7.1f,  8.8f,  0.3f));
+	redVerts.push_back(Vector3f( 1.5f, -6.4f,  4.0f));
+	
+	std::vector<Vector3f> blueVerts;
+	blueVerts.push_back(Vector3f(11.1f, 10.3f, -9.9f));
+	blueVerts.push_back(Vector3f(12.9f,  7.8f,  5.3f));
+	blueVerts.push_back(Vector3f(17.5f,  5.4f,  6.0f));
+	
+	KDOP inputKDOP_red_6 (redVerts, 6);
+	KDOP inputKDOP_red_14(redVerts, 14);
+	KDOP inputKDOP_red_18(redVerts, 18);
+	KDOP inputKDOP_red_26(redVerts, 26);
+	
+	KDOP inputKDOP_blue_6 (blueVerts, 6);
+	KDOP inputKDOP_blue_14(blueVerts, 14);
+	KDOP inputKDOP_blue_18(blueVerts, 18);
+	KDOP inputKDOP_blue_26(blueVerts, 26);
+	
+	float expected_red_blue_6 [6]  = {-7.1f, -6.4f, -9.9f, 17.5f, 10.3f, 6.0f};
+	float expected_red_blue_14[14] = {-7.1f, -6.4f, -9.9f, -0.9f, -15.6f, -8.9f, -16.2f, 17.5f, 10.3f, 6.0f, 28.9f, 18.1f, 31.3f, 11.1f};
+	float expected_red_blue_18[18] = {-7.1f, -6.4f, -9.9f, -4.9f, -6.8f, -5.6f, -15.9f, -7.4f, -10.4f, 17.5f, 10.3f, 6.0f, 22.9f, 23.5f, 13.1f, 12.1f, 21.0f, 20.2f};
+	float expected_red_blue_26[26] = {-7.1f, -6.4f, -9.9f, -0.9f, -15.6f, -8.9f, -16.2f, -4.9f, -6.8f, -5.6f, -15.9f, -7.4f, -10.4f, 17.5f, 10.3f, 6.0f, 28.9f, 18.1f, 31.3f, 11.1f, 22.9f, 23.5f, 13.1f, 12.1f, 21.0f, 20.2f};
+	float delta = 0.000005f;
+	
+	inputKDOP_red_6.merge(&inputKDOP_blue_6);
+	inputKDOP_red_14.merge(&inputKDOP_blue_14);
+	inputKDOP_red_18.merge(&inputKDOP_blue_18);
+	inputKDOP_red_26.merge(&inputKDOP_blue_26);
+	
+	const float* actual_red_blue_6  = inputKDOP_red_6.getDistances();
+	const float* actual_red_blue_14 = inputKDOP_red_14.getDistances();
+	const float* actual_red_blue_18 = inputKDOP_red_18.getDistances();
+	const float* actual_red_blue_26 = inputKDOP_red_26.getDistances();
+	
+	for(int i = 0; i < inputKDOP_red_6.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_red_blue_6[i], actual_red_blue_6[i], delta);
+	
+	for(int i = 0; i < inputKDOP_red_14.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_red_blue_14[i], actual_red_blue_14[i], delta);
+	
+	for(int i = 0; i < inputKDOP_red_18.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_red_blue_18[i], actual_red_blue_18[i], delta);
+	
+	for(int i = 0; i < inputKDOP_red_26.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_red_blue_26[i], actual_red_blue_26[i], delta);
+	
+	//Overlapping case
+	std::vector<Vector3f> greenVerts;
+	greenVerts.push_back(Vector3f(-17.4f, -24.8f,  8.2f));
+	greenVerts.push_back(Vector3f(-26.0f,  -9.6f,  4.5f));
+	greenVerts.push_back(Vector3f(-13.4f, -16.1f, -3.6f));
+	
+	std::vector<Vector3f> purpleVerts;
+	purpleVerts.push_back(Vector3f(-21.8f, -12.1f, -1.6f));
+	purpleVerts.push_back(Vector3f(-20.0f, -14.6f, 13.5f));
+	purpleVerts.push_back(Vector3f(-15.4f, -17.0f, 14.2f));
+	
+	KDOP inputKDOP_green_6 (greenVerts, 6);
+	KDOP inputKDOP_green_14(greenVerts, 14);
+	KDOP inputKDOP_green_18(greenVerts, 18);
+	KDOP inputKDOP_green_26(greenVerts, 26);
+	
+	KDOP inputKDOP_purple_6 (purpleVerts, 6);
+	KDOP inputKDOP_purple_14(purpleVerts, 14);
+	KDOP inputKDOP_purple_18(purpleVerts, 18);
+	KDOP inputKDOP_purple_26(purpleVerts, 26);
+	
+	float expected_green_purple_6 [6]  = {-26.0f, -24.8f,  -3.6f, -13.4f,  -9.6f,  14.2f};
+	float expected_green_purple_14[14] = {-26.0f, -24.8f,  -3.6f, -35.5f, -11.9f, -50.4f, -20.9f, -13.4f,  -9.6f,  14.2f, -18.2f,  15.8f, -25.9f,   6.3f};
+	float expected_green_purple_18[18] = {-26.0f, -24.8f,  -3.6f, -42.2f, -23.4f, -19.7f, -16.4f, -33.5f, -33.0f, -13.4f,  -9.6f,  14.2f, -29.5f,  -1.2f,  -1.1f,   7.4f,  -9.8f, -10.5f};
+	float expected_green_purple_26[26] = {-26.0f, -24.8f,  -3.6f, -35.5f, -11.9f, -50.4f, -20.9f, -42.2f, -23.4f, -19.7f, -16.4f, -33.5f, -33.0f, -13.4f,  -9.6f,  14.2f, -18.2f,  15.8f, -25.9f,   6.3f, -29.5f,  -1.2f,  -1.1f,   7.4f,  -9.8f, -10.5f};
+	
+	inputKDOP_green_6.merge (&inputKDOP_purple_6);
+	inputKDOP_green_14.merge(&inputKDOP_purple_14);
+	inputKDOP_green_18.merge(&inputKDOP_purple_18);
+	inputKDOP_green_26.merge(&inputKDOP_purple_26);
+	
+	const float* actual_green_purple_6  = inputKDOP_green_6.getDistances();
+	const float* actual_green_purple_14 = inputKDOP_green_14.getDistances();
+	const float* actual_green_purple_18 = inputKDOP_green_18.getDistances();
+	const float* actual_green_purple_26 = inputKDOP_green_26.getDistances();
+	
+	for(int i = 0; i < inputKDOP_green_6.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_green_purple_6[i], actual_green_purple_6[i], delta);
+	
+	for(int i = 0; i < inputKDOP_green_14.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_green_purple_14[i], actual_green_purple_14[i], delta);
+	
+	for(int i = 0; i < inputKDOP_green_18.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_green_purple_18[i], actual_green_purple_18[i], delta);
+	
+	for(int i = 0; i < inputKDOP_green_26.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_green_purple_26[i], actual_green_purple_26[i], delta);
+	
+	//Enclosing case
+	std::vector<Vector3f> blackVerts;
+	blackVerts.push_back(Vector3f(23.6f, -28.8f, 8.2f));
+	blackVerts.push_back(Vector3f(15.0f, -13.6f, 4.5f));
+	blackVerts.push_back(Vector3f(27.6f, -20.1f, -3.6f));
+	
+	std::vector<Vector3f> yellowVerts;
+	yellowVerts.push_back(Vector3f(24.6f, -21.0f, 3.2f));
+	yellowVerts.push_back(Vector3f(18.2f, -20.1f, 2.4f));
+	yellowVerts.push_back(Vector3f(20.0f, -18.6f, 2.5f));
+	
+	KDOP inputKDOP_black_6 (blackVerts, 6);
+	KDOP inputKDOP_black_14(blackVerts, 14);
+	KDOP inputKDOP_black_18(blackVerts, 18);
+	KDOP inputKDOP_black_26(blackVerts, 26);
+	
+	KDOP inputKDOP_yellow_6 (yellowVerts, 6);
+	KDOP inputKDOP_yellow_14(yellowVerts, 14);
+	KDOP inputKDOP_yellow_18(yellowVerts, 18);
+	KDOP inputKDOP_yellow_26(yellowVerts, 26);
+	
+	float expected_black_yellow_6 [6]  = {15.0f, -28.8f,  -3.6f,  27.6f, -13.6f,   8.2f};
+	float expected_black_yellow_14[14] = {15.0f, -28.8f,  -3.6f,   0.5f,  33.1f, -13.4f,  24.1f,  27.6f, -13.6f,   8.2f,   6.8f,  60.6f,  11.1f,  51.3f};
+	float expected_black_yellow_18[18] = {15.0f, -28.8f,  -3.6f,  -5.2f,  19.5f, -23.7f,  28.6f,  10.5f, -37.0f,  27.6f, -13.6f,   8.2f,   7.5f,  31.8f,  -9.1f,  52.4f,  31.2f, -16.5f};
+	float expected_black_yellow_26[26] = {15.0f, -28.8f,  -3.6f,   0.5f,  33.1f, -13.4f,  24.1f,  -5.2f,  19.5f, -23.7f,  28.6f,  10.5f, -37.0f,  27.6f, -13.6f,   8.2f,   6.8f,  60.6f,  11.1f,  51.3f,   7.5f,  31.8f,  -9.1f,  52.4f,  31.2f, -16.5f};
+	
+	inputKDOP_black_6.merge (&inputKDOP_yellow_6);
+	inputKDOP_black_14.merge(&inputKDOP_yellow_14);
+	inputKDOP_black_18.merge(&inputKDOP_yellow_18);
+	inputKDOP_black_26.merge(&inputKDOP_yellow_26);
+	
+	const float* actual_black_yellow_6  = inputKDOP_black_6.getDistances();
+	const float* actual_black_yellow_14 = inputKDOP_black_14.getDistances();
+	const float* actual_black_yellow_18 = inputKDOP_black_18.getDistances();
+	const float* actual_black_yellow_26 = inputKDOP_black_26.getDistances();
+	
+	for(int i = 0; i < inputKDOP_black_6.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_black_yellow_6[i], actual_black_yellow_6[i], delta);
+	
+	for(int i = 0; i < inputKDOP_black_14.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_black_yellow_14[i], actual_black_yellow_14[i], delta);
+	
+	for(int i = 0; i < inputKDOP_black_18.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_black_yellow_18[i], actual_black_yellow_18[i], delta);
+	
+	for(int i = 0; i < inputKDOP_black_26.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_black_yellow_26[i], actual_black_yellow_26[i], delta);
+	
+	//Enclosed case
+	std::vector<Vector3f> orangeVerts;
+	orangeVerts.push_back(Vector3f(-21.3f, 14.7f, 9.8f));
+	orangeVerts.push_back(Vector3f(-19.9f, 14.2f, 7.9f));
+	orangeVerts.push_back(Vector3f(-19.0f, 16.3f, 9.2f));
+	
+	std::vector<Vector3f> whiteVerts;
+	whiteVerts.push_back(Vector3f(-19.9f, 16.3f, 13.5f));
+	whiteVerts.push_back(Vector3f(-17.6f, 18.3f, -1.6f));
+	whiteVerts.push_back(Vector3f(-21.9f, 11.5f, 14.2f));
+	
+	KDOP inputKDOP_orange_6 (orangeVerts, 6);
+	KDOP inputKDOP_orange_14(orangeVerts, 14);
+	KDOP inputKDOP_orange_18(orangeVerts, 18);
+	KDOP inputKDOP_orange_26(orangeVerts, 26);
+	
+	KDOP inputKDOP_white_6 (whiteVerts, 6);
+	KDOP inputKDOP_white_14(whiteVerts, 14);
+	KDOP inputKDOP_white_18(whiteVerts, 18);
+	KDOP inputKDOP_white_26(whiteVerts, 26);
+	
+	float expected_orange_white_6 [6]  = {-21.9f,  11.5f,  -1.6f, -17.6f,  18.3f,  14.2f};
+	float expected_orange_white_14[14] = {-21.9f,  11.5f,  -1.6f,  -0.9f, -37.5f, -24.6f, -49.7f, -17.6f,  18.3f,  14.2f,   9.9f, -19.2f,   2.3f, -34.3f};
+	float expected_orange_white_18[18] = {-21.9f,  11.5f,  -1.6f, -10.4f, -19.2f,  16.7f, -36.2f, -36.1f,  -2.7f, -17.6f,  18.3f,  14.2f,   0.7f,  -6.4f,  29.8f, -33.4f, -16.0f,  19.9f};
+	float expected_orange_white_26[26] = {-21.9f,  11.5f,  -1.6f,  -0.9f, -37.5f, -24.6f, -49.7f, -10.4f, -19.2f,  16.7f, -36.2f, -36.1f,  -2.7f, -17.6f,  18.3f,  14.2f,   9.9f, -19.2f,   2.3f, -34.3f,   0.7f,  -6.4f,  29.8f, -33.4f, -16.0f,  19.9f};
+	
+	inputKDOP_orange_6.merge (&inputKDOP_white_6);
+	inputKDOP_orange_14.merge(&inputKDOP_white_14);
+	inputKDOP_orange_18.merge(&inputKDOP_white_18);
+	inputKDOP_orange_26.merge(&inputKDOP_white_26);
+	
+	const float* actual_orange_white_6  = inputKDOP_orange_6.getDistances();
+	const float* actual_orange_white_14 = inputKDOP_orange_14.getDistances();
+	const float* actual_orange_white_18 = inputKDOP_orange_18.getDistances();
+	const float* actual_orange_white_26 = inputKDOP_orange_26.getDistances();
+	
+	for(int i = 0; i < inputKDOP_orange_6.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_orange_white_6[i], actual_orange_white_6[i], delta);
+	
+	for(int i = 0; i < inputKDOP_orange_14.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_orange_white_14[i], actual_orange_white_14[i], delta);
+	
+	for(int i = 0; i < inputKDOP_orange_18.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_orange_white_18[i], actual_orange_white_18[i], delta);
+	
+	for(int i = 0; i < inputKDOP_orange_26.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected_orange_white_26[i], actual_orange_white_26[i], delta);
+}
+
