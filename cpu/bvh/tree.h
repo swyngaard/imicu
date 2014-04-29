@@ -4,11 +4,15 @@
 
 #include <list>
 
+#include "kdop.h"
+
 class Node
 {
 public:
-	Node();
-	Node(int depth);
+	
+	Node(KDOP* kdop);
+	Node(KDOP* kdop, int depth);
+	
 	~Node();
 	
 	void addChild(Node* child);
@@ -16,6 +20,7 @@ public:
 	
 	int getID();
 	int getDepth();
+	KDOP* getKDOP();
 	std::list<Node*>& getChildList();
 	
 	static Node* buildTree(std::list<Node*> &leafList);
@@ -27,6 +32,8 @@ protected:
 	const Node* parent;
 	int id;
 	int depth;
+	
+	KDOP* kdop;
 };
 
 #endif

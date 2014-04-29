@@ -19,13 +19,13 @@ def calculateDistances(normals, points):
 		minimums.append(dmin)
 		maximums.append(dmax)
 	
-	#for minimum in minimums:
-		#print '%5.1ff,' % minimum,
+	for minimum in minimums:
+		print '%5.1ff,' % minimum,
 	
-	#for maximum in maximums:
-		#print '%5.1ff,' % maximum,
+	for maximum in maximums:
+		print '%5.1ff,' % maximum,
 	
-	#print ''
+	print ''
 	
 	return [minimums, maximums]
 

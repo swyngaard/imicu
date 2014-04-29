@@ -43,6 +43,27 @@ KDOP::KDOP(std::vector<Vector3f>& vertex, int k)
 	update(vertex);
 }
 
+//TODO add copy constructor
+KDOP::KDOP(const KDOP& kdop)
+{
+	//Make sure that only a valid value of K is set
+	switch(kdop.K)
+	{
+		case  6: addNormals6(); break;
+		case 14: addNormals14(); break;
+		case 18: addNormals18(); break;
+		case 26: addNormals26(); break;
+	}
+	
+	this->K = kdop.K;
+	distance = new float[K];
+	
+	for(int i = 0; i < K; i++)
+		distance[i] = kdop.distance[i];
+	
+	setDegenerateMatrix();
+}
+
 KDOP::~KDOP()
 {
 	for(int i = 0; i < K; i++)

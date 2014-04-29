@@ -539,6 +539,44 @@ void KDOPTest::testPlaneDistances()
 	
 	for(int i = 0; i < input3_26.K; i++)
 		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected3_26[i], actual3_26[i], delta);
+	
+	//Test copy constructor
+	std::vector<Vector3f> inputVerts4;
+	inputVerts4.push_back(Vector3f( 5.5f,  2.3f, -7.9f));
+	inputVerts4.push_back(Vector3f(-7.1f,  8.8f,  0.3f));
+	inputVerts4.push_back(Vector3f( 1.5f, -6.4f,  4.0f));
+	
+	KDOP input4_a_6 (inputVerts4, 6);
+	KDOP input4_a_14(inputVerts4, 14);
+	KDOP input4_a_18(inputVerts4, 18);
+	KDOP input4_a_26(inputVerts4, 26);
+	
+	KDOP input4_b_6 (input4_a_6);
+	KDOP input4_b_14(input4_a_14);
+	KDOP input4_b_18(input4_a_18);
+	KDOP input4_b_26(input4_a_26);
+	
+	float expected4_6 [6]  = {-7.1f,  -6.4f,  -7.9f,   5.5f,   8.8f,   4.0f};
+	float expected4_14[14] = {-7.1f,  -6.4f,  -7.9f,  -0.9f, -15.6f,  -8.9f, -16.2f,   5.5f,   8.8f,   4.0f,   2.0f,  11.9f,  15.7f,  11.1f};
+	float expected4_18[18] = {-7.1f,  -6.4f,  -7.9f,  -4.9f,  -6.8f,  -5.6f, -15.9f,  -7.4f, -10.4f,   5.5f,   8.8f,   4.0f,   7.8f,   5.5f,   9.1f,   7.9f,  13.4f,  10.2f};
+	float expected4_26[26] = {-7.1f,  -6.4f,  -7.9f,  -0.9f, -15.6f,  -8.9f, -16.2f,  -4.9f,  -6.8f,  -5.6f, -15.9f,  -7.4f, -10.4f,   5.5f,   8.8f,   4.0f,   2.0f,  11.9f,  15.7f,  11.1f,   7.8f,   5.5f,   9.1f,   7.9f,  13.4f,  10.2f};
+	
+	const float* actual4_6  = input4_b_6.getDistances();
+	const float* actual4_14 = input4_b_14.getDistances();
+	const float* actual4_18 = input4_b_18.getDistances();
+	const float* actual4_26 = input4_b_26.getDistances();
+	
+	for(int i = 0; i < input4_b_6.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected4_6[i], actual4_6[i], delta);
+	
+	for(int i = 0; i < input4_b_14.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected4_14[i], actual4_14[i], delta);
+	
+	for(int i = 0; i < input4_b_18.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected4_18[i], actual4_18[i], delta);
+	
+	for(int i = 0; i < input4_b_26.K; i++)
+		CPPUNIT_ASSERT_DOUBLES_EQUAL(expected4_26[i], actual4_26[i], delta);
 }
 
 void KDOPTest::testCollisions()

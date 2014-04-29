@@ -3,13 +3,16 @@
 
 #include <iostream>
 
-Node::Node():depth(0)
+//TODO Constructor that accepts KDOP pointer
+Node::Node(KDOP* kdop):depth(0)
 {
-	
+	this->kdop = kdop;
 }
 
-Node::Node(int depth)
+//TODO Constructor that accepts KDOP and depth
+Node::Node(KDOP* kdop, int depth)
 {
+	this->kdop = kdop;
 	this->depth = depth;
 }
 
@@ -21,6 +24,13 @@ Node::~Node()
 		delete childList.front();
 		
 		childList.pop_front();
+	}
+	
+	//TODO delete KDOP
+	if(kdop != 0)
+	{
+		delete kdop;
+		kdop = 0;
 	}
 }
 
@@ -34,6 +44,11 @@ int Node::getDepth()
 	return depth;
 }
 
+KDOP* Node::getKDOP()
+{
+	return kdop;
+}
+
 std::list<Node*>& Node::getChildList()
 {
 	return childList;
@@ -42,6 +57,17 @@ std::list<Node*>& Node::getChildList()
 void Node::addChild(Node* child)
 {
 	childList.push_back(child);
+	
+	//TODO If empty KDOP set KDOP to child KDOP
+	if(kdop == 0)
+	{
+		kdop = new KDOP(*child->getKDOP());
+	}
+	//TODO else merge child KDOP with this KDOP
+	else
+	{
+		kdop->merge(child->getKDOP());
+	}
 }
 
 void Node::setParent(const Node* parent)
@@ -64,7 +90,7 @@ Node* Node::buildTree(std::list<Node*> &leafList)
 		//Add an internal node for every four current nodes
 		for(int i = 0; i < quotient; i++)
 		{
-			Node* internalNode = new Node(depth);
+			Node* internalNode = new Node(0, depth);
 			
 			currentNodes.front()->setParent(internalNode);
 			internalNode->addChild(currentNodes.front());
@@ -88,7 +114,7 @@ Node* Node::buildTree(std::list<Node*> &leafList)
 		//Add an internal node for any of the remaining current nodes
 		if(remainder > 0)
 		{
-			Node * internalNode = new Node(depth);
+			Node * internalNode = new Node(0, depth);
 			
 			for(int i = 0; i < remainder; i++)
 			{
@@ -107,7 +133,7 @@ Node* Node::buildTree(std::list<Node*> &leafList)
 		depth++;
 	}
 	
-	Node* root = new Node(depth);
+	Node* root = new Node(0, depth);
 	
 	while(!currentNodes.empty())
 	{

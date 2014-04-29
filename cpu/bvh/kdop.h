@@ -31,6 +31,7 @@ public:
 	
 	KDOP(int k = 14);
 	KDOP(std::vector<Vector3f>& vertex, int k = 14);
+	KDOP(const KDOP& kdop);
 	~KDOP();
 	
 	int K;

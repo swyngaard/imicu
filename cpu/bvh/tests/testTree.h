@@ -6,6 +6,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include "tree.h"
 
+
 class TreeTest : public CppUnit::TestFixture
 {	
 public:
@@ -13,15 +14,22 @@ public:
 	void tearDown(){}
 	
 	void testBuildTree();
+	void testKDOPTree();
 	
 	CPPUNIT_TEST_SUITE( TreeTest );
 	
 	CPPUNIT_TEST( testBuildTree );
+	CPPUNIT_TEST( testKDOPTree );
 	
 	CPPUNIT_TEST_SUITE_END();
 	
 protected:
-	void buildTree(int numLeaves, std::vector<int>& expected);
+	void checkTreeDepths(int numLeaves, std::vector<int>& expected);
+	void checkTreeDistances(std::vector< std::vector<Vector3f> >& verts, 
+							float expected_6 [][6],
+							float expected_14[][14],
+							float expected_18[][18],
+							float expected_26[][26]);
 };
 
 #endif
