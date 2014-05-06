@@ -3,13 +3,13 @@
 
 #include <iostream>
 
-//TODO Constructor that accepts KDOP pointer
+//Constructor that accepts KDOP pointer
 Node::Node(KDOP* kdop):depth(0)
 {
 	this->kdop = kdop;
 }
 
-//TODO Constructor that accepts KDOP and depth
+//Constructor that accepts KDOP and depth
 Node::Node(KDOP* kdop, int depth)
 {
 	this->kdop = kdop;
@@ -26,7 +26,7 @@ Node::~Node()
 		childList.pop_front();
 	}
 	
-	//TODO delete KDOP
+	//delete KDOP
 	if(kdop != 0)
 	{
 		delete kdop;
@@ -58,12 +58,12 @@ void Node::addChild(Node* child)
 {
 	childList.push_back(child);
 	
-	//TODO If empty KDOP set KDOP to child KDOP
+	//If empty KDOP set KDOP to child KDOP
 	if(kdop == 0)
 	{
 		kdop = new KDOP(*child->getKDOP());
 	}
-	//TODO else merge child KDOP with this KDOP
+	//else merge child KDOP with this KDOP
 	else
 	{
 		kdop->merge(child->getKDOP());
@@ -210,5 +210,64 @@ void Node::breadthWalk(Node* root, std::list<Node*>& queue)
 		}
 		
 		walkQ.pop_front();
+	}
+}
+
+//Recalculates KDOP of all internal nodes from leaf KDOPs
+void Node::updateTree(Node* root)
+{
+	//Does the given node have children?
+	if(root->getChildList().size() > 0)
+	{
+		std::list<Node*> childList = root->getChildList();
+		
+		std::list<Node*>::const_iterator child = childList.begin();
+		
+		for(; child != childList.end(); child++)
+		{
+			updateTree(*child);
+		}
+		
+		child = childList.begin();
+		
+		//Set KDOP to KDOP of first child
+		root->getKDOP()->setDistances((*child)->getKDOP());
+		
+		child++;
+		
+		//Merge the KDOP of the remaining children with this KDOP
+		for(; child != childList.end(); child++)
+		{
+			root->getKDOP()->merge((*child)->getKDOP());
+		}
+	}
+}
+
+//Returns true if there is a collision between leaf nodes of the given trees. The list of colliding nodes is saved in a list.
+void Node::collides(Node* one, Node* two, std::vector<NodePair>& pairs)
+{
+	//Check for collision
+	if(one->getKDOP()->collides(two->getKDOP()))
+	{
+		//Do these nodes have children?
+		if(one->getChildList().size() > 0 && two->getChildList().size() > 0)
+		{
+			std::list<Node*> oneChildren = one->getChildList();
+			std::list<Node*> twoChildren = two->getChildList();
+			
+			//Recursively check each child node for collisions
+			for(std::list<Node*>::const_iterator oneChild = oneChildren.begin(); oneChild != oneChildren.end(); oneChild++)
+			{
+				for(std::list<Node*>::const_iterator twoChild = twoChildren.begin(); twoChild != twoChildren.end(); twoChild++)
+				{
+					collides(*oneChild, *twoChild, pairs);
+				}
+			}
+		}
+		else
+		{
+			//If the given nodes have no children this is a leaf node collision. Save result as collision pair.
+			pairs.push_back(NodePair(one, two));
+		}
 	}
 }

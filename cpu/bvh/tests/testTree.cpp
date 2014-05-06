@@ -57,16 +57,16 @@ void TreeTest::checkTreeDepths(int numLeaves, std::vector<int>& expected)
 {
 	std::list<Node*> leafNodes;
 	
-	//TODO add leaf nodes with KDOPs
+	//add leaf nodes with KDOPs
 	for(int i = 0; i < numLeaves; i++)
 	{
-		//TODO Create vertices of triangle and offset Y position by index
+		//Create vertices of triangle and offset Y position by index
 		std::vector<Vector3f> vertices;
 		vertices.push_back(Vector3f( 5.5f,  2.3f - (i*5.0f), -7.9f));
 		vertices.push_back(Vector3f(-7.1f,  8.8f - (i*5.0f),  0.3f));
 		vertices.push_back(Vector3f( 1.5f, -6.4f - (i*5.0f),  4.0f));
 		
-		//TODO Create KDOP from vertices
+		//Create KDOP from vertices
 		KDOP* kdop = new KDOP(vertices);
 		
 		//Add list of leaf nodes to the tree

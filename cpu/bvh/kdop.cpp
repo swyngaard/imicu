@@ -43,7 +43,7 @@ KDOP::KDOP(std::vector<Vector3f>& vertex, int k)
 	update(vertex);
 }
 
-//TODO add copy constructor
+//add copy constructor
 KDOP::KDOP(const KDOP& kdop)
 {
 	//Make sure that only a valid value of K is set
@@ -75,6 +75,7 @@ KDOP::~KDOP()
 	
 	delete [] distance;
 }
+
 
 std::vector<Vector3i>& KDOP::getNormals()
 {
@@ -908,6 +909,20 @@ bool KDOP::merge(const KDOP* kdop)
 		distance[i] = std::min(kdop->distance[i], distance[i]);
 		distance[halfK+i] = std::max(kdop->distance[halfK+i], distance[halfK+i]);
 	}
+	
+	return true;
+}
+
+//TODO Unit test setDistances function
+//Set distances values of the given KDOP to this KDOP
+bool KDOP::setDistances(const KDOP* kdop)
+{
+	//Can't set distances from KDOP with a different number of planes
+	if(kdop->K != K)
+		return false;
+	
+	for(int i = 0; i < K; i++)
+		distance[i] = kdop->distance[i];
 	
 	return true;
 }

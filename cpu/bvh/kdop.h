@@ -48,6 +48,8 @@ public:
 	bool** getDegenerateMatrix();
 	float* getDistances();
 	
+	bool setDistances(const KDOP* kdop);
+	
 	void buildDegenerateMatrix();
 	
 protected:
