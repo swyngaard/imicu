@@ -23,16 +23,14 @@ long_line_behaviour=1
 long_line_column=80
 
 [files]
-current_page=3
-FILE_NAME_0=495;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Fkdop.h;0;4
-FILE_NAME_1=1061;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Fkdop.cpp;0;4
-FILE_NAME_2=262;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftree.h;0;4
-FILE_NAME_3=830;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftree.cpp;0;4
-FILE_NAME_4=690;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestTree.h;0;4
-FILE_NAME_5=2279;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestTree.cpp;0;4
-FILE_NAME_6=13359;Python;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FsageTree.py;0;4
-FILE_NAME_7=18131;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestKDOP.cpp;0;4
-FILE_NAME_8=0;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftools.h;0;4
+current_page=6
+FILE_NAME_0=742;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Fkdop.h;0;4
+FILE_NAME_1=38578;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Fkdop.cpp;0;4
+FILE_NAME_2=661;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftree.h;0;4
+FILE_NAME_3=4542;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftree.cpp;0;4
+FILE_NAME_4=901;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestTree.h;0;4
+FILE_NAME_5=106896;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestTree.cpp;0;4
+FILE_NAME_6=10874;Python;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FsageUpdateTree.py;0;4
 
 [VTE]
 last_dir=/home/swyngaard/Dropbox/pilar/cpu/bvh/tests

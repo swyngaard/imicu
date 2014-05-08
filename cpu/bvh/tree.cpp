@@ -243,7 +243,7 @@ void Node::updateTree(Node* root)
 	}
 }
 
-//Returns true if there is a collision between leaf nodes of the given trees. The list of colliding nodes is saved in a list.
+//Checks for collisions between leaf nodes of the given trees. The list of colliding nodes is saved in a vector.
 void Node::collides(Node* one, Node* two, std::vector<NodePair>& pairs)
 {
 	//Check for collision

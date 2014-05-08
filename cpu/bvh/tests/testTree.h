@@ -15,11 +15,13 @@ public:
 	
 	void testBuildTree();
 	void testKDOPTree();
+	void testUpdateTree();
 	
 	CPPUNIT_TEST_SUITE( TreeTest );
 	
 	CPPUNIT_TEST( testBuildTree );
 	CPPUNIT_TEST( testKDOPTree );
+	CPPUNIT_TEST( testUpdateTree );
 	
 	CPPUNIT_TEST_SUITE_END();
 	
@@ -30,6 +32,13 @@ protected:
 							float expected_14[][14],
 							float expected_18[][18],
 							float expected_26[][26]);
+	void checkTreeUpdate(std::vector< std::vector<Vector3f> >& verts,
+						 std::vector< std::vector<Vector3f> >& updatedVerts,
+						 std::vector<bool>& flags,
+						 float expected_6 [][6],
+						 float expected_14[][14],
+						 float expected_18[][18],
+						 float expected_26[][26]);
 };
 
 #endif
