@@ -16,12 +16,14 @@ public:
 	void testBuildTree();
 	void testKDOPTree();
 	void testUpdateTree();
+	void testCollisions();
 	
 	CPPUNIT_TEST_SUITE( TreeTest );
 	
 	CPPUNIT_TEST( testBuildTree );
 	CPPUNIT_TEST( testKDOPTree );
 	CPPUNIT_TEST( testUpdateTree );
+	CPPUNIT_TEST( testCollisions );
 	
 	CPPUNIT_TEST_SUITE_END();
 	
@@ -39,6 +41,9 @@ protected:
 						 float expected_14[][14],
 						 float expected_18[][18],
 						 float expected_26[][26]);
+	void checkTreeCollisions(std::vector< std::vector<Vector3f> >& vertsA,
+							 std::vector< std::vector<Vector3f> >& vertsB,
+							 std::vector<int>& expectedPairs);
 };
 
 #endif
