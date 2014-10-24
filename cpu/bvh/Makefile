@@ -23,7 +23,7 @@ kdop: obj_kdop
 	$(CC) $(OBJ) $(LIBS) -o $(BIN)
 
 test: $(TEST_CPP) $(TEST_HEADERS) $(TEST_OBJ)
-	$(CC) $(TEST_FLAGS) $(TEST_LIBS) $(TEST_CPP) $(TEST_OBJ) -o $(TEST_BIN)
+	$(CC) $(TEST_FLAGS)  $(TEST_CPP) $(TEST_OBJ) $(TEST_LIBS) -o $(TEST_BIN)
 
 check: $(TEST_BIN)
 	$(TEST_BIN)
