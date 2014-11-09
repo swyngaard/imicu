@@ -1,5 +1,7 @@
 #include "hair.h"
 #include "constants.h"
+//TODO #include tree.h
+#include "tree.h"
 
 #include <iostream>
 //#include <iomanip>

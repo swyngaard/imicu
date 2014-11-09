@@ -1,8 +1,8 @@
 CC = g++
 
-CPP = main.cpp hair.cpp tools.cpp
-HEADERS = hair.h tools.h constants.h
-OBJF = hair.o tools.o
+CPP = main.cpp hair.cpp tools.cpp kdop.cpp tree.cpp
+HEADERS = hair.h tools.h constants.h kdop.h tree.h
+OBJF = hair.o tools.o kdop.o tree.o
 OBJ = main.o $(OBJF)
 FLAGS = -I$(HOME)/local/include
 EXE = pilar
