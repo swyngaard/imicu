@@ -168,6 +168,8 @@ namespace pilar
 			particle[i]->position = Vector3f((i+1.0f)*(length/2.0f), 0.0f, 0.0f);
 			particle[i]->posc = particle[i]->position;
 			particle[i]->pos = particle[i]->position;
+			
+			//TODO Create KDOP and Node for every two particles and build BVH Tree
 		}
 		
 		once = false;
@@ -718,6 +720,9 @@ namespace pilar
 //			twist[i] = NULL;
 //		}
 //		delete [] twist;
+		
+		//BVH
+		//TODO Delete KDOPs and BVH Tree Nodes
 		
 		//Particles
 		for(int i = 0; i < numParticles; i++)
