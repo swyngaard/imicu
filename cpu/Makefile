@@ -26,6 +26,9 @@ obj_ogl: $(HEADERS)
 ogl: obj_ogl
 	$(CC) $(OOBJ) $(LIBS) -o $(OEXE)
 
+memcheck: $(OEXE)
+	valgrind --leak-check=full ./$(EXE)
+
 .PHONY: clean
 	
 clean:

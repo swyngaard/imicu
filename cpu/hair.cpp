@@ -1,6 +1,5 @@
 #include "hair.h"
 #include "constants.h"
-//TODO #include tree.h
 #include "tree.h"
 
 #include <iostream>
@@ -161,6 +160,8 @@ namespace pilar
 		bb = new float[numParticles*NUMCOMPONENTS];
 		AA = new float[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS];
 		
+		std::list<Node*> leafNodes;
+		
 		particle = new Particle*[numParticles];
 		
 		for(int i = 0; i < numParticles; i++)
@@ -171,8 +172,21 @@ namespace pilar
 			particle[i]->posc = particle[i]->position;
 			particle[i]->pos = particle[i]->position;
 			
-			//TODO Create KDOP and Node for every two particles and build BVH Tree
+			//TODO Create KDOP and Node for every two particles and build leaf node
+			if(i > 0)
+			{
+				//Create list of vertices that comprise the strand segment
+				std::vector<Vector3f> vertices;
+				vertices.push_back(particle[i-1]->position);
+				vertices.push_back(particle[i]->position);
+				
+				//Build leaf node and KDOP from vertices then add the node to the list of leaves
+				leafNodes.push_back(new Node(new KDOP(vertices, 26)));
+			}
 		}
+		
+		//TODO Create BVH Tree and save root pointer
+		bvhTree = Node::buildTree(leafNodes);
 		
 		once = false;
 		twice = false;
@@ -647,8 +661,8 @@ namespace pilar
 			float c00 = c0 * (1 - d.z) + c1 * d.z;
 			float c11 = c2 * (1 - d.z) + c3 * d.z;
 			
-			float c000 = c00 * (1 - d.y) + c11 * d.y;
-			
+			float c000 =  c00 * (1 - d.y) + c11 * d.y;
+						
 			//Calculate normal
 			Vector3f normal;
 			
@@ -682,7 +696,7 @@ namespace pilar
 				
 				float vn = particle[i]->velocity.x * normal.x + particle[i]->velocity.y * normal.y + particle[i]->velocity.z * normal.z;
 				Vector3f vt = particle[i]->velocity - normal*vn;
-				
+								
 				float vnew = vn - phi/dt;
 				float friction = 1.0f - 0.3f*(vnew-vn)/vt.length();
 				Vector3f vrel = (0.0f > friction) ? vt*0.0f : vt*friction;
@@ -723,8 +737,8 @@ namespace pilar
 //		}
 //		delete [] twist;
 		
-		//BVH
-		//TODO Delete KDOPs and BVH Tree Nodes
+		//TODO Delete BVH Tree and KDOPs
+		delete bvhTree;
 		
 		//Particles
 		for(int i = 0; i < numParticles; i++)
@@ -763,6 +777,9 @@ namespace pilar
 		{
 			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]);
 		}
+		
+		//Initialise object collision to zero
+		memset(grid, 0, sizeof(grid));
 	}
 	
 	Hair::Hair(int numStrands,

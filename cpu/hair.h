@@ -5,6 +5,7 @@
 #include "tools.h"
 #include "constants.h"
 #include "ogl.h"
+#include "tree.h"
 #include <vector>
 
 namespace pilar
@@ -96,6 +97,8 @@ namespace pilar
 		Spring** edge;
 		Spring** bend;
 		Spring** twist;
+		
+		Node* bvhTree;
 		
 		void buildSprings();
 		void clearForces();
