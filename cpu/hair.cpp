@@ -164,6 +164,9 @@ namespace pilar
 		
 		particle = new Particle*[numParticles];
 		
+		//~ static bool debugging = false;
+		//~ static int counting = 0;
+		
 		for(int i = 0; i < numParticles; i++)
 		{
 			particle[i] = new Particle(mass);
@@ -172,7 +175,7 @@ namespace pilar
 			particle[i]->posc = particle[i]->position;
 			particle[i]->pos = particle[i]->position;
 			
-			//TODO Create KDOP and Node for every two particles and build leaf node
+			//Create KDOP and Node for every two particles and build leaf node
 			if(i > 0)
 			{
 				//Create list of vertices that comprise the strand segment
@@ -180,12 +183,26 @@ namespace pilar
 				vertices.push_back(particle[i-1]->position);
 				vertices.push_back(particle[i]->position);
 				
+				//Create KDOP bounding volume from the two vertices
+				KDOP* kdop = new KDOP(vertices, KDOP_PLANES);
+				
 				//Build leaf node and KDOP from vertices then add the node to the list of leaves
-				leafNodes.push_back(new Node(new KDOP(vertices, 26)));
+				leafNodes.push_back(new Node(kdop));
+				
+				//Save the KDOP to a list of leaf KDOPs for later updating
+				leafKDOP.push_back(kdop);
+				
+				//~ counting++;
 			}
 		}
 		
-		//TODO Create BVH Tree and save root pointer
+		//~ if(!debugging)
+		//~ {
+			//~ std::cout << "Counting: " << counting << std::endl;
+			//~ debugging = true;
+		//~ }
+		
+		//Create BVH Tree and save root pointer
 		bvhTree = Node::buildTree(leafNodes);
 		
 		once = false;
@@ -576,6 +593,7 @@ namespace pilar
 		applyStrainLimiting(dt);
 		
 		//Stiction calculations
+		applyStiction(dt);
 		
 		//Calculate half position and new position
 		updatePositions(dt);
@@ -597,10 +615,50 @@ namespace pilar
 		//Apply gravity
 		applyForce(Vector3f(0.0f, mass*GRAVITY, 0.0f));
 		
+		//TODO Apply other forces such as wind
+		
 		//Calculate half velocity and new velocity
 		updateParticles(dt);
 		
+		//Update bounding volume tree values using newly calculated particle positions
+		updateBoundingVolumes();
+		
 		//Self Collisions
+	}
+	
+	void Strand::applyStiction(float dt)
+	{
+		//TODO Break existing springs based on length
+		
+		//TODO Create new springs based on collision with other BVH Trees
+	}
+	
+	void Strand::updateBoundingVolumes()
+	{
+		//~ static bool debugging = false;
+		//~ static int counting = 0;
+		
+		//Update the leaf nodes with new positions
+		for(int i = 1; i < numParticles; i++)
+		{
+			//Build segment vertices
+			std::vector<Vector3f> vertices;
+			vertices.push_back(particle[i-1]->pos);
+			vertices.push_back(particle[i]->pos);
+			
+			leafKDOP[i-1]->update(vertices);
+			
+			//~ counting++;
+		}
+		
+		//~ if(!debugging)
+		//~ {
+			//~ std::cout << "Counting: " << counting << std::endl;
+			//~ debugging = true;
+		//~ }
+		
+		//Update the internal nodes
+		Node::updateTree(bvhTree);
 	}
 	
 	void Strand::applyStrainLimiting(float dt)
@@ -737,7 +795,7 @@ namespace pilar
 //		}
 //		delete [] twist;
 		
-		//TODO Delete BVH Tree and KDOPs
+		//Delete BVH Tree and KDOPs
 		delete bvhTree;
 		
 		//Particles

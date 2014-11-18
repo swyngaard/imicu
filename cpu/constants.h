@@ -17,6 +17,9 @@
 #define D_EXTRA				0.125f
 #define GRAVITY				-9.81f//(stable value) -9.81f
 
+//Bounding volume constants
+#define KDOP_PLANES			26 //other valid values include 6, 14 & 18.
+
 //Strain limiting constants
 #define MAX_LENGTH			0.0055f //Maximum length of a spring
 #define MAX_LENGTH_SQUARED	0.00003025f //Maximum length of a spring squared

@@ -98,7 +98,8 @@ namespace pilar
 		Spring** bend;
 		Spring** twist;
 		
-		Node* bvhTree;
+		
+		std::vector<KDOP*> leafKDOP;
 		
 		void buildSprings();
 		void clearForces();
@@ -108,6 +109,10 @@ namespace pilar
 		void updateParticles(float dt);
 		void calcVelocities(float dt);
 		void objectCollisions(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
+		void applyStrainLimiting(float dt);
+		void applyStiction(float dt);
+		void updateBoundingVolumes();
+		
 		
 		float getA(int i, int j, float dt);
 		float getB(int i, float dt);
@@ -121,6 +126,7 @@ namespace pilar
 		Spring* springr0;
 		Spring* spring01;
 		Spring* spring12;
+		Node* bvhTree;
 		
 		Strand(int numParticles,
 			   float mass,
@@ -137,7 +143,7 @@ namespace pilar
 		void update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
 		void release();
 		void applyForce(Vector3f force);
-		void applyStrainLimiting(float dt);
+		
 	};
 	
 	class Hair

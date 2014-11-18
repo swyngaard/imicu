@@ -15,16 +15,13 @@ run_cmd=./gl
 file_patterns=
 
 [files]
-current_page=7
-FILE_NAME_0=115;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.h;0;4
-FILE_NAME_1=4764;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.cpp;0;4
-FILE_NAME_2=324;Make;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2FMakefile;0;4
-FILE_NAME_3=95;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Ftree.h;0;4
-FILE_NAME_4=58;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Ftree.cpp;0;4
-FILE_NAME_5=48703;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestTree.cpp;0;4
-FILE_NAME_6=0;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fmain.cpp;0;4
-FILE_NAME_7=2952;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Ftools.cpp;0;4
-FILE_NAME_8=138;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Ftools.h;0;4
+current_page=2
+FILE_NAME_0=2165;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.h;0;4
+FILE_NAME_1=4977;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.cpp;0;4
+FILE_NAME_2=7730;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fogl.cpp;0;4
+FILE_NAME_3=107231;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2FtestTree.cpp;0;4
+FILE_NAME_4=0;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fbvh%2Ftests%2Fmain.cpp;0;4
+FILE_NAME_5=31665;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fkdop.cpp;0;4
 
 [file_prefs]
 final_new_line=true

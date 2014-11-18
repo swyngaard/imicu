@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100,100);
-	glutInitWindowSize(800,600);
+	glutInitWindowSize(1024,768);
 	glutCreateWindow("Pilar");
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 	
@@ -265,7 +265,30 @@ void render(void) {
 	
 	glEnd();
 	
+	glBegin(GL_LINES);
 	
+	//FIXME Render KDOP visualisation for each strand from BVH Tree
+	for(int i = 0; i < hair->numStrands; i++)
+	{
+		std::vector<pilar::Vector3f> vertices = hair->strand[i]->bvhTree->getKDOP()->debug();
+		
+		int totalLines = vertices.size()/2;
+		
+		std::cout << vertices.size() << std::endl;
+		
+		glColor3f(1.0f, 1.0f, 1.0f);
+		
+		for(int j = 0; j < totalLines; j++)
+		{
+			int v1 = j * 2;
+			int v2 = j * 2 + 1;
+			
+			glVertex3f(vertices[v1].x, vertices[v1].y, vertices[v1].z);
+			glVertex3f(vertices[v2].x, vertices[v2].y, vertices[v2].z);
+		}
+	}
+	glEnd();
+		
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_POINTS);
 		glVertex3f(0.0f, 0.0f, 0.0f);
