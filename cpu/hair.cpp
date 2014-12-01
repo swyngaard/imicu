@@ -156,6 +156,8 @@ namespace pilar
 		this->length = length;
 		this->mass  = mass;
 		
+		this->root = root;
+		
 		xx = new float[numParticles*NUMCOMPONENTS];
 		bb = new float[numParticles*NUMCOMPONENTS];
 		AA = new float[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS];
@@ -164,14 +166,12 @@ namespace pilar
 		
 		particle = new Particle*[numParticles];
 		
-		//~ static bool debugging = false;
-		//~ static int counting = 0;
-		
 		for(int i = 0; i < numParticles; i++)
 		{
 			particle[i] = new Particle(mass);
-			//~ particle[i]->position = Vector3f(0.0f,(i+1.0f)*(-length/2.0f), 0.0f);
-			particle[i]->position = Vector3f((i+1.0f)*(length/2.0f), 0.0f, 0.0f);
+			particle[i]->position = root;
+			//~ particle[i]->position += Vector3f((i+1.0f)*(length/2.0f), 0.0f, 0.0f);
+			particle[i]->position += Vector3f((i+0.025f), 0.0f, 0.0f);
 			particle[i]->posc = particle[i]->position;
 			particle[i]->pos = particle[i]->position;
 			
@@ -191,24 +191,11 @@ namespace pilar
 				
 				//Save the KDOP to a list of leaf KDOPs for later updating
 				leafKDOP.push_back(kdop);
-				
-				//~ counting++;
-			}
+				}
 		}
-		
-		//~ if(!debugging)
-		//~ {
-			//~ std::cout << "Counting: " << counting << std::endl;
-			//~ debugging = true;
-		//~ }
 		
 		//Create BVH Tree and save root pointer
 		bvhTree = Node::buildTree(leafNodes);
-		
-		once = false;
-		twice = false;
-		thrice = false;
-		fourth = false;
 		
 //		buildSprings();		
 	}
@@ -403,30 +390,32 @@ namespace pilar
 	{
 		memset(AA, 0, sizeof(float)*numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS);
 		
+		//TODO Find reasonable value for d_edge that allows for a stable system
 		float h = dt*dt*k_edge/(4.0f*mass*length) + d_edge*dt/(2.0f*mass);
 		float g = dt*k_edge/(2.0f*mass*length);
 		Vector3f gravity(0.0f, GRAVITY, 0.0f);
 		
+		//First particle direction vectors
+		Vector3f du0R(root-particle[0]->pos);
+		Vector3f du01(particle[1]->pos-particle[0]->pos);
+		du0R.unitize();
+		du01.unitize();
 		
-		//First particle boundary condition
-		Vector3f du0(-particle[0]->pos);
-		Vector3f dd0(particle[1]->pos-particle[0]->pos);
-		du0.unitize();
-		dd0.unitize();
+		//Set first four entries of the A matrix
+		AA[0] = 1.0f + h*du0R.x*du0R.x + h*du01.x*du01.x;
+		AA[1] = h*du0R.x*du0R.y + h*du01.x*du01.y;
+		AA[2] = -h*du01.x*du01.x;
+		AA[3] = -h*du01.x*du01.y;
 		
-		AA[0] = 1.0f + h*du0.x*du0.x + h*dd0.x*dd0.x;
-		AA[1] = h*du0.x*du0.y + h*dd0.x*dd0.y;
-		AA[2] = -h*dd0.x*dd0.x;
-		AA[3] = -h*dd0.x*dd0.y;
+		//Set next four non-zero entries of the A matrix
+		AA[numParticles*NUMCOMPONENTS  ] = h*du0R.x*du0R.y + h*du01.x*du01.y;
+		AA[numParticles*NUMCOMPONENTS+1] = 1.0f + h*du0R.y*du0R.y + h*du01.y*du01.y;
+		AA[numParticles*NUMCOMPONENTS+2] = -h*du01.x*du01.y;
+		AA[numParticles*NUMCOMPONENTS+3] = -h*du01.y*du01.y;
 		
-		AA[numParticles*NUMCOMPONENTS  ] = h*du0.x*du0.y + h*dd0.x*dd0.y;
-		AA[numParticles*NUMCOMPONENTS+1] = 1.0f + h*du0.y*du0.y + h*dd0.y*dd0.y;
-		AA[numParticles*NUMCOMPONENTS+2] = -h*dd0.x*dd0.y;
-		AA[numParticles*NUMCOMPONENTS+3] = -h*dd0.y*dd0.y;
-		
-		bb[0] = particle[0]->velocity.x + g*(-particle[0]->pos.x*du0.x-particle[0]->pos.y*du0.y-length)*du0.x + g*((particle[1]->pos.x-particle[0]->pos.x)*dd0.x+(particle[1]->pos.y-particle[0]->pos.y)*dd0.y-length)*dd0.x + gravity.x*(dt/2.0f);
-		bb[1] = particle[0]->velocity.y + g*(-particle[0]->pos.x*du0.x-particle[0]->pos.y*du0.y-length)*du0.y + g*((particle[1]->pos.x-particle[0]->pos.x)*dd0.x+(particle[1]->pos.y-particle[0]->pos.y)*dd0.y-length)*dd0.y + gravity.y*(dt/2.0f);
-		
+		//Set first two entries of the b vector
+		bb[0] = particle[0]->velocity.x + g*((root.x-particle[0]->pos.x)*du0R.x+(root.y-particle[0]->pos.y)*du0R.y-length)*du0R.x + g*((particle[1]->pos.x-particle[0]->pos.x)*du01.x+(particle[1]->pos.y-particle[0]->pos.y)*du01.y-length)*du01.x + gravity.x*(dt/2.0f);
+		bb[1] = particle[0]->velocity.y + g*((root.x-particle[0]->pos.x)*du0R.x+(root.y-particle[0]->pos.y)*du0R.y-length)*du0R.y + g*((particle[1]->pos.x-particle[0]->pos.x)*du01.x+(particle[1]->pos.y-particle[0]->pos.y)*du01.y-length)*du01.y + gravity.y*(dt/2.0f);		
 		
 		//Build in-between values of matrix A and vector b
 		for(int i = 1; i < (numParticles-1); i++)
@@ -458,16 +447,19 @@ namespace pilar
 		Vector3f duN(particle[numParticles-2]->pos-particle[numParticles-1]->pos);
 		duN.unitize();
 		
+		//Set second to last row of matrix A
 		AA[(numParticles-1)*NUMCOMPONENTS*numParticles*NUMCOMPONENTS + numParticles*NUMCOMPONENTS-4] = -h*duN.x*duN.x;
 		AA[(numParticles-1)*NUMCOMPONENTS*numParticles*NUMCOMPONENTS + numParticles*NUMCOMPONENTS-3] = -h*duN.x*duN.y;
 		AA[(numParticles-1)*NUMCOMPONENTS*numParticles*NUMCOMPONENTS + numParticles*NUMCOMPONENTS-2] = 1.0f + h*duN.x*duN.x;
 		AA[(numParticles-1)*NUMCOMPONENTS*numParticles*NUMCOMPONENTS + numParticles*NUMCOMPONENTS-1] = h*duN.x*duN.y;
 		
+		//Set last row of matrix A
 		AA[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 4] = -h*duN.x*duN.y;
 		AA[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 3] = -h*duN.y*duN.y;
 		AA[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 2] = h*duN.x*duN.y;
 		AA[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 1] = 1.0f + h*duN.y*duN.y;
 		
+		//Set last two entries of vector b
 		bb[numParticles*NUMCOMPONENTS-2] = particle[numParticles-1]->velocity.x + g*((particle[numParticles-2]->pos.x-particle[numParticles-1]->pos.x)*duN.x+(particle[numParticles-2]->pos.y-particle[numParticles-1]->pos.y)*duN.y-length)*duN.x + gravity.x*(dt/2.0f);
 		bb[numParticles*NUMCOMPONENTS-1] = particle[numParticles-1]->velocity.y + g*((particle[numParticles-2]->pos.x-particle[numParticles-1]->pos.x)*duN.x+(particle[numParticles-2]->pos.y-particle[numParticles-1]->pos.y)*duN.y-length)*duN.y + gravity.y*(dt/2.0f);
 	}
@@ -501,7 +493,7 @@ namespace pilar
 		float h = dt*k_edge/(2.0f*length) + d_edge;
 		
 		//Calculate force for first particle
-		Vector3f uu0(-particle[0]->pos);
+		Vector3f uu0(root-particle[0]->pos);
 		Vector3f ud0(particle[1]->pos-particle[0]->pos);
 		Vector3f du0(uu0.unit());
 		Vector3f dd0(ud0.unit());
@@ -574,38 +566,38 @@ namespace pilar
 	}
 	
 	void Strand::update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM])
-	{
+	{		
 		//Reset forces on particles
 		clearForces();
-		
+				
 		//Calculate candidate velocities
 		calcVelocities(dt);
-		
+				
 		//Calculate and apply spring forces using previous position
 		updateSprings(dt);
-		
+				
 		//Apply gravity
 		applyForce(Vector3f(0.0f, mass*GRAVITY, 0.0f));
-		
+				
 		//Calculate half velocities using forces
 		updateVelocities(dt);
-		
+				
 		applyStrainLimiting(dt);
-		
+				
 		//Stiction calculations
 		applyStiction(dt);
-		
+				
 		//Calculate half position and new position
 		updatePositions(dt);
-		
+				
 		//Check geometry collisions and adjust velocities and positions
 		objectCollisions(dt, grid);
-		
+				
 		//Self collisions
 		
 		//Reset forces on particles
 		clearForces();
-		
+				
 		//Calculate velocities using half position
 		calcVelocities(dt);
 		
@@ -635,9 +627,6 @@ namespace pilar
 	
 	void Strand::updateBoundingVolumes()
 	{
-		//~ static bool debugging = false;
-		//~ static int counting = 0;
-		
 		//Update the leaf nodes with new positions
 		for(int i = 1; i < numParticles; i++)
 		{
@@ -647,15 +636,7 @@ namespace pilar
 			vertices.push_back(particle[i]->pos);
 			
 			leafKDOP[i-1]->update(vertices);
-			
-			//~ counting++;
 		}
-		
-		//~ if(!debugging)
-		//~ {
-			//~ std::cout << "Counting: " << counting << std::endl;
-			//~ debugging = true;
-		//~ }
 		
 		//Update the internal nodes
 		Node::updateTree(bvhTree);
@@ -669,12 +650,12 @@ namespace pilar
 			particle[i]->posc = particle[i]->pos + particle[i]->velh * dt;
 			
 			//Determine the direction of the spring between the particles
-			Vector3f dir = (i > 0) ? (particle[i]->posc - particle[i-1]->posc) : (particle[i]->posc - Vector3f(0.0f, 0.0f, 0.0f));
+			Vector3f dir = (i > 0) ? (particle[i]->posc - particle[i-1]->posc) : (particle[i]->posc - root);
 			
 			if(dir.length_sqr() > MAX_LENGTH_SQUARED)
 			{
 				//Find a valid candidate position
-				particle[i]->posc = (i > 0) ? (particle[i-1]->posc + (dir * (MAX_LENGTH*dir.length_inverse()))) : (Vector3f(0.0f, 0.0f, 0.0f) + (dir * (MAX_LENGTH*dir.length_inverse()))); //fast length calculation
+				particle[i]->posc = (i > 0) ? (particle[i-1]->posc + (dir * (MAX_LENGTH*dir.length_inverse()))) : (root + (dir * (MAX_LENGTH*dir.length_inverse()))); //fast length calculation
 				
 				//~ particle[i]->posc = particle[i-1]->posc + (dir * (MAX_LENGTH/dir.length())); //slower length calculation
 				
@@ -685,9 +666,9 @@ namespace pilar
 	}
 	
 	void Strand::objectCollisions(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM])
-	{
+	{		
 		for(int i = 0; i < numParticles; i++)
-		{
+		{			
 			//Transform particle coordinates to collision grid coordinates
 			Vector3f position;
 			position.x = (particle[i]->position.x + DOMAIN_HALF-CELL_HALF)/CELL_WIDTH;
@@ -696,7 +677,7 @@ namespace pilar
 			
 			Vector3i min (int(position.x), int(position.y), int(position.z));
 			Vector3i max (min.x+1, min.y+1, min.z+1);
-			
+						
 			float v000 = grid[min.x][min.y][min.z];
 			float v100 = grid[max.x][min.y][min.z];
 			float v001 = grid[min.x][min.y][max.z];
@@ -705,7 +686,7 @@ namespace pilar
 			float v110 = grid[max.x][max.y][min.z];
 			float v011 = grid[min.x][max.y][max.z];
 			float v111 = grid[max.x][max.y][max.z];
-			
+						
 			Vector3f d;
 			d.x = (position.x - min.x)/(max.x - min.x);
 			d.y = (position.y - min.y)/(max.y - min.y);
@@ -720,7 +701,7 @@ namespace pilar
 			float c11 = c2 * (1 - d.z) + c3 * d.z;
 			
 			float c000 =  c00 * (1 - d.y) + c11 * d.y;
-						
+			
 			//Calculate normal
 			Vector3f normal;
 			
@@ -761,7 +742,9 @@ namespace pilar
 				
 				particle[i]->velocity = normal*vnew + vrel;
 			}
+			
 		}
+		
 	}
 	
 	//Clean up
@@ -861,7 +844,7 @@ namespace pilar
 		
 		for(int i = 0; i < numStrands; i++)
 		{
-			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]);
+			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]); 
 		}
 		
 		initDistanceField(obj);

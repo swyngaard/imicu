@@ -70,7 +70,6 @@ namespace pilar
 		int numEdges;
 		int numBend;
 		int numTwist;
-		Vector3f root;
 		
 		float k_edge;
 		float k_bend;
@@ -89,15 +88,9 @@ namespace pilar
 		float* AA;
 		float* bb;
 		
-		bool once;
-		bool twice;
-		bool thrice;
-		bool fourth;
-		
 		Spring** edge;
 		Spring** bend;
 		Spring** twist;
-		
 		
 		std::vector<KDOP*> leafKDOP;
 		
@@ -113,7 +106,6 @@ namespace pilar
 		void applyStiction(float dt);
 		void updateBoundingVolumes();
 		
-		
 		float getA(int i, int j, float dt);
 		float getB(int i, float dt);
 		void buildAB(float dt);
@@ -122,10 +114,8 @@ namespace pilar
 	public:
 		int numParticles;
 		Particle** particle;
+		Vector3f root;
 		
-		Spring* springr0;
-		Spring* spring01;
-		Spring* spring12;
 		Node* bvhTree;
 		
 		Strand(int numParticles,

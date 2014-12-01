@@ -129,13 +129,15 @@ void init()
 {
 	obj.Load("spherehalf.obj");
 	
-	pilar::Vector3f root;
+	pilar::Vector3f strand00(0.0f, 0.0f, 0.0f);
+	pilar::Vector3f strand01(-0.025f, -0.025f, 0.0f);
+	
 	std::vector<pilar::Vector3f> roots;
 	
-	roots.push_back(root);
+	roots.push_back(strand00);
+	roots.push_back(strand01);
 	
 	hair = new pilar::Hair(roots.size(), NUMPARTICLES, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH, roots, obj);
-	
 }
 
 void cleanup()
@@ -232,13 +234,16 @@ void render(void) {
 		obj.Draw();
 	glPopMatrix();
 	
-	//Draw hair
-	glBegin(GL_LINE_STRIP);
-	
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	
+	//Draw strands using line strips
 	for(int i = 0; i < hair->numStrands; i++)
 	{
+		glBegin(GL_LINE_STRIP);
+		
+		//Point at which strand is fixed
+		pilar::Vector3f root = hair->strand[i]->root;
+		
+		glVertex3f(root.x, root.y, root.z);
+		
 		for(int j = 0; j < hair->strand[i]->numParticles; j++)
 		{
 			pilar::Particle* particle = hair->strand[i]->particle[j];
@@ -254,28 +259,23 @@ void render(void) {
 			
 			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
 		}
-		//glVertex3f(hair->strand[i]->rootParticle->position.x, hair->strand[i]->rootParticle->position.y, hair->strand[i]->rootParticle->position.z);
-		//~ glColor3f(1.0f, 1.0f, 1.0f);
-		//~ glVertex3f(hair->strand[i]->particle[0]->position.x, hair->strand[i]->particle[0]->position.y, hair->strand[i]->particle[0]->position.z);
-		//~ glColor3f(1.0f, 0.0f, 0.0f);
-		//~ glVertex3f(hair->strand[i]->particle[1]->position.x, hair->strand[i]->particle[1]->position.y, hair->strand[i]->particle[1]->position.z);
-		//~ glColor3f(1.0f, 0.0f, 1.0f);
-		//~ glVertex3f(hair->strand[i]->particle[2]->position.x, hair->strand[i]->particle[2]->position.y, hair->strand[i]->particle[2]->position.z);
+		glEnd();
+		
 	}
 	
-	glEnd();
+	//#define DEBUG
 	
+	#ifdef DEBUG_KDOP
 	glBegin(GL_LINES);
 	
-	//FIXME Render KDOP visualisation for each strand from BVH Tree
+	//TODO Make KDOP render a debug feature only
+	//Render KDOP visualisation for each strand from BVH Tree
 	for(int i = 0; i < hair->numStrands; i++)
 	{
 		std::vector<pilar::Vector3f> vertices = hair->strand[i]->bvhTree->getKDOP()->debug();
 		
 		int totalLines = vertices.size()/2;
-		
-		std::cout << vertices.size() << std::endl;
-		
+				
 		glColor3f(1.0f, 1.0f, 1.0f);
 		
 		for(int j = 0; j < totalLines; j++)
@@ -288,6 +288,7 @@ void render(void) {
 		}
 	}
 	glEnd();
+	#endif
 		
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_POINTS);

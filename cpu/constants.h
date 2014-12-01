@@ -2,6 +2,8 @@
 #ifndef __CONSTANTS_H__
 #define __CONSTANTS_H__
 
+//~ #define DEBUG_KDOP			//Uncomment to enable debug mode
+
 #define NUMSTRANDS			1
 #define NUMPARTICLES		33 //Needs to be multiples of 7
 #define NUMCOMPONENTS		2
