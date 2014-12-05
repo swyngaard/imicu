@@ -130,14 +130,20 @@ void init()
 	obj.Load("spherehalf.obj");
 	
 	pilar::Vector3f strand00(0.0f, 0.0f, 0.0f);
-	pilar::Vector3f strand01(-0.025f, -0.025f, 0.0f);
+	pilar::Vector3f strand01(-0.025f, 0.0f, 0.0f);
 	
 	std::vector<pilar::Vector3f> roots;
-	
 	roots.push_back(strand00);
 	roots.push_back(strand01);
 	
-	hair = new pilar::Hair(roots.size(), NUMPARTICLES, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH, roots, obj);
+	pilar::Vector3f normal00(-1.0f, 0.0f, 0.0f);
+	pilar::Vector3f normal01(1.0f, 0.0f, 0.0f);
+	
+	std::vector<pilar::Vector3f> normals;
+	normals.push_back(normal00);
+	normals.push_back(normal01);
+	
+	hair = new pilar::Hair(roots.size(), NUMPARTICLES, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH, roots, normals, obj);
 }
 
 void cleanup()

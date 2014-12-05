@@ -175,6 +175,7 @@ namespace pilar
 			 float d_extra,
 			 float length,
 			 std::vector<Vector3f> &roots,
+			 std::vector<Vector3f> &normals,
 			 Model_OBJ &obj);
 			 
 		void update(float dt);

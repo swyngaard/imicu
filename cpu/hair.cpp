@@ -124,6 +124,8 @@ namespace pilar
 	
 ////////////////////////////// Strand Class ////////////////////////////////////
 	
+	
+	
 	Strand::Strand(int numParticles,
 				   float mass,
 				   float k_edge,
@@ -135,7 +137,7 @@ namespace pilar
 				   float d_twist,
 				   float d_extra,
 				   float length,
-				   Vector3f root=Vector3f())
+				   Vector3f root)
 	{
 		numEdges = numParticles - 1;
 		numBend  = numParticles - 2;
@@ -191,7 +193,7 @@ namespace pilar
 				
 				//Save the KDOP to a list of leaf KDOPs for later updating
 				leafKDOP.push_back(kdop);
-				}
+			}
 		}
 		
 		//Create BVH Tree and save root pointer
@@ -836,6 +838,7 @@ namespace pilar
 			   float d_extra,
 			   float length,
 			   std::vector<Vector3f> &roots,
+			   std::vector<Vector3f> &normals,
 			   Model_OBJ &obj)
 	{
 		this->numStrands = numStrands;

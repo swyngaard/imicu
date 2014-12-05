@@ -5,7 +5,7 @@
 //~ #define DEBUG_KDOP			//Uncomment to enable debug mode
 
 #define NUMSTRANDS			1
-#define NUMPARTICLES		33 //Needs to be multiples of 7
+#define NUMPARTICLES		9 // 33
 #define NUMCOMPONENTS		2
 #define MASS				0.005f //0.000000001f particle mass is 0.01mg, total strand weight is 1mg
 #define K_EDGE				1.5f //(stable value) 0.005f

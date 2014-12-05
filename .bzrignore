@@ -15,3 +15,4 @@ tree.o
 cpu/bvh/tests/test
 cpu/bvh/kdop
 cpu/bvh/tests/kdop_merge_visualisation.blend?
+pilar.geany
