@@ -136,8 +136,8 @@ void init()
 	roots.push_back(strand00);
 	roots.push_back(strand01);
 	
-	pilar::Vector3f normal00(-1.0f, 0.0f, 0.0f);
-	pilar::Vector3f normal01(1.0f, 0.0f, 0.0f);
+	pilar::Vector3f normal00(1.0f, -1.0f, 0.0f);
+	pilar::Vector3f normal01(-1.0f, -1.0f, 0.0f);
 	
 	std::vector<pilar::Vector3f> normals;
 	normals.push_back(normal00);
@@ -268,14 +268,11 @@ void render(void) {
 		glEnd();
 		
 	}
-	
-	//#define DEBUG
-	
+		
 	#ifdef DEBUG_KDOP
 	glBegin(GL_LINES);
 	
-	//TODO Make KDOP render a debug feature only
-	//Render KDOP visualisation for each strand from BVH Tree
+	//DEBUG Render KDOP visualisation for each strand from BVH Tree
 	for(int i = 0; i < hair->numStrands; i++)
 	{
 		std::vector<pilar::Vector3f> vertices = hair->strand[i]->bvhTree->getKDOP()->debug();
@@ -295,12 +292,13 @@ void render(void) {
 	}
 	glEnd();
 	#endif
-		
+	
+	//Draw some points for debugging purposes
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_POINTS);
-		glVertex3f(0.0f, 0.0f, 0.0f);
-		glVertex3f(0.0f, -0.25f, 0.0f);
-		glVertex3f(0.0f, -DOMAIN_HALF, 0.0f);
+		//~ glVertex3f(0.0f, 0.0f, 0.0f);
+		//~ glVertex3f(0.0f, -0.25f, 0.0f);
+		//~ glVertex3f(0.0f, -DOMAIN_HALF, 0.0f);
 		glVertex3f(0.0f, -0.005f, 0.0f);
 	glEnd();
 	

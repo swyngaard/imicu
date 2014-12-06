@@ -137,7 +137,8 @@ namespace pilar
 				   float d_twist,
 				   float d_extra,
 				   float length,
-				   Vector3f root)
+				   Vector3f root,
+				   Vector3f normal)
 	{
 		numEdges = numParticles - 1;
 		numBend  = numParticles - 2;
@@ -160,6 +161,8 @@ namespace pilar
 		
 		this->root = root;
 		
+		normal.unitize();
+		
 		xx = new float[numParticles*NUMCOMPONENTS];
 		bb = new float[numParticles*NUMCOMPONENTS];
 		AA = new float[numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS];
@@ -172,8 +175,9 @@ namespace pilar
 		{
 			particle[i] = new Particle(mass);
 			particle[i]->position = root;
-			//~ particle[i]->position += Vector3f((i+1.0f)*(length/2.0f), 0.0f, 0.0f);
-			particle[i]->position += Vector3f((i+0.025f), 0.0f, 0.0f);
+			
+			//Project next particle given distance from root or previous particle along normal
+			particle[i]->position += (normal*(0.025f*i));
 			particle[i]->posc = particle[i]->position;
 			particle[i]->pos = particle[i]->position;
 			
@@ -810,33 +814,6 @@ namespace pilar
 			   float d_twist,
 			   float d_extra,
 			   float length,
-			   std::vector<Vector3f> &roots)
-	{
-		this->numStrands = numStrands;
-		
-		strand = new Strand*[numStrands];
-		
-		for(int i = 0; i < numStrands; i++)
-		{
-			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]);
-		}
-		
-		//Initialise object collision to zero
-		memset(grid, 0, sizeof(grid));
-	}
-	
-	Hair::Hair(int numStrands,
-			   int numParticles,
-			   float mass,
-			   float k_edge,
-			   float k_bend,
-			   float k_twist,
-			   float k_extra,
-			   float d_edge,
-			   float d_bend,
-			   float d_twist,
-			   float d_extra,
-			   float length,
 			   std::vector<Vector3f> &roots,
 			   std::vector<Vector3f> &normals,
 			   Model_OBJ &obj)
@@ -847,7 +824,7 @@ namespace pilar
 		
 		for(int i = 0; i < numStrands; i++)
 		{
-			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]); 
+			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i], normals[i]); 
 		}
 		
 		initDistanceField(obj);

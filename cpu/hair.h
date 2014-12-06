@@ -129,7 +129,8 @@ namespace pilar
 			   float d_twist,
 			   float d_extra,
 			   float length,
-			   Vector3f root);
+			   Vector3f root,
+			   Vector3f normal);
 		void update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
 		void release();
 		void applyForce(Vector3f force);
@@ -147,20 +148,6 @@ namespace pilar
 		int numStrands;
 		Strand** strand;
 		float grid[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM];
-		
-		Hair(int numStrands,
-			 int numParticles,
-			 float mass, 
-			 float k_edge, 
-			 float k_bend,
-			 float k_twist,
-			 float k_extra,
-			 float d_edge,
-			 float d_bend,
-			 float d_twist,
-			 float d_extra,
-			 float length,
-			 std::vector<Vector3f> &roots);
 		
 		Hair(int numStrands,
 			 int numParticles,
