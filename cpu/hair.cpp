@@ -127,6 +127,8 @@ namespace pilar
 	
 	
 	Strand::Strand(int numParticles,
+				   int strandID,
+				   int numStrands,
 				   float mass,
 				   float k_edge,
 				   float k_bend,
@@ -146,6 +148,12 @@ namespace pilar
 		
 		this->numParticles = numParticles;
 		
+		//Unique strand ID number
+		this->strandID = strandID;
+		
+		//Total number of strands
+		this->numStrands = numStrands;
+		
 		this->k_edge = k_edge;
 		this->k_bend = k_bend;
 		this->k_twist = k_twist;
@@ -162,6 +170,8 @@ namespace pilar
 		this->root = root;
 		
 		normal.unitize();
+		
+		
 		
 		xx = new float[numParticles*NUMCOMPONENTS];
 		bb = new float[numParticles*NUMCOMPONENTS];
@@ -590,7 +600,7 @@ namespace pilar
 				
 		applyStrainLimiting(dt);
 				
-		//Stiction calculations
+		//TODO Detect collisions, calculate stiction forces and apply stiction to half velocity
 		applyStiction(dt);
 				
 		//Calculate half position and new position
@@ -622,13 +632,18 @@ namespace pilar
 		updateBoundingVolumes();
 		
 		//Self Collisions
+		
+		//TODO Detect collisions, calculate stiction forces and apply stiction to full velocity
 	}
 	
 	void Strand::applyStiction(float dt)
 	{
+		
 		//TODO Break existing springs based on length
 		
-		//TODO Create new springs based on collision with other BVH Trees
+		//TODO Detect for collision with other strands
+		
+		//TODO Create spring relation between colliding particles if not already in relationship
 	}
 	
 	void Strand::updateBoundingVolumes()
@@ -824,7 +839,7 @@ namespace pilar
 		
 		for(int i = 0; i < numStrands; i++)
 		{
-			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i], normals[i]); 
+			strand[i] = new Strand(numParticles, i, numStrands, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i], normals[i]); 
 		}
 		
 		initDistanceField(obj);

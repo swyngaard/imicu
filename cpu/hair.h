@@ -94,6 +94,9 @@ namespace pilar
 		
 		std::vector<KDOP*> leafKDOP;
 		
+		int strandID;
+		int numStrands;
+		
 		void buildSprings();
 		void clearForces();
 		void updateSprings(float dt);
@@ -119,6 +122,8 @@ namespace pilar
 		Node* bvhTree;
 		
 		Strand(int numParticles,
+			   int strandID,
+			   int numStrands,
 			   float mass,
 			   float k_edge,
 			   float k_bend,
