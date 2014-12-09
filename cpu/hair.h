@@ -93,6 +93,7 @@ namespace pilar
 		Spring** twist;
 		
 		std::vector<KDOP*> leafKDOP;
+		Node* bvhTree;
 		
 		int strandID;
 		int numStrands;
@@ -106,7 +107,7 @@ namespace pilar
 		void calcVelocities(float dt);
 		void objectCollisions(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
 		void applyStrainLimiting(float dt);
-		void applyStiction(float dt);
+		void applyStiction(float dt, Strand** strand);
 		void updateBoundingVolumes();
 		
 		float getA(int i, int j, float dt);
@@ -119,7 +120,7 @@ namespace pilar
 		Particle** particle;
 		Vector3f root;
 		
-		Node* bvhTree;
+		
 		
 		Strand(int numParticles,
 			   int strandID,
@@ -136,9 +137,11 @@ namespace pilar
 			   float length,
 			   Vector3f root,
 			   Vector3f normal);
-		void update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
+		void update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM], Strand** strand);
 		void release();
 		void applyForce(Vector3f force);
+		
+		Node* getTree();
 		
 	};
 	

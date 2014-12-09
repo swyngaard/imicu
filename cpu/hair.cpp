@@ -581,7 +581,7 @@ namespace pilar
 		}
 	}
 	
-	void Strand::update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM])
+	void Strand::update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM], Strand** strand)
 	{		
 		//Reset forces on particles
 		clearForces();
@@ -601,7 +601,7 @@ namespace pilar
 		applyStrainLimiting(dt);
 				
 		//TODO Detect collisions, calculate stiction forces and apply stiction to half velocity
-		applyStiction(dt);
+		applyStiction(dt, strand);
 				
 		//Calculate half position and new position
 		updatePositions(dt);
@@ -634,16 +634,31 @@ namespace pilar
 		//Self Collisions
 		
 		//TODO Detect collisions, calculate stiction forces and apply stiction to full velocity
+		//TODO Send in other strands
 	}
 	
-	void Strand::applyStiction(float dt)
+	void Strand::applyStiction(float dt, Strand** strand)
 	{
 		
 		//TODO Break existing springs based on length
 		
-		//TODO Detect for collision with other strands
+		//Colliding pairs will be saved here
+		std::vector<NodePair> pairs;
 		
+		//Detect for collision with other strands
+		for(int i = strandID+1; i < numStrands; i++)
+		{
+			//Check for collisions against other strand BVH Trees
+			Node::collides(bvhTree, strand[i]->getTree(), pairs);
+		}
+		
+		//TODO Identify which particles are affected by collisions
 		//TODO Create spring relation between colliding particles if not already in relationship
+	}
+	
+	Node* Strand::getTree()
+	{
+		return bvhTree;
 	}
 	
 	void Strand::updateBoundingVolumes()
@@ -1157,7 +1172,7 @@ namespace pilar
 	{
 		for(int i = 0; i < numStrands; i++)
 		{
-			strand[i]->update(dt, grid);
+			strand[i]->update(dt, grid, strand);
 		}
 	}
 	
