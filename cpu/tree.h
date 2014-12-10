@@ -16,6 +16,7 @@ namespace pilar
 		
 		Node(KDOP* kdop);
 		Node(KDOP* kdop, int depth);
+		Node(KDOP* kdop, int depth, int id, int strandID);
 		
 		~Node();
 		
@@ -23,6 +24,10 @@ namespace pilar
 		void setParent(const Node* parent);
 		
 		int getID();
+		int getStrandID();
+		int getParticleOneID();
+		int getParticleTwoID();
+		
 		int getDepth();
 		KDOP* getKDOP();
 		std::list<Node*>& getChildList();
@@ -38,8 +43,14 @@ namespace pilar
 		//TODO Refactor to be STL vector instead of list
 		std::list<Node*> childList;
 		const Node* parent;
-		int id;
+		
 		int depth;
+		
+		int id;
+		int strandID;
+		
+		int particle1;
+		int particle2;
 		
 		KDOP* kdop;
 	};

@@ -203,7 +203,8 @@ namespace pilar
 				KDOP* kdop = new KDOP(vertices, KDOP_PLANES);
 				
 				//Build leaf node and KDOP from vertices then add the node to the list of leaves
-				leafNodes.push_back(new Node(kdop));
+				//Each leaf node has its depth set to 0 and is assigned a unique identity number
+				leafNodes.push_back(new Node(kdop, 0, i-1, strandID));
 				
 				//Save the KDOP to a list of leaf KDOPs for later updating
 				leafKDOP.push_back(kdop);
@@ -649,10 +650,17 @@ namespace pilar
 		for(int i = strandID+1; i < numStrands; i++)
 		{
 			//Check for collisions against other strand BVH Trees
+			//Identify which particles are affected by collisions
 			Node::collides(bvhTree, strand[i]->getTree(), pairs);
 		}
+		 
+		//~ for(int i = 0; i < pairs.size(); i++)
+		//~ {
+			//~ std::cout << pairs[i].one->getStrandID() << ":" << pairs[i].one->getID() << "(" << pairs[i].one->getParticleOneID() << "," << pairs[i].one->getParticleTwoID() << ")" << " " << pairs[i].two->getStrandID() << ":" << pairs[i].two->getID() << "(" << pairs[i].two->getParticleOneID() << "," << pairs[i].two->getParticleTwoID() << ")" << std::endl;
+		//~ }
+		//~ if(pairs.size() > 0)
+			//~ std::cout << std::endl;
 		
-		//TODO Identify which particles are affected by collisions
 		//TODO Create spring relation between colliding particles if not already in relationship
 	}
 	

@@ -6,18 +6,31 @@
 namespace pilar
 {
 	//Constructor that accepts KDOP pointer
-	Node::Node(KDOP* kdop):depth(0)
+	Node::Node(KDOP* kdop):depth(0),id(-1),strandID(-1)
 	{
 		this->kdop = kdop;
 	}
 
 	//Constructor that accepts KDOP and depth
-	Node::Node(KDOP* kdop, int depth)
+	Node::Node(KDOP* kdop, int depth):id(-1),strandID(-1)
 	{
 		this->kdop = kdop;
 		this->depth = depth;
 	}
-
+	
+	//Constructor that accepts KDOP, depth, node ID and strand ID
+	Node::Node(KDOP* kdop, int depth, int id, int strandID)
+	{
+		this->kdop = kdop;
+		this->depth = depth;
+		this->id = id;
+		this->strandID = strandID;
+		
+		//Remember which particles are affected by this node
+		this->particle1 = id;
+		this->particle2 = id + 1;
+	}
+	
 	Node::~Node()
 	{
 		//Recursively delete children
@@ -39,6 +52,21 @@ namespace pilar
 	int Node::getID()
 	{
 		return id;
+	}
+	
+	int Node::getStrandID()
+	{
+		return strandID;
+	}
+	
+	int Node::getParticleOneID()
+	{
+		return particle1;
+	}
+	
+	int Node::getParticleTwoID()
+	{
+		return particle2;
 	}
 
 	int Node::getDepth()
