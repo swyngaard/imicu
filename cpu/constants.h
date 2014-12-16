@@ -13,11 +13,17 @@
 #define K_TWIST				0.004905f
 #define K_EXTRA				0.004905f
 #define LENGTH				0.005f //5 millimetres separation between particles
-#define D_EDGE				1500.0f //-5.5f
+#define D_EDGE				1500.0f //-5.5f //Damping coefficient
 #define D_BEND				0.125f
 #define D_TWIST				0.125f
 #define D_EXTRA				0.125f
 #define GRAVITY				-9.81f//(stable value) -9.81f
+
+//Stiction constants
+#define K_STIC				1.5f //Stiction spring coefficient
+#define	LEN_STIC			0.0035f //Stiction spring rest length (3.5 millimetres)
+#define MAX_LEN_STIC		0.005f //Maximum length of stiction spring
+#define MAX_SQR_STIC		0.000025f //Maximum length of stiction spring squared
 
 //Bounding volume constants
 #define KDOP_PLANES			26 //other valid values include 6, 14 & 18.

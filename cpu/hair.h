@@ -108,6 +108,7 @@ namespace pilar
 		void objectCollisions(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
 		void applyStrainLimiting(float dt);
 		void applyStiction(float dt, Strand** strand);
+		void applyStiction2(float dt, Strand** strand);
 		void updateBoundingVolumes();
 		
 		float getA(int i, int j, float dt);

@@ -598,7 +598,7 @@ namespace pilar
 				
 		//Calculate half velocities using forces
 		updateVelocities(dt);
-				
+		
 		applyStrainLimiting(dt);
 				
 		//TODO Detect collisions, calculate stiction forces and apply stiction to half velocity
@@ -609,12 +609,12 @@ namespace pilar
 				
 		//Check geometry collisions and adjust velocities and positions
 		objectCollisions(dt, grid);
-				
+		
 		//Self collisions
 		
 		//Reset forces on particles
 		clearForces();
-				
+		
 		//Calculate velocities using half position
 		calcVelocities(dt);
 		
@@ -628,6 +628,8 @@ namespace pilar
 		
 		//Calculate half velocity and new velocity
 		updateParticles(dt);
+		
+		applyStiction2(dt, strand);
 		
 		//Update bounding volume tree values using newly calculated particle positions
 		updateBoundingVolumes();
@@ -660,6 +662,144 @@ namespace pilar
 		//~ }
 		//~ if(pairs.size() > 0)
 			//~ std::cout << std::endl;
+		
+		//TODO Skip segments that already have a spring between them
+		for(int i = 0; i < pairs.size(); i++)
+		{
+			//TODO Find midpoint for each segment
+			int sid0 = pairs[i].one->getStrandID();
+			int sid1 = pairs[i].two->getStrandID();
+			
+			int pid00 = pairs[i].one->getParticleOneID();
+			int pid01 = pairs[i].one->getParticleTwoID();
+			
+			int pid10 = pairs[i].two->getParticleOneID();
+			int pid11 = pairs[i].two->getParticleTwoID();
+			
+			Particle * particle00 = strand[sid0]->particle[pid00];
+			Particle * particle01 = strand[sid0]->particle[pid01];
+			Particle * particle10 = strand[sid1]->particle[pid10];
+			Particle * particle11 = strand[sid1]->particle[pid11];
+			
+			//~ Vector3f posc0 = (strand[sid0]->particle[pid00]->posc + strand[sid0]->particle[pid01]->posc)/2;
+			//~ Vector3f posc1 = (strand[sid1]->particle[pid10]->posc + strand[sid1]->particle[pid11]->posc)/2;
+			
+			//Interpolated candidate position
+			Vector3f posc0 = (particle00->posc + particle01->posc)/2;
+			Vector3f posc1 = (particle10->posc + particle11->posc)/2;
+			
+			//TODO Calculate vectors along the midpoints
+			//From first mid-point to second mid-point
+			Vector3f d01(posc1-posc0);
+			//From second mid-point to first mid-point
+			Vector3f d10(posc0-posc1);
+			//Unitize above directions
+			Vector3f du01(d01.unit());
+			Vector3f du10(d10.unit());
+			
+			//Interpolated velocity
+			Vector3f velh0 = (particle00->velh + particle01->velh)/2;
+			Vector3f velh1 = (particle10->velh + particle11->velh)/2;
+			
+			Vector3f vu01 = velh1 - velh0;
+			Vector3f vu10 = velh0 - velh1;
+			
+			float g = k_edge/LEN_STIC;
+			float h = dt*k_edge/(2.0f*LEN_STIC);
+			
+			//TODO Calculate spring force acting on first two particles
+			Vector3f force0 = du01 * g * (d01.x*du01.x+d01.y*du01.y+d01.z*du01.z-LEN_STIC) + du01 * h * (vu01.x*du01.x+vu01.y*du01.y+vu01.z*du01.z);
+			//TODO Calculate spring force acting on second two particles
+			Vector3f force1 = du10 * g * (d10.x*du10.x+d10.y*du10.y+d10.z*du10.z-LEN_STIC) + du10 * h * (vu10.x*du10.x+vu10.y*du10.y+vu10.z*du10.z);
+			
+			//TODO Modify half velocity for each particle in each strand
+			particle00->velh += force0 * (dt/2.0f);
+			particle01->velh += force0 * (dt/2.0f);
+			particle10->velh += force1 * (dt/2.0f);
+			particle11->velh += force1 * (dt/2.0f);
+			
+		}
+		
+		
+		//TODO Create spring relation between colliding particles if not already in relationship
+	}
+	
+	void Strand::applyStiction2(float dt, Strand** strand)
+	{
+		
+		//TODO Break existing springs based on length
+		
+		//Colliding pairs will be saved here
+		std::vector<NodePair> pairs;
+		
+		//Detect for collision with other strands
+		for(int i = strandID+1; i < numStrands; i++)
+		{
+			//Check for collisions against other strand BVH Trees
+			//Identify which particles are affected by collisions
+			Node::collides(bvhTree, strand[i]->getTree(), pairs);
+		}
+		 
+		//~ for(int i = 0; i < pairs.size(); i++)
+		//~ {
+			//~ std::cout << pairs[i].one->getStrandID() << ":" << pairs[i].one->getID() << "(" << pairs[i].one->getParticleOneID() << "," << pairs[i].one->getParticleTwoID() << ")" << " " << pairs[i].two->getStrandID() << ":" << pairs[i].two->getID() << "(" << pairs[i].two->getParticleOneID() << "," << pairs[i].two->getParticleTwoID() << ")" << std::endl;
+		//~ }
+		//~ if(pairs.size() > 0)
+			//~ std::cout << std::endl;
+		
+		//TODO Skip segments that already have a spring between them
+		for(int i = 0; i < pairs.size(); i++)
+		{
+			//TODO Find midpoint for each segment
+			int sid0 = pairs[i].one->getStrandID();
+			int sid1 = pairs[i].two->getStrandID();
+			
+			int pid00 = pairs[i].one->getParticleOneID();
+			int pid01 = pairs[i].one->getParticleTwoID();
+			
+			int pid10 = pairs[i].two->getParticleOneID();
+			int pid11 = pairs[i].two->getParticleTwoID();
+			
+			Particle * particle00 = strand[sid0]->particle[pid00];
+			Particle * particle01 = strand[sid0]->particle[pid01];
+			Particle * particle10 = strand[sid1]->particle[pid10];
+			Particle * particle11 = strand[sid1]->particle[pid11];
+			
+			//Interpolated candidate position
+			Vector3f pos0 = (particle00->pos + particle01->pos)/2;
+			Vector3f pos1 = (particle10->pos + particle11->pos)/2;
+			
+			//TODO Calculate vectors along the midpoints
+			//From first mid-point to second mid-point
+			Vector3f d01(pos1-pos0);
+			//From second mid-point to first mid-point
+			Vector3f d10(pos0-pos1);
+			//Unitize above directions
+			Vector3f du01(d01.unit());
+			Vector3f du10(d10.unit());
+			
+			//Interpolated velocity
+			Vector3f vel0 = (particle00->velocity + particle01->velocity)/2;
+			Vector3f vel1 = (particle10->velocity + particle11->velocity)/2;
+			
+			Vector3f vu01 = vel1 - vel0;
+			Vector3f vu10 = vel0 - vel1;
+			
+			float g = k_edge/LEN_STIC;
+			float h = dt*k_edge/(2.0f*LEN_STIC);
+			
+			//TODO Calculate spring force acting on first two particles
+			Vector3f force0 = du01 * g * (d01.x*du01.x+d01.y*du01.y+d01.z*du01.z-LEN_STIC) + du01 * h * (vu01.x*du01.x+vu01.y*du01.y+vu01.z*du01.z);
+			//TODO Calculate spring force acting on second two particles
+			Vector3f force1 = du10 * g * (d10.x*du10.x+d10.y*du10.y+d10.z*du10.z-LEN_STIC) + du10 * h * (vu10.x*du10.x+vu10.y*du10.y+vu10.z*du10.z);
+			
+			//TODO Modify half velocity for each particle in each strand
+			particle00->velocity += force0 * (dt/2.0f);
+			particle01->velocity += force0 * (dt/2.0f);
+			particle10->velocity += force1 * (dt/2.0f);
+			particle11->velocity += force1 * (dt/2.0f);
+		}
+		
 		
 		//TODO Create spring relation between colliding particles if not already in relationship
 	}
