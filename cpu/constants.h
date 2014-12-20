@@ -7,6 +7,7 @@
 #define NUMSTRANDS			1
 #define NUMPARTICLES		9 // 33
 #define NUMCOMPONENTS		2
+#define NUMSEGMENTS			(NUMPARTICLES-1)
 #define MASS				0.005f //0.000000001f particle mass is 0.01mg, total strand weight is 1mg
 #define K_EDGE				1.5f //(stable value) 0.005f
 #define K_BEND				0.004905f
@@ -21,6 +22,7 @@
 
 //Stiction constants
 #define K_STIC				1.5f //Stiction spring coefficient
+#define D_STIC				32.0f //Stiction damping coefficient
 #define	LEN_STIC			0.0035f //Stiction spring rest length (3.5 millimetres)
 #define MAX_LEN_STIC		0.005f //Maximum length of stiction spring
 #define MAX_SQR_STIC		0.000025f //Maximum length of stiction spring squared

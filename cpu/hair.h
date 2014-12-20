@@ -63,6 +63,26 @@ namespace pilar
 		void release();
 	};
 	
+	class Collision
+	{
+	protected:
+		int strandID;
+		int segmentID;
+		int particleID[2];
+	public:
+		
+		Collision(int strandID_, int segmentID_):strandID(strandID_),segmentID(segmentID_)
+		{
+			particleID[0] = segmentID;
+			particleID[1] = segmentID_ + 1;
+		}
+		
+		int getStrandID() { return strandID; }
+		int getSegmentID() { return segmentID; }
+		int getParticleOneID() { return particleID[0]; }
+		int getParticleTwoID() { return particleID[1]; }
+	};
+	
 	class Strand
 	{
 	
@@ -107,8 +127,8 @@ namespace pilar
 		void calcVelocities(float dt);
 		void objectCollisions(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM]);
 		void applyStrainLimiting(float dt);
-		void applyStiction(float dt, Strand** strand);
-		void applyStiction2(float dt, Strand** strand);
+		void applyStiction(float dt, Strand** strand, std::vector<Collision> (&collision)[NUMSTRANDS][NUMSEGMENTS]);
+		void applyStiction2(float dt, Strand** strand, std::vector<Collision> (&collision)[NUMSTRANDS][NUMSEGMENTS]);
 		void updateBoundingVolumes();
 		
 		float getA(int i, int j, float dt);
@@ -139,9 +159,10 @@ namespace pilar
 			   Vector3f root,
 			   Vector3f normal);
 		void update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM], Strand** strand);
+		void update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM], Strand** strand, std::vector<Collision> (&collision)[NUMSTRANDS][NUMSEGMENTS]);
 		void release();
 		void applyForce(Vector3f force);
-		
+				
 		Node* getTree();
 		
 	};
@@ -157,6 +178,9 @@ namespace pilar
 		int numStrands;
 		Strand** strand;
 		float grid[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM];
+		
+		//TODO Investigate using a STL Set data structure instead
+		std::vector<Collision> collision[NUMSTRANDS][NUMSEGMENTS];
 		
 		Hair(int numStrands,
 			 int numParticles,
