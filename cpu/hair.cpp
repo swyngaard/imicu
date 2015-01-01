@@ -640,7 +640,64 @@ namespace pilar
 	
 	void Strand::applyStiction(float dt, Strand** strand, std::vector<Collision> (&collision)[NUMSTRANDS][NUMSEGMENTS])
 	{
-		//TODO Break existing springs based on distance between segments
+		//Break existing springs based on distance between segments
+		//Search through list of connections with this strand
+		for(int i = 0; i < (numParticles-1); i++)
+		{
+			if(collision[strandID][i].size() > 0)
+			{
+				for(int j = 0; j < collision[strandID][i].size(); j++)
+				{
+					//Get particle indices
+					int sid0 = strandID;
+					int sid1 = collision[strandID][i][j].getStrandID();
+					
+					int seg0 = i;
+					int seg1 = collision[strandID][i][j].getSegmentID();
+					
+					int pid00 = i;
+					int pid01 = i + 1;
+					int pid10 = collision[strandID][i][j].getParticleOneID();
+					int pid11 = collision[strandID][i][j].getParticleTwoID();
+					
+					//Get particle data
+					Particle * particle00 = strand[sid0]->particle[pid00];
+					Particle * particle01 = strand[sid0]->particle[pid01];
+					Particle * particle10 = strand[sid1]->particle[pid10];
+					Particle * particle11 = strand[sid1]->particle[pid11];
+					
+					//Interpolated candidate position
+					Vector3f posc0 = (particle00->posc + particle01->posc)/2;
+					Vector3f posc1 = (particle10->posc + particle11->posc)/2;
+					
+					//Calculate vector along the midpoints
+					Vector3f d01(posc1-posc0); //From first mid-point to second mid-point
+					
+					//Calculate squared distance between the two segments
+					float distance = d01.length_sqr();
+					
+					//Check if squared distance is greater than threshold
+					if(distance > MAX_SQR_STIC)
+					{
+						//Find the collision object from the other strand's segment's collision list
+						for(int k = 0; k < collision[sid1][seg1].size(); k++)
+						{
+							if(collision[sid1][seg1][k].getStrandID() == sid0 && collision[sid1][seg1][k].getSegmentID() == seg0)
+							{
+								//Remove the collision object from the other strand's segment's collision list
+								collision[sid1][seg1].erase(collision[sid1][seg1].begin() + k);
+							}
+						}
+						
+						//Remove collision object from this strand's segment collision list
+						collision[sid0][seg0].erase(collision[sid0][seg0].begin() + j);
+						
+						//Set inner loop index back by one increment to compensate for the removed element.
+						j = j - 1;
+					}
+				}
+			}
+		}
 		
 		//New colliding pairs of segments will be saved here
 		std::vector<NodePair> pairs;
@@ -751,7 +808,65 @@ namespace pilar
 	void Strand::applyStiction2(float dt, Strand** strand, std::vector<Collision> (&collision)[NUMSTRANDS][NUMSEGMENTS])
 	{
 		
-		//TODO Break existing springs based on distance between segments
+		//Break existing springs based on distance between segments
+		//Search through list of connections with this strand
+		for(int i = 0; i < (numParticles-1); i++)
+		{
+			if(collision[strandID][i].size() > 0)
+			{
+				for(int j = 0; j < collision[strandID][i].size(); j++)
+				{
+					//Get particle indices
+					int sid0 = strandID;
+					int sid1 = collision[strandID][i][j].getStrandID();
+					
+					int seg0 = i;
+					int seg1 = collision[strandID][i][j].getSegmentID();
+					
+					int pid00 = i;
+					int pid01 = i + 1;
+					int pid10 = collision[strandID][i][j].getParticleOneID();
+					int pid11 = collision[strandID][i][j].getParticleTwoID();
+					
+					//Get particle data
+					Particle * particle00 = strand[sid0]->particle[pid00];
+					Particle * particle01 = strand[sid0]->particle[pid01];
+					Particle * particle10 = strand[sid1]->particle[pid10];
+					Particle * particle11 = strand[sid1]->particle[pid11];
+					
+					//Interpolated position
+					Vector3f pos0 = (particle00->pos + particle01->pos)/2;
+					Vector3f pos1 = (particle10->pos + particle11->pos)/2;
+					
+					//Calculate vector along the midpoints
+					Vector3f d01(pos1-pos0); //From first mid-point to second mid-point
+					
+					//Calculate squared distance between the two segments
+					float distance = d01.length_sqr();
+					
+					//Check if squared distance is greater than threshold
+					if(distance > MAX_SQR_STIC)
+					{
+						//Find the collision object from the other strand's segment's collision list
+						for(int k = 0; k < collision[sid1][seg1].size(); k++)
+						{
+							if(collision[sid1][seg1][k].getStrandID() == sid0 && collision[sid1][seg1][k].getSegmentID() == seg0)
+							{
+								//Remove the collision object from the other strand's segment's collision list
+								collision[sid1][seg1].erase(collision[sid1][seg1].begin() + k);
+							}
+						}
+						
+						//Remove collision object from this strand's segment collision list
+						collision[sid0][seg0].erase(collision[sid0][seg0].begin() + j);
+						
+						//Set inner loop index back by one increment to compensate for the removed element.
+						j = j - 1;
+					}
+				}
+			}
+		}
+		
 		
 		//Colliding pairs will be saved here
 		std::vector<NodePair> pairs;
