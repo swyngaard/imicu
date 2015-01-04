@@ -3,11 +3,13 @@
 #include "tree.h"
 
 #include <iostream>
-//#include <iomanip>
-#include <algorithm>
+//~ #include <iomanip>
+//~ #include <algorithm>
 #include <cstring>
 #include <cfloat>
 #include <cmath>
+#include <ctime>
+#include <cstdlib>
 
 namespace pilar
 {
@@ -196,6 +198,9 @@ namespace pilar
 				std::vector<Vector3f> vertices;
 				vertices.push_back(particle[i-1]->position);
 				vertices.push_back(particle[i]->position);
+				
+				//Create additional ghost vertices to approximate a cylindrical volume
+				addVolumeVertices(vertices);
 				
 				//Create KDOP bounding volume from the two vertices
 				KDOP* kdop = new KDOP(vertices, KDOP_PLANES);
@@ -991,11 +996,53 @@ namespace pilar
 			vertices.push_back(particle[i-1]->pos);
 			vertices.push_back(particle[i]->pos);
 			
+			//Create additional ghost vertices to approximate a cylindrical volume
+			addVolumeVertices(vertices);
+			
 			leafKDOP[i-1]->update(vertices);
 		}
 		
 		//Update the internal nodes
 		Node::updateTree(bvhTree);
+	}
+	
+	void Strand::addVolumeVertices(std::vector<Vector3f> &vertices)
+	{
+		//Vector from first point to second point
+		Vector3f n(vertices[1] - vertices[0]);
+		
+		//Store the perpendicular vector here
+		Vector3f r;
+		
+		do
+		{
+			//Generate random point
+			Vector3f p = Vector3f::random(-1.0f, 1.0f);
+			
+			//Vector from first point to randomly generated point
+			Vector3f np(p - vertices[0]);
+			
+			//Calculate the vector perpendicular to n and np
+			r = n.cross(np);
+		}
+		while(r.x == 0.0f && r.y == 0.0f && r.z == 0.0f);
+		
+		//Calculate a third vector that is perpendicular to the n vector and the r vector
+		Vector3f s = r.cross(n);
+		
+		//Normalise and scale the perpendicular vectors
+		r = r.unit() * HALF_LEN_STIC;
+		s = s.unit() * HALF_LEN_STIC;
+		
+		//Calculate and add new approximate volume vertices by offsetting original two vertices
+		vertices.push_back(vertices[0] + r);
+		vertices.push_back(vertices[0] - r);
+		vertices.push_back(vertices[0] + s);
+		vertices.push_back(vertices[0] - s);
+		vertices.push_back(vertices[1] + r);
+		vertices.push_back(vertices[1] - r);
+		vertices.push_back(vertices[1] + s);
+		vertices.push_back(vertices[1] - s);
 	}
 	
 	void Strand::applyStrainLimiting(float dt)
@@ -1168,6 +1215,9 @@ namespace pilar
 			   std::vector<Vector3f> &normals,
 			   Model_OBJ &obj)
 	{
+		//Seed random number generation
+		srand (static_cast <unsigned> (time(0)));
+		
 		this->numStrands = numStrands;
 		
 		strand = new Strand*[numStrands];

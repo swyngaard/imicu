@@ -129,6 +129,7 @@ void init()
 {
 	obj.Load("spherehalf.obj");
 	
+	//Root positions
 	pilar::Vector3f strand00(0.0f, 0.0f, 0.0f);
 	pilar::Vector3f strand01(-0.025f, 0.0f, 0.0f);
 	

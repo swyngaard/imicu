@@ -36,6 +36,7 @@ namespace pilar
 		Vector3f cross(const Vector3i& v);
 		
 		static float determinant(const Vector3f& a, const Vector3f& b, const Vector3f& c);
+		static Vector3f random(float low, float high);
 		
 		float length();
 		float length_inverse();

@@ -130,6 +130,7 @@ namespace pilar
 		void applyStiction(float dt, Strand** strand, std::vector<Collision> (&collision)[NUMSTRANDS][NUMSEGMENTS]);
 		void applyStiction2(float dt, Strand** strand, std::vector<Collision> (&collision)[NUMSTRANDS][NUMSEGMENTS]);
 		void updateBoundingVolumes();
+		void addVolumeVertices(std::vector<Vector3f> &vertices);
 		
 		float getA(int i, int j, float dt);
 		float getB(int i, float dt);

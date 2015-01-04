@@ -24,6 +24,7 @@
 #define K_STIC				1.5f //Stiction spring coefficient
 #define D_STIC				32.0f //Stiction damping coefficient
 #define	LEN_STIC			0.0035f //Stiction spring rest length (3.5 millimetres)
+#define HALF_LEN_STIC		0.00175f //Half the sticition spring rest length (for KDOP volume calculation)
 #define MAX_LEN_STIC		0.005f //Maximum length of stiction spring
 #define MAX_SQR_STIC		0.000025f //Maximum length of stiction spring squared
 

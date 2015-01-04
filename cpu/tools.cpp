@@ -1,5 +1,6 @@
 
-#include <math.h>
+#include <cmath>
+#include <cstdlib>
 
 #include "tools.h"
 
@@ -178,6 +179,16 @@ namespace pilar
 		float tt = a.z * b.x * c.y - a.z * b.y * c.x;
 		
 		return ff + ss + tt;
+	}
+	
+	//Generate a random vector with component values in the starting at "low" up to "high", exclusive.
+	Vector3f Vector3f::random(float low, float high)
+	{
+		float x = low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
+		float y = low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
+		float z = low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
+		
+		return Vector3f(x,y,z);
 	}
 
 	Vector3i::Vector3i()
