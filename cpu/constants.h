@@ -6,7 +6,7 @@
 
 #define NUMSTRANDS			1
 #define NUMPARTICLES		9 // 33
-#define NUMCOMPONENTS		2 //TODO change to 3 components
+#define NUMCOMPONENTS		3 // 3D vectors
 #define NUMSEGMENTS			(NUMPARTICLES-1)
 #define MASS				0.005f //0.000000001f particle mass is 0.01mg, total strand weight is 1mg
 #define K_EDGE				1.5f //(stable value) 0.005f
