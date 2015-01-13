@@ -1,4 +1,4 @@
-CC = g++
+CC = g++ -g
 
 CPP = main.cpp hair.cpp tools.cpp kdop.cpp tree.cpp
 HEADERS = hair.h tools.h constants.h kdop.h tree.h

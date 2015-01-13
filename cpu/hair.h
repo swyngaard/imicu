@@ -37,32 +37,6 @@ namespace pilar
 		void update(float dt);
 	};
 	
-	enum SpringType
-	{
-		EDGE,
-		BEND,
-		TWIST,
-		EXTRA
-	};
-	
-	class Spring
-	{
-	protected:
-		Particle** particle;
-		float k;
-		float length;
-		float damping;
-		SpringType type;
-		
-		void updateForce(Vector3f p0, Vector3f p1, float dt);
-		
-	public:
-		Spring(Particle* particle1, Particle* particle2, float k, float length, float damping, SpringType type);
-		void update1(float dt);
-		void update2(float dt);
-		void release();
-	};
-	
 	class Collision
 	{
 	protected:
@@ -108,17 +82,12 @@ namespace pilar
 		float* AA;
 		float* bb;
 		
-		Spring** edge;
-		Spring** bend;
-		Spring** twist;
-		
 		std::vector<KDOP*> leafKDOP;
 		Node* bvhTree;
 		
 		int strandID;
 		int numStrands;
 		
-		void buildSprings();
 		void clearForces();
 		void updateSprings(float dt);
 		void updateVelocities(float dt);
@@ -132,8 +101,6 @@ namespace pilar
 		void updateBoundingVolumes();
 		void addVolumeVertices(std::vector<Vector3f> &vertices);
 		
-		float getA(int i, int j, float dt);
-		float getB(int i, float dt);
 		void buildAB(float dt);
 		void conjugate();
 		
@@ -141,8 +108,6 @@ namespace pilar
 		int numParticles;
 		Particle** particle;
 		Vector3f root;
-		
-		
 		
 		Strand(int numParticles,
 			   int strandID,
@@ -159,7 +124,7 @@ namespace pilar
 			   float length,
 			   Vector3f root,
 			   Vector3f normal);
-		void update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM], Strand** strand);
+		
 		void update(float dt, const float (&grid)[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM], Strand** strand, std::vector<Collision> (&collision)[NUMSTRANDS][NUMSEGMENTS]);
 		void release();
 		void applyForce(Vector3f force);
