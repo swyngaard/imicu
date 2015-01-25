@@ -242,7 +242,7 @@ int main()
 	normals.push_back(normal00);
 	normals.push_back(normal01);
 	
-	hair = new pilar::Hair(roots.size(), NUMPARTICLES, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH, roots, normals, obj);
+	hair = new pilar::Hair(roots.size(), NUMPARTICLES, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH_EDGE, LENGTH_BEND, LENGTH_TWIST, roots, normals, obj);
 	
 	while(elapsed < total)
 	{

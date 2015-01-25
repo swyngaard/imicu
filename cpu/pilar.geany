@@ -16,9 +16,9 @@ file_patterns=
 
 [files]
 current_page=2
-FILE_NAME_0=1353;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.h;0;4
-FILE_NAME_1=12043;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.cpp;0;4
-FILE_NAME_2=8098;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fogl.cpp;0;4
+FILE_NAME_0=200;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fconstants.h;0;4
+FILE_NAME_1=1353;C;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.h;0;4
+FILE_NAME_2=4951;C++;0;EUTF-8;1;1;0;%2Fhome%2Fswyngaard%2FDropbox%2Fpilar%2Fcpu%2Fhair.cpp;0;4
 
 [file_prefs]
 final_new_line=true

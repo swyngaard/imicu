@@ -75,7 +75,10 @@ namespace pilar
 		float d_twist;
 		float d_extra;
 		
-		float length;
+		float length_e;
+		float length_b;
+		float length_t;
+		
 		float mass;
 		
 		float* xx;
@@ -121,7 +124,9 @@ namespace pilar
 			   float d_bend,
 			   float d_twist,
 			   float d_extra,
-			   float length,
+			   float length_e,
+			   float length_b,
+			   float length_t,
 			   Vector3f root,
 			   Vector3f normal);
 		
@@ -145,7 +150,6 @@ namespace pilar
 		Strand** strand;
 		float grid[DOMAIN_DIM][DOMAIN_DIM][DOMAIN_DIM];
 		
-		//TODO Investigate using a STL Set data structure instead
 		std::vector<Collision> collision[NUMSTRANDS][NUMSEGMENTS];
 		
 		Hair(int numStrands,
@@ -159,7 +163,9 @@ namespace pilar
 			 float d_bend,
 			 float d_twist,
 			 float d_extra,
-			 float length,
+			 float length_e,
+			 float length_b,
+			 float length_t,
 			 std::vector<Vector3f> &roots,
 			 std::vector<Vector3f> &normals,
 			 Model_OBJ &obj);

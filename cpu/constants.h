@@ -13,7 +13,9 @@
 #define K_BEND				0.004905f
 #define K_TWIST				0.004905f
 #define K_EXTRA				0.004905f
-#define LENGTH				0.005f //5 millimetres separation between particles
+#define LENGTH_EDGE			0.005f  //TODO length between edge springs
+#define LENGTH_BEND			0.0025f //TODO length between bending springs
+#define LENGTH_TWIST		0.001f  //TODO length between twisting springs
 #define D_EDGE				1500.0f //-5.5f //Damping coefficient
 #define D_BEND				0.125f
 #define D_TWIST				0.125f

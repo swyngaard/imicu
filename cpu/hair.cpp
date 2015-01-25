@@ -74,7 +74,9 @@ namespace pilar
 				   float d_bend,
 				   float d_twist,
 				   float d_extra,
-				   float length,
+				   float length_e,
+				   float length_b,
+				   float length_t,
 				   Vector3f root,
 				   Vector3f normal)
 	{
@@ -100,7 +102,10 @@ namespace pilar
 		this->d_twist = d_twist;
 		this->d_extra = d_extra;
 		
-		this->length = length;
+		this->length_e = length_e;
+		this->length_b = length_b;
+		this->length_t = length_t;
+		
 		this->mass  = mass;
 		
 		this->root = root;
@@ -226,7 +231,6 @@ namespace pilar
 		
 			if(rsnew < 1e-10f)
 			{
-	//			cout << "break " << i << endl;
 				break;
 			}
 			
@@ -243,16 +247,58 @@ namespace pilar
 	{
 		memset(AA, 0, sizeof(float)*numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS);
 		
-		//TODO Find reasonable value for damping coefficient (d_edge) that allows for a more stable system
-		float h = dt*dt*k_edge/(4.0f*mass*length) + d_edge*dt/(2.0f*mass);
-		float g = dt*k_edge/(2.0f*mass*length);
+		//FIXME Find reasonable value for damping coefficient (d_edge) that allows for a more stable system
+		float h = dt*dt*k_edge/(4.0f*mass*length_e) + d_edge*dt/(2.0f*mass);
+		float g = dt*k_edge/(2.0f*mass*length_e);
 		Vector3f gravity(0.0f, GRAVITY, 0.0f);
+		
+		//TODO Set the 6 different coefficients
+		float h_e = dt*dt*k_edge/(4.0f*mass*length_e) + d_edge*dt/(2.0f*mass);
+		float h_b = dt*dt*k_bend/(4.0f*mass*length_b) + d_bend*dt/(2.0f*mass);
+		float h_t = dt*dt*k_twist/(4.0f*mass*length_t) + d_twist*dt/(2.0f*mass);
+		float g_e = dt*k_edge/(2.0f*mass*length_e);
+		float g_b = dt*k_bend/(2.0f*mass*length_b);
+		float g_t = dt*k_twist/(2.0f*mass*length_t);
+		
+		//TODO Get the first 3 particle direction vectors
 		
 		//First particle direction vectors
 		Vector3f du0R(root-particle[0]->pos);
 		Vector3f du01(particle[1]->pos-particle[0]->pos);
+		Vector3f du02(particle[2]->pos-particle[0]->pos);
+		Vector3f du03(particle[3]->pos-particle[0]->pos);
 		du0R.unitize();
 		du01.unitize();
+		du02.unitize();
+		du03.unitize();
+		
+		//Second particle direction vectors
+		Vector3f du1R(root-particle[1]->pos);
+		Vector3f du10(particle[0]->pos-particle[1]->pos);
+		Vector3f du12(particle[2]->pos-particle[1]->pos);
+		Vector3f du13(particle[3]->pos-particle[1]->pos);
+		Vector3f du14(particle[4]->pos-particle[1]->pos);
+		du1R.unitize();
+		du10.unitize();
+		du12.unitize();
+		du13.unitize();
+		du14.unitize();
+		
+		//Third particle direction vectors
+		Vector3f du2R(root-particle[2]->pos);
+		Vector3f du20(particle[0]->pos-particle[2]->pos);
+		Vector3f du21(particle[1]->pos-particle[2]->pos);
+		Vector3f du23(particle[3]->pos-particle[2]->pos);
+		Vector3f du24(particle[4]->pos-particle[2]->pos);
+		Vector3f du25(particle[5]->pos-particle[2]->pos);
+		du2R.unitize();
+		du20.unitize();
+		du21.unitize();
+		du23.unitize();
+		du24.unitize();
+		du25.unitize();
+		
+		//TODO Set the non-zero entries for the first 3 particles
 		
 		//Set first six entries of the first row of A matrix
 		AA[0] = 1.0f + h*du0R.x*du0R.x + h*du01.x*du01.x;
@@ -261,6 +307,8 @@ namespace pilar
 		AA[3] = -h*du01.x*du01.x;
 		AA[4] = -h*du01.x*du01.y;
 		AA[5] = -h*du01.x*du01.z;
+		
+		//TODO Calculate indices for the first few rows
 		
 		//Indices for next second and third rows of A
 		int row11 = numParticles * NUMCOMPONENTS;
@@ -282,10 +330,12 @@ namespace pilar
 		AA[row22+4] = -h*du01.y*du01.z;
 		AA[row22+5] = -h*du01.z*du01.z;
 		
+		//TODO Set the first nine entries of the b vector
+		
 		//Set the first three entries of the b vector
-		bb[0] = particle[0]->velocity.x + g*((root-particle[0]->pos).dot(du0R)-length)*du0R.x + g*((particle[1]->pos-particle[0]->pos).dot(du01)-length)*du01.x + gravity.x*(dt/2.0f);
-		bb[1] = particle[0]->velocity.y + g*((root-particle[0]->pos).dot(du0R)-length)*du0R.y + g*((particle[1]->pos-particle[0]->pos).dot(du01)-length)*du01.y + gravity.y*(dt/2.0f);
-		bb[2] = particle[0]->velocity.z + g*((root-particle[0]->pos).dot(du0R)-length)*du0R.z + g*((particle[1]->pos-particle[0]->pos).dot(du01)-length)*du01.z + gravity.z*(dt/2.0f);
+		bb[0] = particle[0]->velocity.x + g*((root-particle[0]->pos).dot(du0R)-length_e)*du0R.x + g*((particle[1]->pos-particle[0]->pos).dot(du01)-length_e)*du01.x + gravity.x*(dt/2.0f);
+		bb[1] = particle[0]->velocity.y + g*((root-particle[0]->pos).dot(du0R)-length_e)*du0R.y + g*((particle[1]->pos-particle[0]->pos).dot(du01)-length_e)*du01.y + gravity.y*(dt/2.0f);
+		bb[2] = particle[0]->velocity.z + g*((root-particle[0]->pos).dot(du0R)-length_e)*du0R.z + g*((particle[1]->pos-particle[0]->pos).dot(du01)-length_e)*du01.z + gravity.z*(dt/2.0f);
 		
 		//Build in-between values of matrix A and vector b
 		for(int i = 1; i < (numParticles-1); i++)
@@ -295,8 +345,29 @@ namespace pilar
 			Vector3f uu = particle[i-1]->pos;
 			Vector3f ud = particle[i+1]->pos;
 			
-			Vector3f du(uu-particle[i]->pos);
-			Vector3f dd(ud-particle[i]->pos);
+			//TODO Direction vectors for 3 particles above and below the current particle
+			//~ Vector3f uu2 = particle[i-3]->pos;
+			//~ Vector3f uu1 = particle[i-2]->pos;
+			//~ Vector3f uu0 = particle[i-1]->pos;
+			//~ Vector3f ud0 = particle[i+1]->pos;
+			//~ Vector3f ud1 = particle[i+2]->pos;
+			//~ Vector3f ud2 = particle[i+3]->pos;
+			//~ 
+			//~ Vector3f du2(uu2-ui);
+			//~ Vector3f du1(uu1-ui);
+			//~ Vector3f du0(uu0-ui);
+			//~ Vector3f dd0(ud0-ui);
+			//~ Vector3f dd1(ud1-ui);
+			//~ Vector3f dd2(ud2-ui);
+			//~ du2.unitize();
+			//~ du1.unitize();
+			//~ du0.unitize();
+			//~ dd0.unitize();
+			//~ dd1.unitize();
+			//~ dd2.unitize();
+			
+			Vector3f du(uu-ui);
+			Vector3f dd(ud-ui);
 			du.unitize();
 			dd.unitize();
 			
@@ -338,19 +409,54 @@ namespace pilar
 			AA[row2+8] = -h*dd.z*dd.z;
 			
 			//Set the three appropriate entries in b vector
-			bb[i*NUMCOMPONENTS  ] = particle[i]->velocity.x + g*((uu-ui).dot(du)-length)*du.x + g*((ud-ui).dot(dd)-length)*dd.x + gravity.x*(dt/2.0f);
-			bb[i*NUMCOMPONENTS+1] = particle[i]->velocity.y + g*((uu-ui).dot(du)-length)*du.y + g*((ud-ui).dot(dd)-length)*dd.y + gravity.y*(dt/2.0f);
-			bb[i*NUMCOMPONENTS+2] = particle[i]->velocity.z + g*((uu-ui).dot(du)-length)*du.z + g*((ud-ui).dot(dd)-length)*dd.z + gravity.z*(dt/2.0f);
+			bb[i*NUMCOMPONENTS  ] = particle[i]->velocity.x + g*((uu-ui).dot(du)-length_e)*du.x + g*((ud-ui).dot(dd)-length_e)*dd.x + gravity.x*(dt/2.0f);
+			bb[i*NUMCOMPONENTS+1] = particle[i]->velocity.y + g*((uu-ui).dot(du)-length_e)*du.y + g*((ud-ui).dot(dd)-length_e)*dd.y + gravity.y*(dt/2.0f);
+			bb[i*NUMCOMPONENTS+2] = particle[i]->velocity.z + g*((uu-ui).dot(du)-length_e)*du.z + g*((ud-ui).dot(dd)-length_e)*dd.z + gravity.z*(dt/2.0f);
 		}
+		
+		//TODO Calculate direction vectors for the last three particles
+		//Third to last particle direction vectors
+		Vector3f du3N1(particle[numParticles-6]->pos-particle[numParticles-3]->pos);
+		Vector3f du3N2(particle[numParticles-5]->pos-particle[numParticles-3]->pos);
+		Vector3f du3N3(particle[numParticles-4]->pos-particle[numParticles-3]->pos);
+		Vector3f du3N5(particle[numParticles-2]->pos-particle[numParticles-3]->pos);
+		Vector3f du3N6(particle[numParticles-1]->pos-particle[numParticles-3]->pos);
+		du3N1.unitize();
+		du3N2.unitize();
+		du3N3.unitize();
+		du3N5.unitize();
+		du3N6.unitize();
+		
+		//Second to last particle direction vectors
+		Vector3f du2N2(particle[numParticles-5]->pos-particle[numParticles-2]->pos);
+		Vector3f du2N3(particle[numParticles-4]->pos-particle[numParticles-2]->pos);
+		Vector3f du2N4(particle[numParticles-3]->pos-particle[numParticles-2]->pos);
+		Vector3f du2N6(particle[numParticles-1]->pos-particle[numParticles-2]->pos);
+		du2N2.unitize();
+		du2N3.unitize();
+		du2N4.unitize();
+		du2N6.unitize();
+		
+		//Last particle direction vectors
+		Vector3f du1N3(particle[numParticles-4]->pos-particle[numParticles-1]->pos);
+		Vector3f du1N4(particle[numParticles-3]->pos-particle[numParticles-1]->pos);
+		Vector3f du1N5(particle[numParticles-2]->pos-particle[numParticles-1]->pos);
+		du1N3.unitize();
+		du1N4.unitize();
+		du1N5.unitize();
 		
 		//Last particle boundary condition
 		Vector3f duN(particle[numParticles-2]->pos-particle[numParticles-1]->pos);
 		duN.unitize();
 		
+		//TODO Calculate indices for the last three rows
+		
 		//Indices for last three rows of matrix A
 		int rowN3 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 2*numParticles*NUMCOMPONENTS - 6;;
 		int rowN2 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - numParticles*NUMCOMPONENTS - 6;
 		int rowN1 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 6;
+		
+		//TODO Set non-zero entries for the last three particles
 		
 		//Set third to last row of matrix A
 		AA[rowN3  ] = -h*duN.x*duN.x;
@@ -376,10 +482,13 @@ namespace pilar
 		AA[rowN1+4] = h*duN.y*duN.z;
 		AA[rowN1+5] = 1.0f + h*duN.z*duN.z;
 		
+		
+		//TODO Set the last nine entries of the vector b
+		
 		//Set last three entries of vector b
-		bb[numParticles*NUMCOMPONENTS-3] = particle[numParticles-1]->velocity.x + g*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(duN)-length)*duN.x + gravity.x*(dt/2.0f);
-		bb[numParticles*NUMCOMPONENTS-2] = particle[numParticles-1]->velocity.y + g*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(duN)-length)*duN.y + gravity.y*(dt/2.0f);
-		bb[numParticles*NUMCOMPONENTS-1] = particle[numParticles-1]->velocity.z + g*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(duN)-length)*duN.z + gravity.z*(dt/2.0f);
+		bb[numParticles*NUMCOMPONENTS-3] = particle[numParticles-1]->velocity.x + g*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(duN)-length_e)*duN.x + gravity.x*(dt/2.0f);
+		bb[numParticles*NUMCOMPONENTS-2] = particle[numParticles-1]->velocity.y + g*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(duN)-length_e)*duN.y + gravity.y*(dt/2.0f);
+		bb[numParticles*NUMCOMPONENTS-1] = particle[numParticles-1]->velocity.z + g*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(duN)-length_e)*duN.z + gravity.z*(dt/2.0f);
 		
 	}
 	
@@ -412,8 +521,12 @@ namespace pilar
 	
 	void Strand::updateSprings(float dt)
 	{
-		float g = k_edge/length;
-		float h = dt*k_edge/(2.0f*length) + d_edge;
+		//TODO calculate the 6 coefficients
+		
+		float g = k_edge/length_e;
+		float h = dt*k_edge/(2.0f*length_e) + d_edge;
+		
+		//TODO Calculate and apply forces for the first three particles
 		
 		//Calculate force for first particle
 		Vector3f uu0(root-particle[0]->pos);
@@ -423,7 +536,7 @@ namespace pilar
 		Vector3f vu0(-particle[0]->velh);
 		Vector3f vd0(particle[1]->velh-particle[0]->velh);
 		
-		Vector3f force0 = du0*(g*(uu0.dot(du0)-length) + h*(vu0.dot(du0))) + dd0*(g*(ud0.dot(dd0)-length) + h*(vd0.dot(dd0)));
+		Vector3f force0 = du0*(g*(uu0.dot(du0)-length_e) + h*(vu0.dot(du0))) + dd0*(g*(ud0.dot(dd0)-length_e) + h*(vd0.dot(dd0)));
 		
 		particle[0]->applyForce(force0);
 		
@@ -437,7 +550,7 @@ namespace pilar
 			Vector3f vu(particle[i-1]->velh-particle[i]->velh);
 			Vector3f vd(particle[i+1]->velh-particle[i]->velh);
 			
-			Vector3f force = du*(g*(uu.dot(du)-length) + h*(vu.dot(du))) + dd*(g*(ud.dot(dd)-length) + h*(vd.dot(dd)));
+			Vector3f force = du*(g*(uu.dot(du)-length_e) + h*(vu.dot(du))) + dd*(g*(ud.dot(dd)-length_e) + h*(vd.dot(dd)));
 			
 			particle[i]->applyForce(force);
 		}
@@ -447,7 +560,7 @@ namespace pilar
 		Vector3f duN(uuN.unit());
 		Vector3f vuN(particle[numParticles-2]->velh-particle[numParticles-1]->velh);
 		
-		Vector3f forceN = duN*(g*(uuN.dot(duN)-length) + h*(vuN.dot(duN)));
+		Vector3f forceN = duN*(g*(uuN.dot(duN)-length_e) + h*(vuN.dot(duN)));
 		
 		particle[numParticles-1]->applyForce(forceN);
 	}
@@ -528,7 +641,7 @@ namespace pilar
 		//Apply gravity
 		applyForce(Vector3f(0.0f, mass*GRAVITY, 0.0f));
 		
-		//TODO Apply other forces such as wind
+		//FIXME Apply other forces such as wind
 		
 		//Calculate half velocity and new velocity
 		updateParticles(dt);
@@ -536,8 +649,8 @@ namespace pilar
 		//Detect segment collisions, calculate stiction forces and apply stiction to velocity
 		applyStiction2(dt, strand, collision);
 		
-		//TODO Check when is best to update bounding volumes
-		//TODO Check if bounding volumes need updating between half time steps
+		//FIXME Check when is best to update bounding volumes
+		//FIXME Check if bounding volumes need updating between half time steps
 		//Update bounding volume tree values using newly calculated particle positions
 		updateBoundingVolumes();
 		
@@ -1111,7 +1224,9 @@ namespace pilar
 			   float d_bend,
 			   float d_twist,
 			   float d_extra,
-			   float length,
+			   float length_e,
+			   float length_b,
+			   float length_t,
 			   std::vector<Vector3f> &roots,
 			   std::vector<Vector3f> &normals,
 			   Model_OBJ &obj)
@@ -1125,7 +1240,7 @@ namespace pilar
 		
 		for(int i = 0; i < numStrands; i++)
 		{
-			strand[i] = new Strand(numParticles, i, numStrands, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i], normals[i]); 
+			strand[i] = new Strand(numParticles, i, numStrands, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length_e, length_b, length_t, roots[i], normals[i]); 
 		}
 		
 		initDistanceField(obj);
