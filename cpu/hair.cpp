@@ -247,12 +247,9 @@ namespace pilar
 	{
 		memset(AA, 0, sizeof(float)*numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS);
 		
-		//FIXME Find reasonable value for damping coefficient (d_edge) that allows for a more stable system
-		float h = dt*dt*k_edge/(4.0f*mass*length_e) + d_edge*dt/(2.0f*mass);
-		float g = dt*k_edge/(2.0f*mass*length_e);
 		Vector3f gravity(0.0f, GRAVITY, 0.0f);
 		
-		//TODO Set the 6 different coefficients
+		//Set the 6 different coefficients
 		float h_e = dt*dt*k_edge/(4.0f*mass*length_e) + d_edge*dt/(2.0f*mass);
 		float h_b = dt*dt*k_bend/(4.0f*mass*length_b) + d_bend*dt/(2.0f*mass);
 		float h_t = dt*dt*k_twist/(4.0f*mass*length_t) + d_twist*dt/(2.0f*mass);
@@ -260,7 +257,7 @@ namespace pilar
 		float g_b = dt*k_bend/(2.0f*mass*length_b);
 		float g_t = dt*k_twist/(2.0f*mass*length_t);
 		
-		//TODO Get the first 3 particle direction vectors
+		//Set the first 3 particle direction vectors
 		
 		//First particle direction vectors
 		Vector3f du0R(root-particle[0]->pos);
@@ -298,123 +295,287 @@ namespace pilar
 		du24.unitize();
 		du25.unitize();
 		
-		//TODO Set the non-zero entries for the first 3 particles
+		//Set the non-zero entries for the first 3 particles
 		
-		//Set first six entries of the first row of A matrix
-		AA[0] = 1.0f + h*du0R.x*du0R.x + h*du01.x*du01.x;
-		AA[1] = h*du0R.x*du0R.y + h*du01.x*du01.y;
-		AA[2] = h*du0R.x*du0R.z + h*du01.x*du01.z;
-		AA[3] = -h*du01.x*du01.x;
-		AA[4] = -h*du01.x*du01.y;
-		AA[5] = -h*du01.x*du01.z;
-		
-		//TODO Calculate indices for the first few rows
+		//Set first twelve entries of the first row of A matrix
+		AA[0 ] = 1.0f + h_e*du0R.x*du0R.x + h_e*du01.x*du01.x + h_b*du02.x*du02.x + h_t*du03.x*du03.x;
+		AA[1 ] =        h_e*du0R.x*du0R.y + h_e*du01.x*du01.y + h_b*du02.x*du02.y + h_t*du03.x*du03.y;
+		AA[2 ] =        h_e*du0R.x*du0R.z + h_e*du01.x*du01.z + h_b*du02.x*du02.z + h_t*du03.x*du03.z;
+		AA[3 ] = -h_e*du01.x*du01.x;
+		AA[4 ] = -h_e*du01.x*du01.y;
+		AA[5 ] = -h_e*du01.x*du01.z;
+		AA[6 ] = -h_b*du02.x*du02.x;
+		AA[7 ] = -h_b*du02.x*du02.y;
+		AA[8 ] = -h_b*du02.x*du02.z;
+		AA[9 ] = -h_t*du03.x*du03.x;
+		AA[10] = -h_t*du03.x*du03.y;
+		AA[11] = -h_t*du03.x*du03.z;
 		
 		//Indices for next second and third rows of A
 		int row11 = numParticles * NUMCOMPONENTS;
 		int row22 = 2 * numParticles * NUMCOMPONENTS;
 		
-		//Set next six non-zero entries of the second row of matrix A
-		AA[row11  ] = h*du0R.x*du0R.y + h*du01.x*du01.y;
-		AA[row11+1] = 1.0f + h*du0R.y*du0R.y + h*du01.y*du01.y;
-		AA[row11+2] = h*du0R.y*du0R.z + h*du01.y*du01.z;
-		AA[row11+3] = -h*du01.x*du01.y;
-		AA[row11+4] = -h*du01.y*du01.y;
-		AA[row11+5] = -h*du01.y*du01.z;
+		//Set next twelve non-zero entries of the second row of matrix A
+		AA[row11   ] =        h_e*du0R.x*du0R.y + h_e*du01.x*du01.y + h_b*du02.x*du02.y + h_t*du03.x*du03.y;
+		AA[row11+1 ] = 1.0f + h_e*du0R.y*du0R.y + h_e*du01.y*du01.y + h_b*du02.y*du02.y + h_t*du03.y*du03.y;
+		AA[row11+2 ] =        h_e*du0R.y*du0R.z + h_e*du01.y*du01.z + h_b*du02.y*du02.z + h_t*du03.y*du03.z;
+		AA[row11+3 ] = -h_e*du01.x*du01.y;
+		AA[row11+4 ] = -h_e*du01.y*du01.y;
+		AA[row11+5 ] = -h_e*du01.y*du01.z;
+		AA[row11+6 ] = -h_b*du02.x*du02.y;
+		AA[row11+7 ] = -h_b*du02.y*du02.y;
+		AA[row11+8 ] = -h_b*du02.y*du02.z;
+		AA[row11+9 ] = -h_t*du03.x*du03.y;
+		AA[row11+10] = -h_t*du03.y*du03.y;
+		AA[row11+11] = -h_t*du03.y*du03.z;
 		
-		//Set the next six non-zero entries of the third row of matrix A
-		AA[row22  ] = h*du0R.x*du0R.z + h*du01.x*du01.z;
-		AA[row22+1] = h*du0R.y*du0R.z + h*du01.y*du01.z;
-		AA[row22+2] = 1.0f + h*du0R.z*du0R.z + h*du01.z*du01.z;
-		AA[row22+3] = -h*du01.x*du01.z;
-		AA[row22+4] = -h*du01.y*du01.z;
-		AA[row22+5] = -h*du01.z*du01.z;
+		//Set the next twelve non-zero entries of the third row of matrix A
+		AA[row22   ] =        h_e*du0R.x*du0R.z + h_e*du01.x*du01.z + h_b*du02.x*du02.z + h_t*du03.x*du03.z;
+		AA[row22+1 ] =        h_e*du0R.y*du0R.z + h_e*du01.y*du01.z + h_b*du02.y*du02.z + h_t*du03.y*du03.z;
+		AA[row22+2 ] = 1.0f + h_e*du0R.z*du0R.z + h_e*du01.z*du01.z + h_b*du02.z*du02.z + h_t*du03.z*du03.z;
+		AA[row22+3 ] = -h_e*du01.x*du01.z;
+		AA[row22+4 ] = -h_e*du01.y*du01.z;
+		AA[row22+5 ] = -h_e*du01.z*du01.z;
+		AA[row22+6 ] = -h_b*du02.x*du02.z;
+		AA[row22+7 ] = -h_b*du02.y*du02.z;
+		AA[row22+8 ] = -h_b*du02.z*du02.z;
+		AA[row22+9 ] = -h_t*du03.x*du03.z;
+		AA[row22+10] = -h_t*du03.y*du03.z;
+		AA[row22+11] = -h_t*du03.z*du03.z;
 		
-		//TODO Set the first nine entries of the b vector
+		int row33 = 3 * numParticles * NUMCOMPONENTS;
+		int row44 = 4 * numParticles * NUMCOMPONENTS;
+		int row55 = 5 * numParticles * NUMCOMPONENTS;
 		
-		//Set the first three entries of the b vector
-		bb[0] = particle[0]->velocity.x + g*((root-particle[0]->pos).dot(du0R)-length_e)*du0R.x + g*((particle[1]->pos-particle[0]->pos).dot(du01)-length_e)*du01.x + gravity.x*(dt/2.0f);
-		bb[1] = particle[0]->velocity.y + g*((root-particle[0]->pos).dot(du0R)-length_e)*du0R.y + g*((particle[1]->pos-particle[0]->pos).dot(du01)-length_e)*du01.y + gravity.y*(dt/2.0f);
-		bb[2] = particle[0]->velocity.z + g*((root-particle[0]->pos).dot(du0R)-length_e)*du0R.z + g*((particle[1]->pos-particle[0]->pos).dot(du01)-length_e)*du01.z + gravity.z*(dt/2.0f);
+		AA[row33   ] = -h_e*du10.x*du10.x;
+		AA[row33+1 ] = -h_e*du10.x*du10.y;
+		AA[row33+2 ] = -h_e*du10.x*du10.z;
+		AA[row33+3 ] = 1.0f + h_b*du1R.x*du1R.x + h_e*du10.x*du10.x + h_e*du12.x*du12.x + h_b*du13.x*du13.x + h_t*du14.x*du14.x;
+		AA[row33+4 ] =        h_b*du1R.x*du1R.y + h_e*du10.x*du10.y + h_e*du12.x*du12.y + h_b*du13.x*du13.y + h_t*du14.x*du14.y;
+		AA[row33+5 ] =        h_b*du1R.x*du1R.z + h_e*du10.x*du10.z + h_e*du12.x*du12.z + h_b*du13.x*du13.z + h_t*du14.x*du14.z;
+		AA[row33+6 ] = -h_e*du12.x*du12.x;
+		AA[row33+7 ] = -h_e*du12.x*du12.y;
+		AA[row33+8 ] = -h_e*du12.x*du12.z;
+		AA[row33+9 ] = -h_b*du13.x*du13.x;
+		AA[row33+10] = -h_b*du13.x*du13.y;
+		AA[row33+11] = -h_b*du13.x*du13.z;
+		AA[row33+12] = -h_t*du14.x*du14.x;
+		AA[row33+13] = -h_t*du14.x*du14.y;
+		AA[row33+14] = -h_t*du14.x*du14.z;
+		
+		AA[row44   ] = -h_e*du10.x*du10.y;
+		AA[row44+1 ] = -h_e*du10.y*du10.y;
+		AA[row44+2 ] = -h_e*du10.y*du10.z;
+		AA[row44+3 ] =        h_b*du1R.x*du1R.y + h_e*du10.x*du10.y + h_e*du12.x*du12.y + h_b*du13.x*du13.y + h_t*du14.x*du14.y;
+		AA[row44+4 ] = 1.0f + h_b*du1R.y*du1R.y + h_e*du10.y*du10.y + h_e*du12.y*du12.y + h_b*du13.y*du13.y + h_t*du14.y*du14.y;
+		AA[row44+5 ] =        h_b*du1R.y*du1R.z + h_e*du10.y*du10.z + h_e*du12.y*du12.z + h_b*du13.y*du13.z + h_t*du14.y*du14.z;
+		AA[row44+6 ] = -h_e*du12.x*du12.y;
+		AA[row44+7 ] = -h_e*du12.y*du12.y;
+		AA[row44+8 ] = -h_e*du12.y*du12.z;
+		AA[row44+9 ] = -h_b*du13.x*du13.y;
+		AA[row44+10] = -h_b*du13.y*du13.y;
+		AA[row44+11] = -h_b*du13.y*du13.z;
+		AA[row44+12] = -h_t*du14.x*du14.y;
+		AA[row44+13] = -h_t*du14.y*du14.y;
+		AA[row44+14] = -h_t*du14.y*du14.z;
+		
+		AA[row55   ] = -h_e*du10.x*du10.z;
+		AA[row55+1 ] = -h_e*du10.y*du10.z;
+		AA[row55+2 ] = -h_e*du10.z*du10.z;
+		AA[row55+3 ] =        h_b*du1R.x*du1R.z + h_e*du10.x*du10.z + h_e*du12.x*du12.z + h_b*du13.x*du13.z + h_t*du14.x*du14.z;
+		AA[row55+4 ] =        h_b*du1R.y*du1R.z + h_e*du10.y*du10.z + h_e*du12.y*du12.z + h_b*du13.y*du13.z + h_t*du14.y*du14.z;
+		AA[row55+5 ] = 1.0f + h_b*du1R.z*du1R.z + h_e*du10.z*du10.z + h_e*du12.z*du12.z + h_b*du13.z*du13.z + h_t*du14.z*du14.z;
+		AA[row55+6 ] = -h_e*du12.x*du12.z;
+		AA[row55+7 ] = -h_e*du12.y*du12.z;
+		AA[row55+8 ] = -h_e*du12.z*du12.z;
+		AA[row55+9 ] = -h_b*du13.x*du13.z;
+		AA[row55+10] = -h_b*du13.y*du13.z;
+		AA[row55+11] = -h_b*du13.z*du13.z;
+		AA[row55+12] = -h_t*du14.x*du14.z;
+		AA[row55+13] = -h_t*du14.y*du14.z;
+		AA[row55+14] = -h_t*du14.z*du14.z;
+		
+		int row66 = 6 * numParticles * NUMCOMPONENTS;
+		int row77 = 7 * numParticles * NUMCOMPONENTS;
+		int row88 = 8 * numParticles * NUMCOMPONENTS;
+		
+		AA[row66   ] = -h_b*du20.x*du20.x;
+		AA[row66+1 ] = -h_b*du20.x*du20.y;
+		AA[row66+2 ] = -h_b*du20.x*du20.z;
+		AA[row66+3 ] = -h_e*du21.x*du21.x;
+		AA[row66+4 ] = -h_e*du21.x*du21.y;
+		AA[row66+5 ] = -h_e*du21.x*du21.z;
+		AA[row66+6 ] = 1.0f + h_t*du2R.x*du2R.x + h_b*du20.x*du20.x + h_e*du21.x*du21.x + h_e*du23.x*du23.x + h_b*du24.x*du24.x + h_t*du25.x*du25.x;
+		AA[row66+7 ] =        h_t*du2R.x*du2R.y + h_b*du20.x*du20.y + h_e*du21.x*du21.y + h_e*du23.x*du23.y + h_b*du24.x*du24.y + h_t*du25.x*du25.y;
+		AA[row66+8 ] =        h_t*du2R.x*du2R.z + h_b*du20.x*du20.z + h_e*du21.x*du21.z + h_e*du23.x*du23.z + h_b*du24.x*du24.z + h_t*du25.x*du25.z;
+		AA[row66+9 ] = -h_e*du23.x*du23.x;
+		AA[row66+10] = -h_e*du23.x*du23.y;
+		AA[row66+11] = -h_e*du23.x*du23.z;
+		AA[row66+12] = -h_b*du24.x*du24.x;
+		AA[row66+13] = -h_b*du24.x*du24.y;
+		AA[row66+14] = -h_b*du24.x*du24.z;
+		AA[row66+15] = -h_t*du25.x*du25.x;
+		AA[row66+16] = -h_t*du25.x*du25.y;
+		AA[row66+17] = -h_t*du25.x*du25.z;
+		
+		
+		AA[row77   ] = -h_b*du20.x*du20.y;
+		AA[row77+1 ] = -h_b*du20.y*du20.y;
+		AA[row77+2 ] = -h_b*du20.y*du20.z;
+		AA[row77+3 ] = -h_e*du21.x*du21.y;
+		AA[row77+4 ] = -h_e*du21.y*du21.y;
+		AA[row77+5 ] = -h_e*du21.y*du21.z;
+		AA[row77+6 ] =        h_t*du2R.x*du2R.y + h_b*du20.x*du20.y + h_e*du21.x*du21.y + h_e*du23.x*du23.y + h_b*du24.x*du24.y + h_t*du25.x*du25.y;
+		AA[row77+7 ] = 1.0f + h_t*du2R.y*du2R.y + h_b*du20.y*du20.y + h_e*du21.y*du21.y + h_e*du23.y*du23.y + h_b*du24.y*du24.y + h_t*du25.y*du25.y;
+		AA[row77+8 ] =        h_t*du2R.y*du2R.z + h_b*du20.y*du20.z + h_e*du21.y*du21.z + h_e*du23.y*du23.z + h_b*du24.y*du24.z + h_t*du25.y*du25.z;
+		AA[row77+9 ] = -h_e*du23.x*du23.y;
+		AA[row77+10] = -h_e*du23.y*du23.y;
+		AA[row77+11] = -h_e*du23.y*du23.z;
+		AA[row77+12] = -h_b*du24.x*du24.y;
+		AA[row77+13] = -h_b*du24.y*du24.y;
+		AA[row77+14] = -h_b*du24.y*du24.z;
+		AA[row77+15] = -h_t*du25.x*du25.y;
+		AA[row77+16] = -h_t*du25.y*du25.y;
+		AA[row77+17] = -h_t*du25.y*du25.z;
+		
+		AA[row88   ] = -h_b*du20.x*du20.z;
+		AA[row88+1 ] = -h_b*du20.y*du20.z;
+		AA[row88+2 ] = -h_b*du20.z*du20.z;
+		AA[row88+3 ] = -h_e*du21.x*du21.z;
+		AA[row88+4 ] = -h_e*du21.y*du21.z;
+		AA[row88+5 ] = -h_e*du21.z*du21.z;
+		AA[row88+6 ] =        h_t*du2R.x*du2R.z + h_b*du20.x*du20.z + h_e*du21.x*du21.z + h_e*du23.x*du23.z + h_b*du24.x*du24.z + h_t*du25.x*du25.z;
+		AA[row88+7 ] =        h_t*du2R.y*du2R.z + h_b*du20.y*du20.z + h_e*du21.y*du21.z + h_e*du23.y*du23.z + h_b*du24.y*du24.z + h_t*du25.y*du25.z;
+		AA[row88+8 ] = 1.0f + h_t*du2R.z*du2R.z + h_b*du20.z*du20.z + h_e*du21.z*du21.z + h_e*du23.z*du23.z + h_b*du24.z*du24.z + h_t*du25.z*du25.z;
+		AA[row88+9 ] = -h_e*du23.x*du23.z;
+		AA[row88+10] = -h_e*du23.y*du23.z;
+		AA[row88+11] = -h_e*du23.z*du23.z;
+		AA[row88+12] = -h_b*du24.x*du24.z;
+		AA[row88+13] = -h_b*du24.y*du24.z;
+		AA[row88+14] = -h_b*du24.z*du24.z;
+		AA[row88+15] = -h_t*du25.x*du25.z;
+		AA[row88+16] = -h_t*du25.y*du25.z;
+		AA[row88+17] = -h_t*du25.z*du25.z;
+		
+		//Set the first nine entries of the b vector
+		bb[0] = particle[0]->velocity.x + g_e*((root-particle[0]->pos).dot(du0R)-length_e)*du0R.x + g_e*((particle[1]->pos-particle[0]->pos).dot(du01)-length_e)*du01.x + g_b*((particle[2]->pos-particle[0]->pos).dot(du02)-length_b)*du02.x + g_t*((particle[3]->pos-particle[0]->pos).dot(du03)-length_t)*du03.x + gravity.x*(dt/2.0f);
+		bb[1] = particle[0]->velocity.y + g_e*((root-particle[0]->pos).dot(du0R)-length_e)*du0R.y + g_e*((particle[1]->pos-particle[0]->pos).dot(du01)-length_e)*du01.y + g_b*((particle[2]->pos-particle[0]->pos).dot(du02)-length_b)*du02.y + g_t*((particle[3]->pos-particle[0]->pos).dot(du03)-length_t)*du03.y + gravity.y*(dt/2.0f);
+		bb[2] = particle[0]->velocity.z + g_e*((root-particle[0]->pos).dot(du0R)-length_e)*du0R.z + g_e*((particle[1]->pos-particle[0]->pos).dot(du01)-length_e)*du01.z + g_b*((particle[2]->pos-particle[0]->pos).dot(du02)-length_b)*du02.z + g_t*((particle[3]->pos-particle[0]->pos).dot(du03)-length_t)*du03.z + gravity.z*(dt/2.0f);
+		
+		bb[3] = particle[1]->velocity.x + g_b*((root-particle[1]->pos).dot(du1R)-length_b)*du1R.x + g_e*((particle[0]->pos-particle[1]->pos).dot(du10)-length_e)*du10.x + g_e*((particle[2]->pos-particle[1]->pos).dot(du12)-length_e)*du12.x + g_b*((particle[3]->pos-particle[1]->pos).dot(du13)-length_b)*du13.x + g_t*((particle[4]->pos-particle[1]->pos).dot(du14)-length_t)*du14.x + gravity.x*(dt/2.0f);
+		bb[4] = particle[1]->velocity.y + g_b*((root-particle[1]->pos).dot(du1R)-length_b)*du1R.y + g_e*((particle[0]->pos-particle[1]->pos).dot(du10)-length_e)*du10.y + g_e*((particle[2]->pos-particle[1]->pos).dot(du12)-length_e)*du12.y + g_b*((particle[3]->pos-particle[1]->pos).dot(du13)-length_b)*du13.y + g_t*((particle[4]->pos-particle[1]->pos).dot(du14)-length_t)*du14.y + gravity.y*(dt/2.0f);
+		bb[5] = particle[1]->velocity.z + g_b*((root-particle[1]->pos).dot(du1R)-length_b)*du1R.z + g_e*((particle[0]->pos-particle[1]->pos).dot(du10)-length_e)*du10.z + g_e*((particle[2]->pos-particle[1]->pos).dot(du12)-length_e)*du12.z + g_b*((particle[3]->pos-particle[1]->pos).dot(du13)-length_b)*du13.z + g_t*((particle[4]->pos-particle[1]->pos).dot(du14)-length_t)*du14.z + gravity.z*(dt/2.0f);
+		
+		bb[6] = particle[2]->velocity.x + g_t*((root-particle[2]->pos).dot(du2R)-length_t)*du2R.x + g_b*((particle[0]->pos-particle[2]->pos).dot(du02)-length_b)*du20.x + g_e*((particle[1]->pos-particle[2]->pos).dot(du21)-length_e)*du21.x + g_e*((particle[3]->pos-particle[2]->pos).dot(du23)-length_e)*du23.x + g_b*((particle[4]->pos-particle[2]->pos).dot(du24)-length_b)*du24.x + g_t*((particle[5]->pos-particle[2]->pos).dot(du25)-length_t)*du25.x + gravity.x*(dt/2.0f);
+		bb[7] = particle[2]->velocity.y + g_t*((root-particle[2]->pos).dot(du2R)-length_t)*du2R.y + g_b*((particle[0]->pos-particle[2]->pos).dot(du02)-length_b)*du20.y + g_e*((particle[1]->pos-particle[2]->pos).dot(du21)-length_e)*du21.y + g_e*((particle[3]->pos-particle[2]->pos).dot(du23)-length_e)*du23.y + g_b*((particle[4]->pos-particle[2]->pos).dot(du24)-length_b)*du24.y + g_t*((particle[5]->pos-particle[2]->pos).dot(du25)-length_t)*du25.y + gravity.y*(dt/2.0f);
+		bb[8] = particle[2]->velocity.z + g_t*((root-particle[2]->pos).dot(du2R)-length_t)*du2R.z + g_b*((particle[0]->pos-particle[2]->pos).dot(du02)-length_b)*du20.z + g_e*((particle[1]->pos-particle[2]->pos).dot(du21)-length_e)*du21.z + g_e*((particle[3]->pos-particle[2]->pos).dot(du23)-length_e)*du23.z + g_b*((particle[4]->pos-particle[2]->pos).dot(du24)-length_b)*du24.z + g_t*((particle[5]->pos-particle[2]->pos).dot(du25)-length_t)*du25.z + gravity.z*(dt/2.0f);
 		
 		//Build in-between values of matrix A and vector b
-		for(int i = 1; i < (numParticles-1); i++)
+		//Loop from fourth to third last particles only
+		for(int i = 3; i < (numParticles-3); i++)
 		{
 			//Current particle position, particle above and particle below
 			Vector3f ui = particle[i]->pos;
 			Vector3f uu = particle[i-1]->pos;
 			Vector3f ud = particle[i+1]->pos;
 			
-			//TODO Direction vectors for 3 particles above and below the current particle
-			//~ Vector3f uu2 = particle[i-3]->pos;
-			//~ Vector3f uu1 = particle[i-2]->pos;
-			//~ Vector3f uu0 = particle[i-1]->pos;
-			//~ Vector3f ud0 = particle[i+1]->pos;
-			//~ Vector3f ud1 = particle[i+2]->pos;
-			//~ Vector3f ud2 = particle[i+3]->pos;
-			//~ 
-			//~ Vector3f du2(uu2-ui);
-			//~ Vector3f du1(uu1-ui);
-			//~ Vector3f du0(uu0-ui);
-			//~ Vector3f dd0(ud0-ui);
-			//~ Vector3f dd1(ud1-ui);
-			//~ Vector3f dd2(ud2-ui);
-			//~ du2.unitize();
-			//~ du1.unitize();
-			//~ du0.unitize();
-			//~ dd0.unitize();
-			//~ dd1.unitize();
-			//~ dd2.unitize();
+			//Direction vectors for 3 particles above and below the current particle
+			Vector3f uu2 = particle[i-3]->pos;
+			Vector3f uu1 = particle[i-2]->pos;
+			Vector3f uu0 = particle[i-1]->pos;
+			Vector3f ud0 = particle[i+1]->pos;
+			Vector3f ud1 = particle[i+2]->pos;
+			Vector3f ud2 = particle[i+3]->pos;
 			
-			Vector3f du(uu-ui);
-			Vector3f dd(ud-ui);
-			du.unitize();
-			dd.unitize();
+			Vector3f du2(uu2-ui);
+			Vector3f du1(uu1-ui);
+			Vector3f du0(uu0-ui);
+			Vector3f dd0(ud0-ui);
+			Vector3f dd1(ud1-ui);
+			Vector3f dd2(ud2-ui);
+			du2.unitize();
+			du1.unitize();
+			du0.unitize();
+			dd0.unitize();
+			dd1.unitize();
+			dd2.unitize();
 			
-			int row0 = i * numParticles * NUMCOMPONENTS *  NUMCOMPONENTS + (i - 1) * NUMCOMPONENTS;
+			int row0 = i * numParticles * NUMCOMPONENTS *  NUMCOMPONENTS + (i - 3) * NUMCOMPONENTS;
 			int row1 = row0 + numParticles * NUMCOMPONENTS;
 			int row2 = row1 + numParticles * NUMCOMPONENTS;
 			
-			//Set first row along diagonal
-			AA[row0  ] = -h*du.x*du.x;
-			AA[row0+1] = -h*du.x*du.y;
-			AA[row0+2] = -h*dd.x*dd.z;
-			AA[row0+3] =  1.0f + h*du.x*du.x + h*dd.x*dd.x; //Diagonal
-			AA[row0+4] =  h*du.x*du.y + h*dd.x*dd.y;
-			AA[row0+5] =  h*du.x*du.z + h*dd.x*dd.z;
-			AA[row0+6] = -h*dd.x*dd.x;
-			AA[row0+7] = -h*dd.x*dd.y;
-			AA[row0+8] = -h*dd.x*dd.z;
+			AA[row0   ] = -h_t*du2.x*du2.x;
+			AA[row0+1 ] = -h_t*du2.x*du2.y;
+			AA[row0+2 ] = -h_t*du2.x*du2.z;
+			AA[row0+3 ] = -h_b*du1.x*du1.x;
+			AA[row0+4 ] = -h_b*du1.x*du1.y;
+			AA[row0+5 ] = -h_b*du1.x*du1.z;
+			AA[row0+6 ] = -h_e*du0.x*du0.x;
+			AA[row0+7 ] = -h_e*du0.x*du0.y;
+			AA[row0+8 ] = -h_e*du0.x*du0.z;
+			AA[row0+9 ] = 1.0f + h_t*du2.x*du2.x + h_b*du1.x*du1.x + h_e*du0.x*du0.x + h_e*dd0.x*dd0.x + h_b*dd1.x*dd1.x + h_t*dd2.x*dd2.x;
+			AA[row0+10] =        h_t*du2.x*du2.y + h_b*du1.x*du1.y + h_e*du0.x*du0.y + h_e*dd0.x*dd0.y + h_b*dd1.x*dd1.y + h_t*dd2.x*dd2.y;
+			AA[row0+11] =        h_t*du2.x*du2.z + h_b*du1.x*du1.z + h_e*du0.x*du0.z + h_e*dd0.x*dd0.z + h_b*dd1.x*dd1.z + h_t*dd2.x*dd2.z;
+			AA[row0+12] = -h_e*dd0.x*dd0.x;
+			AA[row0+13] = -h_e*dd0.x*dd0.y;
+			AA[row0+14] = -h_e*dd0.x*dd0.z;
+			AA[row0+15] = -h_b*dd1.x*dd1.x;
+			AA[row0+16] = -h_b*dd1.x*dd1.y;
+			AA[row0+17] = -h_b*dd1.x*dd1.z;
+			AA[row0+18] = -h_t*dd2.x*dd2.x;
+			AA[row0+19] = -h_t*dd2.x*dd2.y;
+			AA[row0+20] = -h_t*dd2.x*dd2.z;
 			
-			//Set second row along diagonal
-			AA[row1  ] = -h*du.x*du.y;
-			AA[row1+1] = -h*du.y*du.y;
-			AA[row1+2] = -h*du.y*du.z;
-			AA[row1+3] = h*du.x*du.y + h*dd.x*dd.y;
-			AA[row1+4] = 1.0f + h*du.y*du.y + h*dd.y*dd.y; //Diagonal
-			AA[row1+5] = h*du.y*du.z + h*dd.y*dd.z;
-			AA[row1+6] = -h*dd.x*dd.y;
-			AA[row1+7] = -h*dd.y*dd.y;
-			AA[row1+8] = -h*dd.y*dd.z;
+			AA[row1   ] = -h_t*du2.x*du2.y;
+			AA[row1+1 ] = -h_t*du2.y*du2.y;
+			AA[row1+2 ] = -h_t*du2.y*du2.z;
+			AA[row1+3 ] = -h_b*du1.x*du1.y;
+			AA[row1+4 ] = -h_b*du1.y*du1.y;
+			AA[row1+5 ] = -h_b*du1.y*du1.z;
+			AA[row1+6 ] = -h_e*du0.x*du0.y;
+			AA[row1+7 ] = -h_e*du0.y*du0.y;
+			AA[row1+8 ] = -h_e*du0.y*du0.z;
+			AA[row1+9 ] =        h_t*du2.x*du2.y + h_b*du1.x*du1.y + h_e*du0.x*du0.y + h_e*dd0.x*dd0.y + h_b*dd1.x*dd1.y + h_t*dd2.x*dd2.y;
+			AA[row1+10] = 1.0f + h_t*du2.y*du2.y + h_b*du1.y*du1.y + h_e*du0.y*du0.y + h_e*dd0.y*dd0.y + h_b*dd1.y*dd1.y + h_t*dd2.y*dd2.y;
+			AA[row1+11] =        h_t*du2.y*du2.z + h_b*du1.y*du1.z + h_e*du0.y*du0.z + h_e*dd0.y*dd0.z + h_b*dd1.y*dd1.z + h_t*dd2.y*dd2.z;
+			AA[row1+12] = -h_e*dd0.x*dd0.y;
+			AA[row1+13] = -h_e*dd0.y*dd0.y;
+			AA[row1+14] = -h_e*dd0.y*dd0.z;
+			AA[row1+15] = -h_b*dd1.x*dd1.y;
+			AA[row1+16] = -h_b*dd1.y*dd1.y;
+			AA[row1+17] = -h_b*dd1.y*dd1.z;
+			AA[row1+18] = -h_t*dd2.x*dd2.y;
+			AA[row1+19] = -h_t*dd2.y*dd2.y;
+			AA[row1+20] = -h_t*dd2.y*dd2.z;
 			
-			//Set third row along diagonal
-			AA[row2  ] = -h*du.x*du.z;
-			AA[row2+1] = -h*du.y*du.z;
-			AA[row2+2] = -h*du.z*du.z;
-			AA[row2+3] = h*du.x*du.z + h*dd.x*dd.z;
-			AA[row2+4] = h*du.y*du.z + h*dd.y*dd.z;
-			AA[row2+5] = 1.0f + h*du.z*du.z + h*dd.z*dd.z; //Diagonal
-			AA[row2+6] = -h*dd.x*dd.z;
-			AA[row2+7] = -h*dd.y*dd.z;
-			AA[row2+8] = -h*dd.z*dd.z;
+			AA[row2   ] = -h_t*du2.x*du2.z;
+			AA[row2+1 ] = -h_t*du2.y*du2.z;
+			AA[row2+2 ] = -h_t*du2.z*du2.z;
+			AA[row2+3 ] = -h_b*du1.x*du1.z;
+			AA[row2+4 ] = -h_b*du1.y*du1.z;
+			AA[row2+5 ] = -h_b*du1.z*du1.z;
+			AA[row2+6 ] = -h_e*du0.x*du0.z;
+			AA[row2+7 ] = -h_e*du0.y*du0.z;
+			AA[row2+8 ] = -h_e*du0.z*du0.z;
+			AA[row2+9 ] =        h_t*du2.x*du2.z + h_b*du1.x*du1.z + h_e*du0.x*du0.z + h_e*dd0.x*dd0.z + h_b*dd1.x*dd1.z + h_t*dd2.x*dd2.z;
+			AA[row2+10] =        h_t*du2.y*du2.z + h_b*du1.y*du1.z + h_e*du0.y*du0.z + h_e*dd0.y*dd0.z + h_b*dd1.y*dd1.z + h_t*dd2.y*dd2.z;
+			AA[row2+11] = 1.0f + h_t*du2.z*du2.z + h_b*du1.z*du1.z + h_e*du0.z*du0.z + h_e*dd0.z*dd0.z + h_b*dd1.z*dd1.z + h_t*dd2.z*dd2.z;
+			AA[row2+12] = -h_e*dd0.x*dd0.z;
+			AA[row2+13] = -h_e*dd0.y*dd0.z;
+			AA[row2+14] = -h_e*dd0.z*dd0.z;
+			AA[row2+15] = -h_b*dd1.x*dd1.z;
+			AA[row2+16] = -h_b*dd1.y*dd1.z;
+			AA[row2+17] = -h_b*dd1.z*dd1.z;
+			AA[row2+18] = -h_t*dd2.x*dd2.z;
+			AA[row2+19] = -h_t*dd2.y*dd2.z;
+			AA[row2+20] = -h_t*dd2.z*dd2.z;
 			
-			//Set the three appropriate entries in b vector
-			bb[i*NUMCOMPONENTS  ] = particle[i]->velocity.x + g*((uu-ui).dot(du)-length_e)*du.x + g*((ud-ui).dot(dd)-length_e)*dd.x + gravity.x*(dt/2.0f);
-			bb[i*NUMCOMPONENTS+1] = particle[i]->velocity.y + g*((uu-ui).dot(du)-length_e)*du.y + g*((ud-ui).dot(dd)-length_e)*dd.y + gravity.y*(dt/2.0f);
-			bb[i*NUMCOMPONENTS+2] = particle[i]->velocity.z + g*((uu-ui).dot(du)-length_e)*du.z + g*((ud-ui).dot(dd)-length_e)*dd.z + gravity.z*(dt/2.0f);
+			bb[i*NUMCOMPONENTS  ] = particle[i]->velocity.x + g_t*((uu2-ui).dot(du2)-length_t)*du2.x + g_b*((uu1-ui).dot(du1)-length_b)*du1.x + g_e*((uu0-ui).dot(du0)-length_e)*du0.x + g_e*((ud0-ui).dot(dd0)-length_e)*dd0.x + g_b*((ud1-ui).dot(dd1)-length_b)*dd1.x + g_t*((ud2-ui).dot(dd2)-length_t)*dd2.x + gravity.x*(dt/2.0f);
+			bb[i*NUMCOMPONENTS+1] = particle[i]->velocity.y + g_t*((uu2-ui).dot(du2)-length_t)*du2.y + g_b*((uu1-ui).dot(du1)-length_b)*du1.y + g_e*((uu0-ui).dot(du0)-length_e)*du0.y + g_e*((ud0-ui).dot(dd0)-length_e)*dd0.y + g_b*((ud1-ui).dot(dd1)-length_b)*dd1.y + g_t*((ud2-ui).dot(dd2)-length_t)*dd2.y + gravity.y*(dt/2.0f);
+			bb[i*NUMCOMPONENTS+2] = particle[i]->velocity.z + g_t*((uu2-ui).dot(du2)-length_t)*du2.z + g_b*((uu1-ui).dot(du1)-length_b)*du1.z + g_e*((uu0-ui).dot(du0)-length_e)*du0.z + g_e*((ud0-ui).dot(dd0)-length_e)*dd0.z + g_b*((ud1-ui).dot(dd1)-length_b)*dd1.z + g_t*((ud2-ui).dot(dd2)-length_t)*dd2.z + gravity.z*(dt/2.0f);
 		}
 		
-		//TODO Calculate direction vectors for the last three particles
+		//Calculate direction vectors for the last three particles
 		//Third to last particle direction vectors
 		Vector3f du3N1(particle[numParticles-6]->pos-particle[numParticles-3]->pos);
 		Vector3f du3N2(particle[numParticles-5]->pos-particle[numParticles-3]->pos);
@@ -445,50 +606,173 @@ namespace pilar
 		du1N4.unitize();
 		du1N5.unitize();
 		
-		//Last particle boundary condition
-		Vector3f duN(particle[numParticles-2]->pos-particle[numParticles-1]->pos);
-		duN.unitize();
+		int row3N3 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 8*numParticles*NUMCOMPONENTS - 18;
+		int row3N2 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 7*numParticles*NUMCOMPONENTS - 18;
+		int row3N1 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 6*numParticles*NUMCOMPONENTS - 18;
 		
-		//TODO Calculate indices for the last three rows
+		AA[row3N3   ] = -h_t*du3N1.x*du3N1.x;
+		AA[row3N3+1 ] = -h_t*du3N1.x*du3N1.y;
+		AA[row3N3+2 ] = -h_t*du3N1.x*du3N1.z;
+		AA[row3N3+3 ] = -h_b*du3N2.x*du3N2.x;
+		AA[row3N3+4 ] = -h_b*du3N2.x*du3N2.y;
+		AA[row3N3+5 ] = -h_b*du3N2.x*du3N2.z;
+		AA[row3N3+6 ] = -h_e*du3N3.x*du3N3.x;
+		AA[row3N3+7 ] = -h_e*du3N3.x*du3N3.y;
+		AA[row3N3+8 ] = -h_e*du3N3.x*du3N3.z;
+		AA[row3N3+9 ] = 1.0f + h_t*du3N1.x*du3N1.x + h_b*du3N2.x*du3N2.x + h_e*du3N3.x*du3N3.x + h_e*du3N5.x*du3N5.x + h_b*du3N6.x*du3N6.x;
+		AA[row3N3+10] =        h_t*du3N1.x*du3N1.y + h_b*du3N2.x*du3N2.y + h_e*du3N3.x*du3N3.y + h_e*du3N5.x*du3N5.y + h_b*du3N6.x*du3N6.y;
+		AA[row3N3+11] =        h_t*du3N1.x*du3N1.z + h_b*du3N2.x*du3N2.z + h_e*du3N3.x*du3N3.z + h_e*du3N5.x*du3N5.z + h_b*du3N6.x*du3N6.z;
+		AA[row3N3+12] = -h_e*du3N5.x*du3N5.x;
+		AA[row3N3+13] = -h_e*du3N5.x*du3N5.y;
+		AA[row3N3+14] = -h_e*du3N5.x*du3N5.z;
+		AA[row3N3+15] = -h_b*du3N6.x*du3N6.x;
+		AA[row3N3+16] = -h_b*du3N6.x*du3N6.y;
+		AA[row3N3+17] = -h_b*du3N6.x*du3N6.z;
 		
-		//Indices for last three rows of matrix A
-		int rowN3 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 2*numParticles*NUMCOMPONENTS - 6;;
-		int rowN2 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - numParticles*NUMCOMPONENTS - 6;
-		int rowN1 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 6;
+		AA[row3N2   ] = -h_t*du3N1.x*du3N1.y;
+		AA[row3N2+1 ] = -h_t*du3N1.y*du3N1.y;
+		AA[row3N2+2 ] = -h_t*du3N1.y*du3N1.z;
+		AA[row3N2+3 ] = -h_b*du3N2.x*du3N2.y;
+		AA[row3N2+4 ] = -h_b*du3N2.y*du3N2.y;
+		AA[row3N2+5 ] = -h_b*du3N2.y*du3N2.z;
+		AA[row3N2+6 ] = -h_e*du3N3.x*du3N3.y;
+		AA[row3N2+7 ] = -h_e*du3N3.y*du3N3.y;
+		AA[row3N2+8 ] = -h_e*du3N3.y*du3N3.z;
+		AA[row3N2+9 ] =        h_t*du3N1.x*du3N1.y + h_b*du3N2.x*du3N2.y + h_e*du3N3.x*du3N3.y + h_e*du3N5.x*du3N5.y + h_b*du3N6.x*du3N6.y;
+		AA[row3N2+10] = 1.0f + h_t*du3N1.y*du3N1.y + h_b*du3N2.y*du3N2.y + h_e*du3N3.y*du3N3.y + h_e*du3N5.y*du3N5.y + h_b*du3N6.y*du3N6.y;
+		AA[row3N2+11] =        h_t*du3N1.y*du3N1.z + h_b*du3N2.y*du3N2.z + h_e*du3N3.y*du3N3.z + h_e*du3N5.y*du3N5.z + h_b*du3N6.y*du3N6.z;
+		AA[row3N2+12] = -h_e*du3N5.x*du3N5.y;
+		AA[row3N2+13] = -h_e*du3N5.y*du3N5.y;
+		AA[row3N2+14] = -h_e*du3N5.y*du3N5.z;
+		AA[row3N2+15] = -h_b*du3N6.x*du3N6.y;
+		AA[row3N2+16] = -h_b*du3N6.y*du3N6.y;
+		AA[row3N2+17] = -h_b*du3N6.y*du3N6.z;
 		
-		//TODO Set non-zero entries for the last three particles
+		AA[row3N1   ] = -h_t*du3N1.x*du3N1.z;
+		AA[row3N1+1 ] = -h_t*du3N1.y*du3N1.z;
+		AA[row3N1+2 ] = -h_t*du3N1.z*du3N1.z;
+		AA[row3N1+3 ] = -h_b*du3N2.x*du3N2.z;
+		AA[row3N1+4 ] = -h_b*du3N2.y*du3N2.z;
+		AA[row3N1+5 ] = -h_b*du3N2.z*du3N2.z;
+		AA[row3N1+6 ] = -h_e*du3N3.x*du3N3.z;
+		AA[row3N1+7 ] = -h_e*du3N3.y*du3N3.z;
+		AA[row3N1+8 ] = -h_e*du3N3.z*du3N3.z;
+		AA[row3N1+9 ] =        h_t*du3N1.x*du3N1.z + h_b*du3N2.x*du3N2.z + h_e*du3N3.x*du3N3.z + h_e*du3N5.x*du3N5.z + h_b*du3N6.x*du3N6.z;
+		AA[row3N1+10] =        h_t*du3N1.y*du3N1.z + h_b*du3N2.y*du3N2.z + h_e*du3N3.y*du3N3.z + h_e*du3N5.y*du3N5.z + h_b*du3N6.y*du3N6.z;
+		AA[row3N1+11] = 1.0f + h_t*du3N1.z*du3N1.z + h_b*du3N2.z*du3N2.z + h_e*du3N3.z*du3N3.z + h_e*du3N5.z*du3N5.z + h_b*du3N6.z*du3N6.z;
+		AA[row3N1+12] = -h_e*du3N5.x*du3N5.z;
+		AA[row3N1+13] = -h_e*du3N5.y*du3N5.z;
+		AA[row3N1+14] = -h_e*du3N5.z*du3N5.z;
+		AA[row3N1+15] = -h_b*du3N6.x*du3N6.z;
+		AA[row3N1+16] = -h_b*du3N6.y*du3N6.z;
+		AA[row3N1+17] = -h_b*du3N6.z*du3N6.z;
 		
-		//Set third to last row of matrix A
-		AA[rowN3  ] = -h*duN.x*duN.x;
-		AA[rowN3+1] = -h*duN.x*duN.y;
-		AA[rowN3+2] = -h*duN.x*duN.z;
-		AA[rowN3+3] = 1.0f + h*duN.x*duN.x;
-		AA[rowN3+4] = h*duN.x*duN.y;
-		AA[rowN3+5] = h*duN.x*duN.z;
+		int row2N3 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 5*numParticles*NUMCOMPONENTS - 15;
+		int row2N2 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 4*numParticles*NUMCOMPONENTS - 15;
+		int row2N1 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 3*numParticles*NUMCOMPONENTS - 15;
 		
-		//Set second to last row of matrix A
-		AA[rowN2  ] = -h*duN.x*duN.y;
-		AA[rowN2+1] = -h*duN.y*duN.y;
-		AA[rowN2+2] = -h*duN.y*duN.z;
-		AA[rowN2+3] = h*duN.x*duN.y;
-		AA[rowN2+4] = 1.0f + h*duN.y*duN.y;
-		AA[rowN2+5] = h*duN.y*duN.z;
+		AA[row2N3   ] = -h_t*du2N2.x*du2N2.x;
+		AA[row2N3+1 ] = -h_t*du2N2.x*du2N2.y;
+		AA[row2N3+2 ] = -h_t*du2N2.x*du2N2.z;
+		AA[row2N3+3 ] = -h_b*du2N3.x*du2N3.x;
+		AA[row2N3+4 ] = -h_b*du2N3.x*du2N3.y;
+		AA[row2N3+5 ] = -h_b*du2N3.x*du2N3.z;
+		AA[row2N3+6 ] = -h_e*du2N4.x*du2N4.x;
+		AA[row2N3+7 ] = -h_e*du2N4.x*du2N4.y;
+		AA[row2N3+8 ] = -h_e*du2N4.x*du2N4.z;
+		AA[row2N3+9 ] = 1.0f + h_t*du2N2.x*du2N2.x + h_b*du2N3.x*du2N3.x + h_e*du2N4.x*du2N4.x + h_e*du2N6.x*du2N6.x;
+		AA[row2N3+10] =        h_t*du2N2.x*du2N2.y + h_b*du2N3.x*du2N3.y + h_e*du2N4.x*du2N4.y + h_e*du2N6.x*du2N6.y;
+		AA[row2N3+11] =        h_t*du2N2.x*du2N2.z + h_b*du2N3.x*du2N3.z + h_e*du2N4.x*du2N4.z + h_e*du2N6.x*du2N6.z;
+		AA[row2N3+12] = -h_e*du2N6.x*du2N6.x;
+		AA[row2N3+13] = -h_e*du2N6.x*du2N6.y;
+		AA[row2N3+14] = -h_e*du2N6.x*du2N6.z;
 		
-		//Set last row of matrix A
-		AA[rowN1  ] = -h*duN.x*duN.z;
-		AA[rowN1+1] = -h*duN.y*duN.z;
-		AA[rowN1+2] = -h*duN.z*duN.z;
-		AA[rowN1+3] = h*duN.x*duN.z;
-		AA[rowN1+4] = h*duN.y*duN.z;
-		AA[rowN1+5] = 1.0f + h*duN.z*duN.z;
+		AA[row2N2   ] = -h_t*du2N2.x*du2N2.y;
+		AA[row2N2+1 ] = -h_t*du2N2.y*du2N2.y;
+		AA[row2N2+2 ] = -h_t*du2N2.y*du2N2.z;
+		AA[row2N2+3 ] = -h_b*du2N3.x*du2N3.y;
+		AA[row2N2+4 ] = -h_b*du2N3.y*du2N3.y;
+		AA[row2N2+5 ] = -h_b*du2N3.y*du2N3.z;
+		AA[row2N2+6 ] = -h_e*du2N4.x*du2N4.y;
+		AA[row2N2+7 ] = -h_e*du2N4.y*du2N4.y;
+		AA[row2N2+8 ] = -h_e*du2N4.y*du2N4.z;
+		AA[row2N2+9 ] =        h_t*du2N2.x*du2N2.y + h_b*du2N3.x*du2N3.y + h_e*du2N4.x*du2N4.y + h_e*du2N6.x*du2N6.y;
+		AA[row2N2+10] = 1.0f + h_t*du2N2.y*du2N2.y + h_b*du2N3.y*du2N3.y + h_e*du2N4.y*du2N4.y + h_e*du2N6.y*du2N6.y;
+		AA[row2N2+11] =        h_t*du2N2.y*du2N2.z + h_b*du2N3.y*du2N3.z + h_e*du2N4.y*du2N4.z + h_e*du2N6.y*du2N6.z;
+		AA[row2N2+12] = -h_e*du2N6.x*du2N6.y;
+		AA[row2N2+13] = -h_e*du2N6.y*du2N6.y;
+		AA[row2N2+14] = -h_e*du2N6.y*du2N6.z;
 		
+		AA[row2N1   ] = -h_t*du2N2.x*du2N2.z;
+		AA[row2N1+1 ] = -h_t*du2N2.y*du2N2.z;
+		AA[row2N1+2 ] = -h_t*du2N2.z*du2N2.z;
+		AA[row2N1+3 ] = -h_b*du2N3.x*du2N3.z;
+		AA[row2N1+4 ] = -h_b*du2N3.y*du2N3.z;
+		AA[row2N1+5 ] = -h_b*du2N3.z*du2N3.z;
+		AA[row2N1+6 ] = -h_e*du2N4.x*du2N4.z;
+		AA[row2N1+7 ] = -h_e*du2N4.y*du2N4.z;
+		AA[row2N1+8 ] = -h_e*du2N4.z*du2N4.z;
+		AA[row2N1+9 ] =        h_t*du2N2.x*du2N2.z + h_b*du2N3.x*du2N3.z + h_e*du2N4.x*du2N4.z + h_e*du2N4.x*du2N4.z;
+		AA[row2N1+10] =        h_t*du2N2.y*du2N2.z + h_b*du2N3.y*du2N3.z + h_e*du2N4.y*du2N4.z + h_e*du2N4.y*du2N4.z;
+		AA[row2N1+11] = 1.0f + h_t*du2N2.z*du2N2.z + h_b*du2N3.z*du2N3.z + h_e*du2N4.z*du2N4.z + h_e*du2N4.z*du2N4.z;
+		AA[row2N1+12] = -h_e*du2N4.x*du2N4.z;
+		AA[row2N1+13] = -h_e*du2N4.y*du2N4.z;
+		AA[row2N1+14] = -h_e*du2N4.z*du2N4.z;
 		
-		//TODO Set the last nine entries of the vector b
+		int row1N3 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 2*numParticles*NUMCOMPONENTS - 12;
+		int row1N2 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS -   numParticles*NUMCOMPONENTS - 12;
+		int row1N1 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS -12;
 		
-		//Set last three entries of vector b
-		bb[numParticles*NUMCOMPONENTS-3] = particle[numParticles-1]->velocity.x + g*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(duN)-length_e)*duN.x + gravity.x*(dt/2.0f);
-		bb[numParticles*NUMCOMPONENTS-2] = particle[numParticles-1]->velocity.y + g*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(duN)-length_e)*duN.y + gravity.y*(dt/2.0f);
-		bb[numParticles*NUMCOMPONENTS-1] = particle[numParticles-1]->velocity.z + g*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(duN)-length_e)*duN.z + gravity.z*(dt/2.0f);
+		AA[row1N3   ] = -h_t*du1N3.x*du1N3.x;
+		AA[row1N3+1 ] = -h_t*du1N3.x*du1N3.y;
+		AA[row1N3+2 ] = -h_t*du1N3.x*du1N3.z;
+		AA[row1N3+3 ] = -h_b*du1N4.x*du1N4.x;
+		AA[row1N3+4 ] = -h_b*du1N4.x*du1N4.y;
+		AA[row1N3+5 ] = -h_b*du1N4.x*du1N4.z;
+		AA[row1N3+6 ] = -h_e*du1N5.x*du1N5.x;
+		AA[row1N3+7 ] = -h_e*du1N5.x*du1N5.y;
+		AA[row1N3+8 ] = -h_e*du1N5.x*du1N5.z;
+		AA[row1N3+9 ] = 1.0f + h_t*du1N3.x*du1N3.x + h_b*du1N4.x*du1N4.x + h_e*du1N5.x*du1N5.x;
+		AA[row1N3+10] =        h_t*du1N3.x*du1N3.y + h_b*du1N4.x*du1N4.y + h_e*du1N5.x*du1N5.y;
+		AA[row1N3+11] =        h_t*du1N3.x*du1N3.z + h_b*du1N4.x*du1N4.z + h_e*du1N5.x*du1N5.z;
+		
+		AA[row1N2   ] = -h_t*du1N3.x*du1N3.y;
+		AA[row1N2+1 ] = -h_t*du1N3.y*du1N3.y;
+		AA[row1N2+2 ] = -h_t*du1N3.y*du1N3.z;
+		AA[row1N2+3 ] = -h_b*du1N4.x*du1N4.y;
+		AA[row1N2+4 ] = -h_b*du1N4.y*du1N4.y;
+		AA[row1N2+5 ] = -h_b*du1N4.y*du1N4.z;
+		AA[row1N2+6 ] = -h_e*du1N5.x*du1N5.y;
+		AA[row1N2+7 ] = -h_e*du1N5.y*du1N5.y;
+		AA[row1N2+8 ] = -h_e*du1N5.y*du1N5.z;
+		AA[row1N2+9 ] =        h_t*du1N3.x*du1N3.y + h_b*du1N4.x*du1N4.y + h_e*du1N5.x*du1N5.y;
+		AA[row1N2+10] = 1.0f + h_t*du1N3.y*du1N3.y + h_b*du1N4.y*du1N4.y + h_e*du1N5.y*du1N5.y;
+		AA[row1N2+11] =        h_t*du1N3.y*du1N3.z + h_b*du1N4.y*du1N4.z + h_e*du1N5.y*du1N5.z;
+		
+		AA[row1N1   ] = -h_t*du1N3.x*du1N3.z;
+		AA[row1N1+1 ] = -h_t*du1N3.y*du1N3.z;
+		AA[row1N1+2 ] = -h_t*du1N3.z*du1N3.z;
+		AA[row1N1+3 ] = -h_b*du1N4.x*du1N4.z;
+		AA[row1N1+4 ] = -h_b*du1N4.y*du1N4.z;
+		AA[row1N1+5 ] = -h_b*du1N4.z*du1N4.z;
+		AA[row1N1+6 ] = -h_e*du1N5.x*du1N5.z;
+		AA[row1N1+7 ] = -h_e*du1N5.x*du1N5.z;
+		AA[row1N1+8 ] = -h_e*du1N5.x*du1N5.z;
+		AA[row1N1+9 ] =        h_t*du1N3.z*du1N3.z + h_b*du1N4.z*du1N4.z + h_e*du1N5.x*du1N5.z;
+		AA[row1N1+10] =        h_t*du1N3.z*du1N3.z + h_b*du1N4.z*du1N4.z + h_e*du1N5.x*du1N5.z;
+		AA[row1N1+11] = 1.0f + h_t*du1N3.z*du1N3.z + h_b*du1N4.z*du1N4.z + h_e*du1N5.x*du1N5.z;
+		
+		//Set the last nine entries of the vector b
+		int bin = numParticles * NUMCOMPONENTS;
+		bb[bin-9] = particle[numParticles-3]->velocity.x + g_t*((particle[numParticles-6]->pos-particle[numParticles-3]->pos).dot(du3N1)-length_t)*du3N1.x + g_b*((particle[numParticles-5]->pos-particle[numParticles-3]->pos).dot(du3N2)-length_b)*du3N2.x + g_e*((particle[numParticles-4]->pos-particle[numParticles-3]->pos).dot(du3N3)-length_e)*du3N3.x + g_e*((particle[numParticles-2]->pos-particle[numParticles-3]->pos).dot(du3N5)-length_e)*du3N5.x + g_b*((particle[numParticles-1]->pos-particle[numParticles-3]->pos).dot(du3N6)-length_b)*du3N6.x + gravity.x*(dt/2.0f);
+		bb[bin-8] = particle[numParticles-3]->velocity.y + g_t*((particle[numParticles-6]->pos-particle[numParticles-3]->pos).dot(du3N1)-length_t)*du3N1.y + g_b*((particle[numParticles-5]->pos-particle[numParticles-3]->pos).dot(du3N2)-length_b)*du3N2.y + g_e*((particle[numParticles-4]->pos-particle[numParticles-3]->pos).dot(du3N3)-length_e)*du3N3.y + g_e*((particle[numParticles-2]->pos-particle[numParticles-3]->pos).dot(du3N5)-length_e)*du3N5.y + g_b*((particle[numParticles-1]->pos-particle[numParticles-3]->pos).dot(du3N6)-length_b)*du3N6.y + gravity.y*(dt/2.0f);;
+		bb[bin-7] = particle[numParticles-3]->velocity.z + g_t*((particle[numParticles-6]->pos-particle[numParticles-3]->pos).dot(du3N1)-length_t)*du3N1.z + g_b*((particle[numParticles-5]->pos-particle[numParticles-3]->pos).dot(du3N2)-length_b)*du3N2.z + g_e*((particle[numParticles-4]->pos-particle[numParticles-3]->pos).dot(du3N3)-length_e)*du3N3.z + g_e*((particle[numParticles-2]->pos-particle[numParticles-3]->pos).dot(du3N5)-length_e)*du3N5.z + g_b*((particle[numParticles-1]->pos-particle[numParticles-3]->pos).dot(du3N6)-length_b)*du3N6.z + gravity.z*(dt/2.0f);;
+		bb[bin-6] = particle[numParticles-2]->velocity.x + g_t*((particle[numParticles-5]->pos-particle[numParticles-2]->pos).dot(du2N2)-length_t)*du2N2.x + g_b*((particle[numParticles-4]->pos-particle[numParticles-2]->pos).dot(du2N3)-length_b)*du2N3.x + g_e*((particle[numParticles-3]->pos-particle[numParticles-2]->pos).dot(du2N4)-length_e)*du2N4.x + g_e*((particle[numParticles-1]->pos-particle[numParticles-2]->pos).dot(du2N6)-length_e)*du2N6.x + gravity.x*(dt/2.0f);
+		bb[bin-5] = particle[numParticles-2]->velocity.y + g_t*((particle[numParticles-5]->pos-particle[numParticles-2]->pos).dot(du2N2)-length_t)*du2N2.y + g_b*((particle[numParticles-4]->pos-particle[numParticles-2]->pos).dot(du2N3)-length_b)*du2N3.y + g_e*((particle[numParticles-3]->pos-particle[numParticles-2]->pos).dot(du2N4)-length_e)*du2N4.y + g_e*((particle[numParticles-1]->pos-particle[numParticles-2]->pos).dot(du2N6)-length_e)*du2N6.y + gravity.y*(dt/2.0f);
+		bb[bin-4] = particle[numParticles-2]->velocity.z + g_t*((particle[numParticles-5]->pos-particle[numParticles-2]->pos).dot(du2N2)-length_t)*du2N2.z + g_b*((particle[numParticles-4]->pos-particle[numParticles-2]->pos).dot(du2N3)-length_b)*du2N3.z + g_e*((particle[numParticles-3]->pos-particle[numParticles-2]->pos).dot(du2N4)-length_e)*du2N4.z + g_e*((particle[numParticles-1]->pos-particle[numParticles-2]->pos).dot(du2N6)-length_e)*du2N6.z + gravity.z*(dt/2.0f);
+		bb[bin-3] = particle[numParticles-1]->velocity.x + g_t*((particle[numParticles-4]->pos-particle[numParticles-1]->pos).dot(du1N3)-length_t)*du1N3.x + g_b*((particle[numParticles-3]->pos-particle[numParticles-1]->pos).dot(du1N4)-length_b)*du1N4.x + g_e*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(du1N5)-length_e)*du1N5.x + gravity.x*(dt/2.0f);
+		bb[bin-2] = particle[numParticles-1]->velocity.y + g_t*((particle[numParticles-4]->pos-particle[numParticles-1]->pos).dot(du1N3)-length_t)*du1N3.y + g_b*((particle[numParticles-3]->pos-particle[numParticles-1]->pos).dot(du1N4)-length_b)*du1N4.y + g_e*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(du1N5)-length_e)*du1N5.y + gravity.y*(dt/2.0f);
+		bb[bin-1] = particle[numParticles-1]->velocity.z + g_t*((particle[numParticles-4]->pos-particle[numParticles-1]->pos).dot(du1N3)-length_t)*du1N3.z + g_b*((particle[numParticles-3]->pos-particle[numParticles-1]->pos).dot(du1N4)-length_b)*du1N4.z + g_e*((particle[numParticles-2]->pos-particle[numParticles-1]->pos).dot(du1N5)-length_e)*du1N5.z + gravity.z*(dt/2.0f);
 		
 	}
 	
@@ -521,48 +805,179 @@ namespace pilar
 	
 	void Strand::updateSprings(float dt)
 	{
-		//TODO calculate the 6 coefficients
+		//calculate the 6 coefficients
+		float g_e = k_edge/length_e;
+		float g_b = k_bend/length_b;
+		float g_t = k_twist/length_t;
+		float h_e = dt*k_edge/(2.0f*length_e) + d_edge;
+		float h_b = dt*k_bend/(2.0f*length_b) + d_bend;
+		float h_t = dt*k_twist/(2.0f*length_t) + d_twist;
 		
-		float g = k_edge/length_e;
-		float h = dt*k_edge/(2.0f*length_e) + d_edge;
+		//Calculate and apply forces for the first three particles
+		Vector3f uu0R(root-particle[0]->pos);
+		Vector3f uu01(particle[1]->pos-particle[0]->pos);
+		Vector3f uu02(particle[2]->pos-particle[0]->pos);
+		Vector3f uu03(particle[3]->pos-particle[0]->pos);
+		Vector3f du0R(uu0R.unit());
+		Vector3f du01(uu01.unit());
+		Vector3f du02(uu02.unit());
+		Vector3f du03(uu03.unit());
+		Vector3f vu0R(-particle[0]->velh);
+		Vector3f vu01(particle[1]->velh-particle[0]->velh);
+		Vector3f vu02(particle[2]->velh-particle[0]->velh);
+		Vector3f vu03(particle[3]->velh-particle[0]->velh);
 		
-		//TODO Calculate and apply forces for the first three particles
-		
-		//Calculate force for first particle
-		Vector3f uu0(root-particle[0]->pos);
-		Vector3f ud0(particle[1]->pos-particle[0]->pos);
-		Vector3f du0(uu0.unit());
-		Vector3f dd0(ud0.unit());
-		Vector3f vu0(-particle[0]->velh);
-		Vector3f vd0(particle[1]->velh-particle[0]->velh);
-		
-		Vector3f force0 = du0*(g*(uu0.dot(du0)-length_e) + h*(vu0.dot(du0))) + dd0*(g*(ud0.dot(dd0)-length_e) + h*(vd0.dot(dd0)));
+		Vector3f force0 = du0R*(uu0R.dot(du0R)-length_e)*g_e + du0R*(vu0R.dot(du0R))*h_e +
+						  du01*(uu01.dot(du01)-length_e)*g_e + du01*(vu01.dot(du01))*h_e +
+						  du02*(uu02.dot(du02)-length_b)*g_b + du02*(vu02.dot(du02))*h_b +
+						  du03*(uu03.dot(du03)-length_t)*g_t + du03*(vu03.dot(du03))*h_t;
 		
 		particle[0]->applyForce(force0);
 		
+		Vector3f uu1R(root-particle[1]->pos);
+		Vector3f uu10(particle[0]->pos-particle[1]->pos);
+		Vector3f uu12(particle[2]->pos-particle[1]->pos);
+		Vector3f uu13(particle[3]->pos-particle[1]->pos);
+		Vector3f uu14(particle[4]->pos-particle[1]->pos);
+		Vector3f du1R(uu1R.unit());
+		Vector3f du10(uu10.unit());
+		Vector3f du12(uu12.unit());
+		Vector3f du13(uu13.unit());
+		Vector3f du14(uu14.unit());
+		Vector3f vu1R(-particle[1]->velh);
+		Vector3f vu10(particle[0]->velh-particle[1]->velh);
+		Vector3f vu12(particle[2]->velh-particle[1]->velh);
+		Vector3f vu13(particle[3]->velh-particle[1]->velh);
+		Vector3f vu14(particle[4]->velh-particle[1]->velh);
+		
+		Vector3f force1 = du1R*(uu1R.dot(du1R)-length_b)*g_b + du1R*(vu1R.dot(du1R))*h_b + 
+						  du10*(uu10.dot(du10)-length_e)*g_e + du10*(vu10.dot(du10))*h_e + 
+						  du12*(uu12.dot(du12)-length_e)*g_e + du12*(vu12.dot(du12))*h_e + 
+						  du13*(uu13.dot(du13)-length_b)*g_b + du13*(vu13.dot(du13))*h_b + 
+						  du14*(uu14.dot(du14)-length_t)*g_t + du14*(vu14.dot(du14))*h_t; 
+		
+		particle[1]->applyForce(force1);
+		
+		Vector3f uu2R(root-particle[2]->pos);
+		Vector3f uu20(particle[0]->pos-particle[2]->pos);
+		Vector3f uu21(particle[1]->pos-particle[2]->pos);
+		Vector3f uu23(particle[3]->pos-particle[2]->pos);
+		Vector3f uu24(particle[4]->pos-particle[2]->pos);
+		Vector3f uu25(particle[5]->pos-particle[2]->pos);
+		Vector3f du2R(uu2R.unit());
+		Vector3f du20(uu20.unit());
+		Vector3f du21(uu21.unit());
+		Vector3f du23(uu23.unit());
+		Vector3f du24(uu24.unit());
+		Vector3f du25(uu25.unit());
+		Vector3f vu2R(-particle[2]->velh);
+		Vector3f vu20(particle[0]->velh-particle[2]->velh);
+		Vector3f vu21(particle[1]->velh-particle[2]->velh);
+		Vector3f vu23(particle[3]->velh-particle[2]->velh);
+		Vector3f vu24(particle[4]->velh-particle[2]->velh);
+		Vector3f vu25(particle[5]->velh-particle[2]->velh);
+		
+		Vector3f force2 = du2R*(uu2R.dot(du2R)-length_t)*g_t + du2R*(vu2R.dot(du2R))*h_t +
+						  du20*(uu20.dot(du20)-length_b)*g_b + du20*(vu20.dot(du20))*h_b +
+						  du21*(uu21.dot(du21)-length_e)*g_e + du21*(vu21.dot(du21))*h_e +
+						  du23*(uu23.dot(du23)-length_e)*g_e + du23*(vu23.dot(du23))*h_e +
+						  du24*(uu24.dot(du24)-length_b)*g_b + du24*(vu24.dot(du24))*h_b +
+						  du25*(uu25.dot(du25)-length_t)*g_t + du25*(vu25.dot(du25))*h_t;
+		
+		particle[2]->applyForce(force2);
+		
 		//Calculate force for all particles between first and last
-		for(int i = 1; i < (numParticles-1); i++)
+		for(int i = 3; i < (numParticles-3); i++)
 		{
-			Vector3f uu(particle[i-1]->pos-particle[i]->pos);
-			Vector3f ud(particle[i+1]->pos-particle[i]->pos);
-			Vector3f du(uu.unit());
-			Vector3f dd(ud.unit());
-			Vector3f vu(particle[i-1]->velh-particle[i]->velh);
-			Vector3f vd(particle[i+1]->velh-particle[i]->velh);
+			Vector3f uu3(particle[i-3]->pos-particle[i]->pos);
+			Vector3f uu2(particle[i-2]->pos-particle[i]->pos);
+			Vector3f uu1(particle[i-1]->pos-particle[i]->pos);
+			Vector3f ud1(particle[i+1]->pos-particle[i]->pos);
+			Vector3f ud2(particle[i+2]->pos-particle[i]->pos);
+			Vector3f ud3(particle[i+3]->pos-particle[i]->pos);
+			Vector3f dui3(uu3.unit());
+			Vector3f dui2(uu2.unit());
+			Vector3f dui1(uu1.unit());
+			Vector3f ddi1(ud1.unit());
+			Vector3f ddi2(ud2.unit());
+			Vector3f ddi3(ud3.unit());
+			Vector3f vu3(particle[i-3]->velh-particle[i]->velh);
+			Vector3f vu2(particle[i-2]->velh-particle[i]->velh);
+			Vector3f vu1(particle[i-1]->velh-particle[i]->velh);
+			Vector3f vd1(particle[i+1]->velh-particle[i]->velh);
+			Vector3f vd2(particle[i+2]->velh-particle[i]->velh);
+			Vector3f vd3(particle[i+3]->velh-particle[i]->velh);
 			
-			Vector3f force = du*(g*(uu.dot(du)-length_e) + h*(vu.dot(du))) + dd*(g*(ud.dot(dd)-length_e) + h*(vd.dot(dd)));
+			Vector3f force = dui3*(uu3.dot(dui3)-length_t)*g_t + dui3*(vu3.dot(dui3))*h_t + 
+							 dui2*(uu2.dot(dui2)-length_b)*g_b + dui2*(vu2.dot(dui2))*h_b + 
+							 dui1*(uu1.dot(dui1)-length_e)*g_e + dui1*(vu1.dot(dui1))*h_e + 
+							 ddi1*(ud1.dot(ddi1)-length_e)*g_e + ddi1*(vd1.dot(ddi1))*h_e + 
+							 ddi2*(ud2.dot(ddi2)-length_b)*g_b + ddi2*(vd2.dot(ddi2))*h_b + 
+							 ddi3*(ud3.dot(ddi3)-length_t)*g_t + ddi3*(vd3.dot(ddi3))*h_t;
 			
 			particle[i]->applyForce(force);
 		}
 		
-		//Calculate force for last particle
-		Vector3f uuN(particle[numParticles-2]->pos-particle[numParticles-1]->pos);
-		Vector3f duN(uuN.unit());
-		Vector3f vuN(particle[numParticles-2]->velh-particle[numParticles-1]->velh);
+		//Calculate and apply forces for last three particles
+		Vector3f uu3N1(particle[numParticles-6]->pos-particle[numParticles-3]->pos);
+		Vector3f uu3N2(particle[numParticles-5]->pos-particle[numParticles-3]->pos);
+		Vector3f uu3N3(particle[numParticles-4]->pos-particle[numParticles-3]->pos);
+		Vector3f uu3N5(particle[numParticles-2]->pos-particle[numParticles-3]->pos);
+		Vector3f uu3N6(particle[numParticles-1]->pos-particle[numParticles-3]->pos);
+		Vector3f du3N1(uu3N1.unit());
+		Vector3f du3N2(uu3N2.unit());
+		Vector3f du3N3(uu3N3.unit());
+		Vector3f du3N5(uu3N5.unit());
+		Vector3f du3N6(uu3N6.unit());
+		Vector3f vu3N1(particle[numParticles-6]->velh-particle[numParticles-3]->velh);
+		Vector3f vu3N2(particle[numParticles-5]->velh-particle[numParticles-3]->velh);
+		Vector3f vu3N3(particle[numParticles-4]->velh-particle[numParticles-3]->velh);
+		Vector3f vu3N5(particle[numParticles-2]->velh-particle[numParticles-3]->velh);
+		Vector3f vu3N6(particle[numParticles-1]->velh-particle[numParticles-3]->velh);
 		
-		Vector3f forceN = duN*(g*(uuN.dot(duN)-length_e) + h*(vuN.dot(duN)));
+		Vector3f force3N = du3N1*(uu3N1.dot(du3N1)-length_t)*g_t + du3N1*(vu3N1.dot(du3N1))*h_t +
+						   du3N2*(uu3N2.dot(du3N2)-length_b)*g_b + du3N2*(vu3N2.dot(du3N2))*h_b +
+						   du3N3*(uu3N3.dot(du3N3)-length_e)*g_e + du3N3*(vu3N3.dot(du3N3))*h_e +
+						   du3N5*(uu3N5.dot(du3N5)-length_e)*g_e + du3N5*(vu3N5.dot(du3N5))*h_e +
+						   du3N6*(uu3N6.dot(du3N6)-length_b)*g_b + du3N6*(vu3N6.dot(du3N6))*h_b;
 		
-		particle[numParticles-1]->applyForce(forceN);
+		particle[numParticles-3]->applyForce(force3N);
+		
+		Vector3f uu2N2(particle[numParticles-5]->pos-particle[numParticles-2]->pos);
+		Vector3f uu2N3(particle[numParticles-4]->pos-particle[numParticles-2]->pos);
+		Vector3f uu2N4(particle[numParticles-3]->pos-particle[numParticles-2]->pos);
+		Vector3f uu2N6(particle[numParticles-1]->pos-particle[numParticles-2]->pos);
+		Vector3f du2N2(uu2N2.unit());
+		Vector3f du2N3(uu2N3.unit());
+		Vector3f du2N4(uu2N4.unit());
+		Vector3f du2N6(uu2N6.unit());
+		Vector3f vu2N2(particle[numParticles-5]->velh-particle[numParticles-2]->velh);
+		Vector3f vu2N3(particle[numParticles-4]->velh-particle[numParticles-2]->velh);
+		Vector3f vu2N4(particle[numParticles-3]->velh-particle[numParticles-2]->velh);
+		Vector3f vu2N6(particle[numParticles-1]->velh-particle[numParticles-2]->velh);
+		
+		Vector3f force2N = du2N2*(uu2N2.dot(du2N2)-length_t)*g_t + du2N2*(vu2N2.dot(du2N2))*h_t +
+						   du2N3*(uu2N3.dot(du2N3)-length_t)*g_b + du2N3*(vu2N3.dot(du2N3))*h_b +
+						   du2N4*(uu2N4.dot(du2N4)-length_t)*g_e + du2N4*(vu2N4.dot(du2N4))*h_e +
+						   du2N6*(uu2N6.dot(du2N6)-length_t)*g_e + du2N6*(vu2N6.dot(du2N6))*h_e;
+		
+		particle[numParticles-2]->applyForce(force2N);
+		
+		Vector3f uu1N3(particle[numParticles-4]->pos-particle[numParticles-1]->pos);
+		Vector3f uu1N4(particle[numParticles-3]->pos-particle[numParticles-1]->pos);
+		Vector3f uu1N5(particle[numParticles-2]->pos-particle[numParticles-1]->pos);
+		Vector3f du1N3(uu1N3.unit());
+		Vector3f du1N4(uu1N4.unit());
+		Vector3f du1N5(uu1N5.unit());
+		Vector3f vu1N3(particle[numParticles-4]->velh-particle[numParticles-1]->velh);
+		Vector3f vu1N4(particle[numParticles-3]->velh-particle[numParticles-1]->velh);
+		Vector3f vu1N5(particle[numParticles-2]->velh-particle[numParticles-1]->velh);
+		
+		Vector3f force1N = du1N3*(uu1N3.dot(du1N3)-length_t)*g_t + du1N3*(vu1N3.dot(du1N3))*h_t +
+						   du1N4*(uu1N4.dot(du1N4)-length_b)*g_b + du1N4*(vu1N4.dot(du1N4))*h_b +
+						   du1N5*(uu1N5.dot(du1N5)-length_e)*g_e + du1N5*(vu1N5.dot(du1N5))*h_e;
+		
+		particle[numParticles-1]->applyForce(force1N);
 	}
 	
 	void Strand::updateVelocities(float dt)

@@ -131,7 +131,8 @@ void init()
 	
 	//Root positions
 	pilar::Vector3f strand00(0.0f, 0.0f, 0.0f);
-	pilar::Vector3f strand01(-0.025f, 0.0f, 0.0f);
+	//~ pilar::Vector3f strand01(-0.025f, 0.0f, 0.0f);
+	pilar::Vector3f strand01(-0.055f, 0.0f, 0.0f);
 	
 	std::vector<pilar::Vector3f> roots;
 	roots.push_back(strand00);

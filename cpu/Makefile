@@ -4,13 +4,13 @@ CPP = main.cpp hair.cpp tools.cpp kdop.cpp tree.cpp
 HEADERS = hair.h tools.h constants.h kdop.h tree.h
 OBJF = hair.o tools.o kdop.o tree.o
 OBJ = main.o $(OBJF)
-FLAGS = -I$(HOME)/local/include
+FLAGS = 
 EXE = pilar
 
 OCPP = ogl.cpp
 OOBJ = ogl.o $(OBJF)
 OEXE = gl
-LIBS = -lglut -lGL -lGLU
+LIBS = -L/usr/lib/nvidia-331 -lglut -lGL -lGLU
 
 all: pilar ogl
 

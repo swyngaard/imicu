@@ -5,26 +5,27 @@
 //~ #define DEBUG_KDOP			//Uncomment to enable debug mode
 
 #define NUMSTRANDS			1
-#define NUMPARTICLES		9 // 33
+#define NUMPARTICLES		17 // 33
 #define NUMCOMPONENTS		3 // 3D vectors
 #define NUMSEGMENTS			(NUMPARTICLES-1)
-#define MASS				0.005f //0.000000001f particle mass is 0.01mg, total strand weight is 1mg
-#define K_EDGE				1.5f //(stable value) 0.005f
-#define K_BEND				0.004905f
-#define K_TWIST				0.004905f
+#define MASS				0.002f //0.000000001f particle mass is 0.01mg, total strand weight is 1mg
+#define K_EDGE				3.2f //edge spring coefficient
+#define K_BEND				0.08f //0.004905f
+#define K_TWIST				0.08f //0.009f //0.004905f
 #define K_EXTRA				0.004905f
-#define LENGTH_EDGE			0.005f  //TODO length between edge springs
-#define LENGTH_BEND			0.0025f //TODO length between bending springs
-#define LENGTH_TWIST		0.001f  //TODO length between twisting springs
-#define D_EDGE				1500.0f //-5.5f //Damping coefficient
-#define D_BEND				0.125f
-#define D_TWIST				0.125f
+#define LENGTH_EDGE			0.005f  //length between edge springs
+#define LENGTH_BEND			0.005f //length between bending springs
+#define LENGTH_TWIST		0.005f  //length between twisting springs
+#define LENGTH_EXTRA		0.005f
+#define D_EDGE				32.0f //Damping coefficient
+#define D_BEND				2.5f
+#define D_TWIST				2.5f
 #define D_EXTRA				0.125f
-#define GRAVITY				-9.81f//(stable value) -9.81f
+#define GRAVITY				-9.81f
 
 //Stiction constants
-#define K_STIC				1.5f //Stiction spring coefficient
-#define D_STIC				32.0f //Stiction damping coefficient
+#define K_STIC				0.01f //Stiction spring coefficient
+#define D_STIC				0.2f //Stiction damping coefficient
 #define	LEN_STIC			0.0035f //Stiction spring rest length (3.5 millimetres)
 #define HALF_LEN_STIC		0.00175f //Half the sticition spring rest length (for KDOP volume calculation)
 #define MAX_LEN_STIC		0.005f //Maximum length of stiction spring
