@@ -139,7 +139,7 @@ void init()
 	pilar::Vector3f root;
 	std::vector<pilar::Vector3f> roots;
 	
-	//TODO randomly generate roots on a plane
+	//randomly generate roots on a plane
 	roots.push_back(root);
 	
 	colour = new float[NUMPARTICLES*3];
