@@ -58,6 +58,12 @@ void initStrands(int numStrands,
 	p = init2(numStrands*numParticles*3*sizeof(float));
 	Ap = init2(numStrands*numParticles*3*sizeof(float));
 	
+	//TODO posh posc pos poso position
+	//TODO velh velc velocity
+	//TODO force
+	//TODO AA bb xx
+	
+	
 	/*
 	float3* position_h = (float3*) calloc(numStrands*numParticles, sizeof(float3));
 	

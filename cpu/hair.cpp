@@ -48,7 +48,7 @@ namespace pilar
 	void Particle::updatePosition(float dt)
 	{
 		//Save old position
-		poso = position;
+		Vector3f poso = position;
 		
 		//Calculate new position
 		position = poso + velh * dt;

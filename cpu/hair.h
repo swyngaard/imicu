@@ -19,7 +19,6 @@ namespace pilar
 		Vector3f posh; //half
 		Vector3f posc; //candidate
 		Vector3f pos;  //current
-		Vector3f poso; //old
 		Vector3f position; //previous
 		
 		Vector3f velh;
