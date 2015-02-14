@@ -3,7 +3,7 @@
 #define __CONSTANTS_H__
 
 #define NUMSTRANDS			1
-#define NUMPARTICLES		9 //Needs to be multiples of 5???
+#define NUMPARTICLES		17 //Needs to be multiples of 5???
 #define NUMCOMPONENTS		3 // 3D vectors
 #define NUMSEGMENTS			(NUMPARTICLES-1)
 #define MASS				0.000000001f //0.000000001f particle mass is 0.01mg, total strand weight is 1mg

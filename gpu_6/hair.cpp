@@ -5,6 +5,37 @@
 
 #include <iostream>
 
+extern "C"
+void mallocStrands(const int &numStrands,
+				   const int &numParticles,
+				   const int &numComponents,
+				   float3* &root,
+				   float3* &normal,
+				   float3* &position,
+				   float3* &pos,
+				   float3* &posc,
+				   float3* &posh,
+				   float3* &velocity,
+				   float3* &velh,
+				   float3* &force,
+				   float* &AA,
+				   float* &bb,
+				   float* &xx);
+
+extern "C"
+void freeStrands(float3* &root,
+				 float3* &normal,
+				 float3* &position,
+				 float3* &pos,
+				 float3* &posc,
+				 float3* &posh,
+				 float3* &velocity,
+				 float3* &velh,
+				 float3* &force,
+				 float* &AA,
+				 float* &bb,
+				 float* &xx);
+
 extern "C" void initStrands(int numStrands,
 							int numParticles,
 							float length,
@@ -456,6 +487,7 @@ namespace pilar
 	{
 		this->numStrands = numStrands;
 		this->numParticles = numParticles;
+		this->numComponents = NUMCOMPONENTS;
 		
 		mlgt.x = mass;
 		mlgt.y = length;
@@ -491,6 +523,8 @@ namespace pilar
 		
 		//TODO initialise strand data on GPU
 		initStrands(numStrands, numParticles, length, rr, position, posc, posh, velocity, velc, velh, force, A, b, x, r, p, Ap);
+		
+		mallocStrands(numStrands, numParticles, numComponents, root_, normal_, position_, pos_, posc_, posh_, velocity_, velh_, force_, AA_, bb_, xx_);
 	}
 	
 	void Hair::init()
@@ -540,6 +574,8 @@ namespace pilar
 		
 		//TODO Release strand data from GPU
 		releaseStrands(position,posc,posh,velocity,velc,velh,force,A,b,x,r,p,Ap);
+		
+		freeStrands(root_, normal_, position_, pos_, posc_, posh_, velocity_, velh_, force_, AA_, bb_, xx_);
 	}
 }
 

@@ -23,7 +23,6 @@ namespace pilar
 		
 		Vector3f velh;
 		Vector3f velocity;
-		Vector3f velc;
 		
 		Vector3f force;
 		

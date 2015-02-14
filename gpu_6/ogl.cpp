@@ -134,13 +134,26 @@ void releaseVBO()
 
 void init()
 {
-	
-	
 	pilar::Vector3f root;
 	std::vector<pilar::Vector3f> roots;
 	
 	//randomly generate roots on a plane
 	roots.push_back(root);
+	
+	//Root positions
+	pilar::Vector3f strand00(0.0f, 0.0f, 0.0f);
+	pilar::Vector3f strand01(-0.025f, 0.0f, 0.0f);
+	
+	std::vector<pilar::Vector3f> roots_;
+	roots_.push_back(strand00);
+	roots_.push_back(strand01);
+	
+	pilar::Vector3f normal00(1.0f, -1.0f, 0.0f);
+	pilar::Vector3f normal01(-1.0f, -1.0f, 0.0f);
+	
+	std::vector<pilar::Vector3f> normals;
+	normals.push_back(normal00);
+	normals.push_back(normal01);
 	
 	colour = new float[NUMPARTICLES*3];
 	

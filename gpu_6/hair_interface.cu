@@ -5,6 +5,93 @@
 
 #include "hair_kernel.cu"
 
+
+static float* mallocFloat(const int bytes)
+{
+	float* pointer;
+	
+	checkCudaErrors(cudaMalloc((void**)&pointer, bytes));
+	checkCudaErrors(cudaMemset(pointer, 0, bytes));
+	
+	return pointer;
+}
+
+static float3* mallocFloat3(const int bytes)
+{
+	float3* pointer;
+	
+	checkCudaErrors(cudaMalloc((void**)&pointer, bytes));
+	checkCudaErrors(cudaMemset(pointer, 0, bytes));
+	
+	return pointer;
+}
+
+extern "C"
+void mallocStrands(const int &numStrands,
+				   const int &numParticles,
+				   const int &numComponents,
+				   float3* &root,
+				   float3* &normal,
+				   float3* &position,
+				   float3* &pos,
+				   float3* &posc,
+				   float3* &posh,
+				   float3* &velocity,
+				   float3* &velh,
+				   float3* &force,
+				   float* &AA,
+				   float* &bb,
+				   float* &xx)
+{
+	int bytes1D = numParticles * numStrands * numComponents * sizeof(float);
+	int bytes2D = numParticles * numStrands * numComponents * numParticles * numStrands * numComponents * sizeof(float);
+	int bytes3fR = numStrands * sizeof(float3);
+	int bytes3f1D = numParticles * numStrands * sizeof(float3);
+	
+	root	 = mallocFloat3(bytes3fR);
+	normal	 = mallocFloat3(bytes3fR);
+	position = mallocFloat3(bytes3f1D);
+	pos		 = mallocFloat3(bytes3f1D);
+	posc	 = mallocFloat3(bytes3f1D);
+	posh	 = mallocFloat3(bytes3f1D);
+	velocity = mallocFloat3(bytes3f1D);
+	velh	 = mallocFloat3(bytes3f1D);
+	force	 = mallocFloat3(bytes3f1D);
+	
+	AA = mallocFloat(bytes2D);
+	
+	bb = mallocFloat(bytes1D);
+	xx = mallocFloat(bytes1D);
+}
+
+extern "C"
+void freeStrands(float3* &root,
+				 float3* &normal,
+				 float3* &position,
+				 float3* &pos,
+				 float3* &posc,
+				 float3* &posh,
+				 float3* &velocity,
+				 float3* &velh,
+				 float3* &force,
+				 float* &AA,
+				 float* &bb,
+				 float* &xx)
+{
+	checkCudaErrors(cudaFree(root));
+	checkCudaErrors(cudaFree(normal));
+	checkCudaErrors(cudaFree(position));
+	checkCudaErrors(cudaFree(pos));
+	checkCudaErrors(cudaFree(posc));
+	checkCudaErrors(cudaFree(posh));
+	checkCudaErrors(cudaFree(velocity));
+	checkCudaErrors(cudaFree(velh));
+	checkCudaErrors(cudaFree(force));
+	checkCudaErrors(cudaFree(AA));
+	checkCudaErrors(cudaFree(bb));
+	checkCudaErrors(cudaFree(xx));
+}
+
 static float3* init(const int size)
 {
 	float3* d_vec;
@@ -57,12 +144,6 @@ void initStrands(int numStrands,
 	r = init2(numStrands*numParticles*3*sizeof(float));
 	p = init2(numStrands*numParticles*3*sizeof(float));
 	Ap = init2(numStrands*numParticles*3*sizeof(float));
-	
-	//TODO posh posc pos poso position
-	//TODO velh velc velocity
-	//TODO force
-	//TODO AA bb xx
-	
 	
 	/*
 	float3* position_h = (float3*) calloc(numStrands*numParticles, sizeof(float3));
