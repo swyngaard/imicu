@@ -142,6 +142,7 @@ namespace pilar
 		
 		Hair(int numStrands,
 			 int numParticles,
+			 int numComponents,
 			 float mass, 
 			 float k_edge, 
 			 float k_bend,
@@ -152,7 +153,12 @@ namespace pilar
 			 float d_twist,
 			 float d_extra,
 			 float length,
-			 std::vector<Vector3f> &roots);
+			 float length_e,
+			 float length_b,
+			 float length_t,
+			 std::vector<Vector3f> &roots,
+			 std::vector<Vector3f> &normals);
+		
 		void update(float dt);
 		void init();
 		void release();

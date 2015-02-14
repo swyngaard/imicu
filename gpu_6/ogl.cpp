@@ -146,14 +146,14 @@ void init()
 	
 	std::vector<pilar::Vector3f> roots_;
 	roots_.push_back(strand00);
-	roots_.push_back(strand01);
+	//~ roots_.push_back(strand01);
 	
 	pilar::Vector3f normal00(1.0f, -1.0f, 0.0f);
 	pilar::Vector3f normal01(-1.0f, -1.0f, 0.0f);
 	
-	std::vector<pilar::Vector3f> normals;
-	normals.push_back(normal00);
-	normals.push_back(normal01);
+	std::vector<pilar::Vector3f> normals_;
+	normals_.push_back(normal00);
+	//~ normals.push_back(normal01);
 	
 	colour = new float[NUMPARTICLES*3];
 	
@@ -189,7 +189,7 @@ void init()
 	size_t size;
 	checkCudaErrors(cudaGraphicsMapResources(1, &cuda_vbo_resource, NULL));
 	
-	hair = new pilar::Hair(roots.size(), NUMPARTICLES, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH, roots);
+	hair = new pilar::Hair(roots.size(), NUMPARTICLES, NUMCOMPONENTS, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH, LENGTH_EDGE, LENGTH_BEND, LENGTH_TWIST, roots_, normals_);
 	
 	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position, &size, cuda_vbo_resource));
 	

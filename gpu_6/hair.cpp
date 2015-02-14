@@ -473,6 +473,7 @@ namespace pilar
 	
 	Hair::Hair(int numStrands,
 			   int numParticles,
+			   int numComponents,
 			   float mass,
 			   float k_edge,
 			   float k_bend,
@@ -483,16 +484,19 @@ namespace pilar
 			   float d_twist,
 			   float d_extra,
 			   float length,
-			   std::vector<Vector3f> &roots)
+			   float length_e,
+			   float length_b,
+			   float length_t,
+			   std::vector<Vector3f> &roots,
+			   std::vector<Vector3f> &normals)
 	{
 		this->numStrands = numStrands;
 		this->numParticles = numParticles;
-		this->numComponents = NUMCOMPONENTS;
+		this->numComponents = numComponents;
 		
 		mlgt.x = mass;
 		mlgt.y = length;
 		mlgt.z = GRAVITY;
-		
 		
 		k.x = k_edge;
 		k.y = k_bend;
