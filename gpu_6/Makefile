@@ -136,10 +136,11 @@ LIBRARIES :=
 
 ################################################################################
 
-EXEC   ?=
+EXEC   ?= 
 
 # Makefile include to help find GL Libraries
-include ./findgllib.mk
+#TODO Update this included make script to incorporate Debian libraries.
+#include ./findgllib.mk
 
 # OpenGL specific libraries
 ifneq ($(DARWIN),)

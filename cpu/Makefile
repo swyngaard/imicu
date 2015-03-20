@@ -10,7 +10,7 @@ EXE = pilar
 OCPP = ogl.cpp
 OOBJ = ogl.o $(OBJF)
 OEXE = gl
-LIBS = -L/usr/lib/nvidia-331 -lglut -lGL -lGLU
+LIBS = -L/usr/lib/nvidia/current -lglut -lGL -lGLU
 
 all: pilar ogl
 

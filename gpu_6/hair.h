@@ -156,8 +156,8 @@ namespace pilar
 			 float length_e,
 			 float length_b,
 			 float length_t,
-			 std::vector<Vector3f> &roots,
-			 std::vector<Vector3f> &normals);
+			 std::vector<Vector3f> &root,
+			 std::vector<Vector3f> &normal);
 		
 		void update(float dt);
 		void init();

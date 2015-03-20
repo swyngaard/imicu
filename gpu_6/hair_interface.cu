@@ -92,6 +92,14 @@ void freeStrands(float3* &root,
 	checkCudaErrors(cudaFree(xx));
 }
 
+extern "C"
+void copyRoots(int numStrands, const float3* &root3f, const float3* &normal3f, float3* &root, float3* &normal)
+{
+	int size = numStrands * sizeof(float3);
+	checkCudaErrors(cudaMemcpy(root, root3f, size, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(normal, normal3f, size, cudaMemcpyHostToDevice));
+}
+
 static float3* init(const int size)
 {
 	float3* d_vec;

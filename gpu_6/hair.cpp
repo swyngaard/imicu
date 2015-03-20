@@ -91,6 +91,12 @@ extern "C" void copyMem(const int numStrands,
 						float3* &position,
 						float3* &posc);
 
+extern "C" void copyRoots(int numStrands,
+						  const float3* &root3f,
+						  const float3* &normal3f,
+						  float3* &root,
+						  float3* &normal);
+
 namespace pilar
 {
 
@@ -487,8 +493,8 @@ namespace pilar
 			   float length_e,
 			   float length_b,
 			   float length_t,
-			   std::vector<Vector3f> &roots,
-			   std::vector<Vector3f> &normals)
+			   std::vector<Vector3f> &root,
+			   std::vector<Vector3f> &normal)
 	{
 		this->numStrands = numStrands;
 		this->numParticles = numParticles;
@@ -512,23 +518,44 @@ namespace pilar
 		
 		for(int i = 0; i < numStrands; i++)
 		{
-			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, roots[i]);
+			strand[i] = new Strand(numParticles, mass, k_edge, k_bend, k_twist, k_extra, d_edge, d_bend, d_twist, d_extra, length, root[i]);
 		}
 		
 		float3* rr = (float3*) calloc(numStrands, sizeof(float3));
 		
 		//TODO change roots to float3* vector
-		for(unsigned int i = 0; i < roots.size(); i++)
+		for(unsigned int i = 0; i < numStrands; i++)
 		{
-			rr[i].x = roots[i].x;
-			rr[i].y = roots[i].y;
-			rr[i].z = roots[i].z;
+			rr[i].x = root[i].x;
+			rr[i].y = root[i].y;
+			rr[i].z = root[i].z;
+		}
+		
+		float3* root3f = (float3*) calloc(numStrands, sizeof(float3));
+		float3* normal3f = (float3*) calloc(numStrands, sizeof(float3));
+		
+		for(int i = 0; i < numStrands; i++)
+		{
+			root3f[i].x = root[i].x;
+			root3f[i].y = root[i].y;
+			root3f[i].z = root[i].z;
+			
+			normal3f[i].x = normal[i].x;
+			normal3f[i].y = normal[i].y;
+			normal3f[i].z = normal[i].z;
 		}
 		
 		//TODO initialise strand data on GPU
 		initStrands(numStrands, numParticles, length, rr, position, posc, posh, velocity, velc, velh, force, A, b, x, r, p, Ap);
 		
 		mallocStrands(numStrands, numParticles, numComponents, root_, normal_, position_, pos_, posc_, posh_, velocity_, velh_, force_, AA_, bb_, xx_);
+		
+		//TODO copy root positions and normals to GPU
+		//copyRoots(numStrands, root3f, normal3f, root_, normal_);
+		
+		free(rr);
+		free(root3f);
+		free(normal3f);
 	}
 	
 	void Hair::init()
