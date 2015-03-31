@@ -386,6 +386,23 @@ void applyStrainLimiting(int numParticles, float dt, float3* position, float3* p
 }
 
 __global__
+void initialise(int numStrands, int numParticles, const float3* root, const float3* normal, float3* position)
+{
+	//Strand ID
+	int sid = blockIdx.x;
+	
+	int start = numParticles * sid;
+	int end = start + numParticles;
+	
+	for(int i = start, j = 1; i < end; i++, j++)
+	{
+		position[i].x = root[i].x + normal[i].x * 0.025f * j;
+		position[i].y = root[i].y + normal[i].y * 0.025f * j;
+		position[i].z = root[i].z + normal[i].z * 0.025f * j;
+	}
+}
+
+__global__
 void update(const int numParticles,
 			float4 mlgt,
 			const float4 k,

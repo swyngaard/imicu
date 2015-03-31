@@ -53,7 +53,10 @@ extern "C" void initStrands(int numStrands,
 							float* &r,
 							float* &p,
 							float* &Ap);
-				 
+
+extern "C"
+void initPositions(int numStrands, int numParticles, const float3* root, const float3* normal, float3* position);
+
 extern "C" void updateStrands(const int numParticles,
 				   			  float4 &mlgt,
 				   			  const float4 k,
@@ -92,10 +95,10 @@ extern "C" void copyMem(const int numStrands,
 						float3* &posc);
 
 extern "C" void copyRoots(int numStrands,
-						  const float3* &root3f,
-						  const float3* &normal3f,
-						  float3* &root,
-						  float3* &normal);
+						  const float3* root3f,
+						  const float3* normal3f,
+						  float3* root,
+						  float3* normal);
 
 namespace pilar
 {
@@ -545,13 +548,16 @@ namespace pilar
 			normal3f[i].z = normal[i].z;
 		}
 		
-		//TODO initialise strand data on GPU
+		//Initialise strand data on GPU
 		initStrands(numStrands, numParticles, length, rr, position, posc, posh, velocity, velc, velh, force, A, b, x, r, p, Ap);
 		
 		mallocStrands(numStrands, numParticles, numComponents, root_, normal_, position_, pos_, posc_, posh_, velocity_, velh_, force_, AA_, bb_, xx_);
 		
-		//TODO copy root positions and normals to GPU
-		//copyRoots(numStrands, root3f, normal3f, root_, normal_);
+		//Copy root positions and normals to GPU
+		copyRoots(numStrands, root3f, normal3f, root_, normal_);
+		
+		//Intialise particle positions on the GPU
+		initPositions(numStrands, numParticles, root_, normal_, position_);
 		
 		free(rr);
 		free(root3f);

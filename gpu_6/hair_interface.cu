@@ -93,7 +93,7 @@ void freeStrands(float3* &root,
 }
 
 extern "C"
-void copyRoots(int numStrands, const float3* &root3f, const float3* &normal3f, float3* &root, float3* &normal)
+void copyRoots(int numStrands, const float3* root3f, const float3* normal3f, float3* root, float3* normal)
 {
 	int size = numStrands * sizeof(float3);
 	checkCudaErrors(cudaMemcpy(root, root3f, size, cudaMemcpyHostToDevice));
@@ -234,6 +234,17 @@ void releaseStrands(float3* &position,
 	checkCudaErrors(cudaFree(p));
 	checkCudaErrors(cudaFree(Ap));
 //	checkCudaErrors(cudaFree(position));
+}
+
+extern "C"
+void initPositions(int numStrands, int numParticles, const float3* root, const float3* normal, float3* position)
+{
+	dim3 grid(numStrands, 1, 1);
+	dim3 block(1, 1, 1);
+	
+	initialise<<<grid,block>>>(numStrands, numParticles, root, normal, position);
+	
+	cudaThreadSynchronize();
 }
 
 extern "C"
