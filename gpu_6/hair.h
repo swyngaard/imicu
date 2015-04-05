@@ -109,7 +109,7 @@ namespace pilar
 		
 		float3 *root_;
 		float3 *normal_;
-		float3 *position_;
+		//~ float3 *position_;
 		float3 *pos_;
 		float3 *posc_;
 		float3 *posh_;
@@ -138,6 +138,8 @@ namespace pilar
 		
 		float3 *position;
 		
+		float3 *position_;
+		
 		Strand** strand;
 		
 		Hair(int numStrands,
@@ -160,7 +162,7 @@ namespace pilar
 			 std::vector<Vector3f> &normal);
 		
 		void update(float dt);
-		void init();
+		void init(std::vector<Vector3f> &root, std::vector<Vector3f> &normal);
 		void release();
 	};
 }

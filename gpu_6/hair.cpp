@@ -534,6 +534,16 @@ namespace pilar
 			rr[i].z = root[i].z;
 		}
 		
+		//Initialise strand data on GPU
+		initStrands(numStrands, numParticles, length, rr, position, posc, posh, velocity, velc, velh, force, A, b, x, r, p, Ap);
+		
+		free(rr);
+	}
+	
+	void Hair::init(std::vector<Vector3f> &root, std::vector<Vector3f> &normal)
+	{
+		copyMem(numStrands, numParticles, position, posc);
+		
 		float3* root3f = (float3*) calloc(numStrands, sizeof(float3));
 		float3* normal3f = (float3*) calloc(numStrands, sizeof(float3));
 		
@@ -548,9 +558,7 @@ namespace pilar
 			normal3f[i].z = normal[i].z;
 		}
 		
-		//Initialise strand data on GPU
-		initStrands(numStrands, numParticles, length, rr, position, posc, posh, velocity, velc, velh, force, A, b, x, r, p, Ap);
-		
+		//Allocate memory on GPU
 		mallocStrands(numStrands, numParticles, numComponents, root_, normal_, position_, pos_, posc_, posh_, velocity_, velh_, force_, AA_, bb_, xx_);
 		
 		//Copy root positions and normals to GPU
@@ -559,14 +567,8 @@ namespace pilar
 		//Intialise particle positions on the GPU
 		initPositions(numStrands, numParticles, root_, normal_, position_);
 		
-		free(rr);
 		free(root3f);
 		free(normal3f);
-	}
-	
-	void Hair::init()
-	{
-		copyMem(numStrands, numParticles, position, posc);
 	}
 	
 	void Hair::update(float dt)

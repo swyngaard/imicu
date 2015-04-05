@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
 //	glutIdleFunc(render);
-	glutTimerFunc(40, animate, 40);
+	glutTimerFunc(8, animate, 8);
 	
 	glewInit();
 	
@@ -184,6 +184,7 @@ void init()
 		}
 	}
 	
+	
 	createVBO(roots);
 	
 	size_t size;
@@ -193,7 +194,8 @@ void init()
 	
 	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position, &size, cuda_vbo_resource));
 	
-	hair->init();
+	//TODO Create VBO for first strand particles
+	hair->init(roots_, normals_);
 	
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_vbo_resource, 0));
 }
@@ -210,6 +212,7 @@ void cleanup()
 	
 	colour = NULL;
 	
+	//TODO Release VBO for first strand particles
 	releaseVBO();
 }
 
@@ -261,6 +264,8 @@ void render(void) {
 //				0.0f, -0.4f,  0.0f,
 //				0.0f, 1.0f,  0.0f);
 	
+	//TODO remove this commented block
+	/*
 	//Draw hair
 	glBegin(GL_LINE_STRIP);
 	
@@ -293,7 +298,7 @@ void render(void) {
 	}
 	
 	glEnd();
-	
+	*/
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_POINTS);
 		glVertex3f(0.0f, 0.0f, 0.0f);
@@ -314,6 +319,8 @@ void render(void) {
 	
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	
+	//TODO Render from the VOB for the positions of the first strand
 	
 	glutSwapBuffers();
 }
