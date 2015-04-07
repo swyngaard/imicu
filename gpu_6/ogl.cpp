@@ -27,8 +27,10 @@ int prevTime;
 // vbo variables
 GLuint vbo = 0;
 GLuint vbo2 = 0;
+GLuint strand_vbo = 0;
 struct cudaGraphicsResource *cuda_vbo_resource = NULL;
 struct cudaGraphicsResource *cuda_vbo_resource2 = NULL;
+struct cudaGraphicsResource *strand_vbo_resource = NULL;
 static float* colour = NULL;
 
 void animate(int milli);
@@ -49,7 +51,7 @@ int main(int argc, char **argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100,100);
-	glutInitWindowSize(800,600);
+	glutInitWindowSize(1024,768);
 	glutCreateWindow("Simulation");
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 	
@@ -106,13 +108,11 @@ void createVBO(std::vector<pilar::Vector3f> &root)
 	glGenBuffers(1,&vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, NUMSTRANDS*NUMPARTICLES*sizeof(float3), (void*)position_h, GL_DYNAMIC_DRAW);
-	
 	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&cuda_vbo_resource, vbo, cudaGraphicsMapFlagsNone));
 	
 	glGenBuffers(1,&vbo2);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo2);
 	glBufferData(GL_ARRAY_BUFFER, NUMPARTICLES*3*sizeof(float), (void*)colour, GL_DYNAMIC_DRAW);
-	
 	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&cuda_vbo_resource2, vbo2, cudaGraphicsMapFlagsNone));
 	
 	free(position_h);
@@ -194,8 +194,21 @@ void init()
 	
 	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position, &size, cuda_vbo_resource));
 	
-	//TODO Create VBO for first strand particles
+	//Create VBO for first strand particles
+	glGenBuffers(1,&strand_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, strand_vbo);
+	unsigned int num_bytes = NUMSTRANDS*NUMPARTICLES*sizeof(float3);
+	glBufferData(GL_ARRAY_BUFFER, num_bytes, (void*)hair->position_, GL_DYNAMIC_DRAW);
+	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&strand_vbo_resource, strand_vbo, cudaGraphicsMapFlagsNone));
+	
+	//Map resource, set map flags, write intial data, unmap resource
+	size_t strand_size;
+	checkCudaErrors(cudaGraphicsMapResources(1, &strand_vbo_resource, NULL));
+	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position_, &strand_size, strand_vbo_resource));
+	
 	hair->init(roots_, normals_);
+	
+	checkCudaErrors(cudaGraphicsUnmapResources(1, &strand_vbo_resource, 0));
 	
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_vbo_resource, 0));
 }
@@ -212,7 +225,12 @@ void cleanup()
 	
 	colour = NULL;
 	
-	//TODO Release VBO for first strand particles
+	//Release VBO for first strand particles
+	cudaGraphicsUnregisterResource(strand_vbo_resource);
+	glBindBuffer(1, strand_vbo);
+	glDeleteBuffers(1, &strand_vbo);
+	strand_vbo = 0;
+	
 	releaseVBO();
 }
 
@@ -264,41 +282,6 @@ void render(void) {
 //				0.0f, -0.4f,  0.0f,
 //				0.0f, 1.0f,  0.0f);
 	
-	//TODO remove this commented block
-	/*
-	//Draw hair
-	glBegin(GL_LINE_STRIP);
-	
-//	glVertex3f(0.0f, 0.0f, 0.0f);
-	
-	for(int i = 0; i < hair->numStrands; i++)
-	{
-		for(int j = 0; j < hair->strand[i]->numParticles; j++)
-		{
-			pilar::Particle* particle = hair->strand[i]->particle[j];
-//			pilar::Particle* p0 = hair->strand[i]->particle[j-1];
-			
-			//Set the colour of the spring
-			
-			switch(j%4)
-			{
-				case 0: glColor3f(1.0f, 1.0f, 1.0f); break; //WHITE
-				case 1: glColor3f(1.0f, 0.0f, 0.0f); break; //RED
-				case 2: glColor3f(0.0f, 1.0f, 0.0f); break; //GREEN
-				case 3: glColor3f(1.0f, 0.0f, 1.0f); break; //PINK
-			}
-			
-			
-//			glVertex3f(p0->position.x, p0->position.y, p0->position.z);
-			glVertex3f(particle->position.x, particle->position.y, particle->position.z);
-			
-//			if(j==(hair->strand[i]->numParticles-1))
-//				std::cout << particle->position.x << " " << particle->position.y << " " << particle->position.z << std::endl;
-		}
-	}
-	
-	glEnd();
-	*/
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_POINTS);
 		glVertex3f(0.0f, 0.0f, 0.0f);
@@ -320,7 +303,20 @@ void render(void) {
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	
-	//TODO Render from the VOB for the positions of the first strand
+	//Render from the VOB for the positions of the first strand
+	glBindBuffer(GL_ARRAY_BUFFER, strand_vbo);
+    glVertexPointer(3, GL_FLOAT, 0, 0);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vbo2);
+    glColorPointer(3, GL_FLOAT, 0, 0);
+    
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    
+		glDrawArrays(GL_LINE_STRIP, 0, NUMPARTICLES);
+	
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 	
 	glutSwapBuffers();
 }

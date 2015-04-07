@@ -386,7 +386,7 @@ void applyStrainLimiting(int numParticles, float dt, float3* position, float3* p
 }
 
 __global__
-void initialise(int numStrands, int numParticles, const float3* root, const float3* normal, float3* position)
+void initialise(int numParticles, const float3* root, const float3* normal, float3* position)
 {
 	//Strand ID
 	int sid = blockIdx.x;
@@ -396,9 +396,9 @@ void initialise(int numStrands, int numParticles, const float3* root, const floa
 	
 	for(int i = start, j = 1; i < end; i++, j++)
 	{
-		position[i].x = root[i].x + normal[i].x * 0.025f * j;
-		position[i].y = root[i].y + normal[i].y * 0.025f * j;
-		position[i].z = root[i].z + normal[i].z * 0.025f * j;
+		position[i].x = root[sid].x + normal[sid].x * 0.0025f * j;
+		position[i].y = root[sid].y + normal[sid].y * 0.0025f * j;
+		position[i].z = root[sid].z + normal[sid].z * 0.0025f * j;
 	}
 }
 

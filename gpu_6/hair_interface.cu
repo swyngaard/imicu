@@ -50,7 +50,7 @@ void mallocStrands(const int &numStrands,
 	
 	root	 = mallocFloat3(bytes3fR);
 	normal	 = mallocFloat3(bytes3fR);
-	position = mallocFloat3(bytes3f1D);
+	//~ position = mallocFloat3(bytes3f1D);
 	pos		 = mallocFloat3(bytes3f1D);
 	posc	 = mallocFloat3(bytes3f1D);
 	posh	 = mallocFloat3(bytes3f1D);
@@ -80,7 +80,7 @@ void freeStrands(float3* &root,
 {
 	checkCudaErrors(cudaFree(root));
 	checkCudaErrors(cudaFree(normal));
-	checkCudaErrors(cudaFree(position));
+	//~ checkCudaErrors(cudaFree(position));
 	checkCudaErrors(cudaFree(pos));
 	checkCudaErrors(cudaFree(posc));
 	checkCudaErrors(cudaFree(posh));
@@ -242,7 +242,7 @@ void initPositions(int numStrands, int numParticles, const float3* root, const f
 	dim3 grid(numStrands, 1, 1);
 	dim3 block(1, 1, 1);
 	
-	initialise<<<grid,block>>>(numStrands, numParticles, root, normal, position);
+	initialise<<<grid,block>>>(numParticles, root, normal, position);
 	
 	cudaThreadSynchronize();
 }
