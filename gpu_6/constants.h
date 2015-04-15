@@ -2,7 +2,7 @@
 #ifndef __CONSTANTS_H__
 #define __CONSTANTS_H__
 
-#define NUMSTRANDS			1
+#define NUMSTRANDS			2
 #define NUMPARTICLES		9 //Needs to be multiples of 5???
 #define NUMCOMPONENTS		3 // 3D vectors
 #define NUMSEGMENTS			(NUMPARTICLES-1)

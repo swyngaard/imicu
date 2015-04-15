@@ -28,9 +28,11 @@ int prevTime;
 GLuint vbo = 0;
 GLuint vbo2 = 0;
 GLuint strand_vbo = 0;
+GLuint colour_vbo = 0;
 struct cudaGraphicsResource *cuda_vbo_resource = NULL;
 struct cudaGraphicsResource *cuda_vbo_resource2 = NULL;
 struct cudaGraphicsResource *strand_vbo_resource = NULL;
+struct cudaGraphicsResource *colour_vbo_resource = NULL;
 static float* colour = NULL;
 
 void animate(int milli);
@@ -139,6 +141,7 @@ void init()
 	
 	//randomly generate roots on a plane
 	roots.push_back(root);
+	roots.push_back(pilar::Vector3f(-0.025f, 0.0f, 0.0f));
 	
 	//Root positions
 	pilar::Vector3f strand00(0.0f, 0.0f, 0.0f);
@@ -146,14 +149,14 @@ void init()
 	
 	std::vector<pilar::Vector3f> roots_;
 	roots_.push_back(strand00);
-	//~ roots_.push_back(strand01);
+	roots_.push_back(strand01);
 	
 	pilar::Vector3f normal00(1.0f, -1.0f, 0.0f);
 	pilar::Vector3f normal01(-1.0f, -1.0f, 0.0f);
 	
 	std::vector<pilar::Vector3f> normals_;
 	normals_.push_back(normal00);
-	//~ normals.push_back(normal01);
+	normals_.push_back(normal01);
 	
 	colour = new float[NUMPARTICLES*3];
 	
@@ -184,6 +187,46 @@ void init()
 		}
 	}
 	
+	//Intialise temp colour buffer
+	float * colour_values = (float*)malloc(NUMSTRANDS*NUMPARTICLES*NUMCOMPONENTS*sizeof(float));
+	
+	//Set values of colours
+	for(int i = 0; i < NUMSTRANDS*NUMPARTICLES; i++)
+	{
+		int index = i * NUMCOMPONENTS;
+		
+		switch(i%4)
+		{
+			case 0: //White
+				colour_values[index  ] = 1.0f;
+				colour_values[index+1] = 1.0f;
+				colour_values[index+2] = 1.0f;
+			break;
+			case 1: //Red
+				colour_values[index  ] = 1.0f;
+				colour_values[index+1] = 0.0f;
+				colour_values[index+2] = 0.0f;
+			break;
+			case 2: //Green
+				colour_values[index  ] = 0.0f;
+				colour_values[index+1] = 1.0f;
+				colour_values[index+2] = 0.0f;
+			break;
+			case 3: //Pink
+				colour_values[index  ] = 1.0f;
+				colour_values[index+1] = 0.0f;
+				colour_values[index+2] = 1.0f;
+			break;
+		}
+	}
+	
+	//Create the VBO for colours
+	glGenBuffers(1,&colour_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, colour_vbo);
+	glBufferData(GL_ARRAY_BUFFER, NUMSTRANDS*NUMPARTICLES*NUMCOMPONENTS*sizeof(float), (void*)colour_values, GL_DYNAMIC_DRAW);
+	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&colour_vbo_resource, colour_vbo, cudaGraphicsMapFlagsNone));
+	
+	free(colour_values);
 	
 	createVBO(roots);
 	
@@ -194,7 +237,7 @@ void init()
 	
 	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position, &size, cuda_vbo_resource));
 	
-	//Create VBO for first strand particles
+	//Create VBO for all strand particles
 	glGenBuffers(1,&strand_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, strand_vbo);
 	unsigned int num_bytes = NUMSTRANDS*NUMPARTICLES*sizeof(float3);
@@ -225,11 +268,17 @@ void cleanup()
 	
 	colour = NULL;
 	
-	//Release VBO for first strand particles
+	//Release VBO for all strand particles
 	cudaGraphicsUnregisterResource(strand_vbo_resource);
 	glBindBuffer(1, strand_vbo);
 	glDeleteBuffers(1, &strand_vbo);
 	strand_vbo = 0;
+	
+	//Release VBO for strand colours
+	cudaGraphicsUnregisterResource(colour_vbo_resource);
+	glBindBuffer(1, colour_vbo);
+	glDeleteBuffers(1, &colour_vbo);
+	colour_vbo = 0;
 	
 	releaseVBO();
 }
@@ -303,17 +352,21 @@ void render(void) {
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 	
-	//Render from the VOB for the positions of the first strand
+	//Render from the VOB for the positions of the all strands
 	glBindBuffer(GL_ARRAY_BUFFER, strand_vbo);
     glVertexPointer(3, GL_FLOAT, 0, 0);
     
-    glBindBuffer(GL_ARRAY_BUFFER, vbo2);
+    glBindBuffer(GL_ARRAY_BUFFER, colour_vbo);
     glColorPointer(3, GL_FLOAT, 0, 0);
     
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     
-		glDrawArrays(GL_LINE_STRIP, 0, NUMPARTICLES);
+		//FIXME Investigate glDrawElements
+		for(int i = 0; i < NUMSTRANDS; i++)
+		{
+			glDrawArrays(GL_LINE_STRIP, i*NUMPARTICLES, NUMPARTICLES);
+		}
 	
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
