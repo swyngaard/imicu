@@ -131,6 +131,19 @@ namespace pilar
 		float4 k;  //Spring constants
 		float4 d;  //Dampening constants
 		
+		float mass;
+		float k_edge;
+		float k_bend;
+		float k_twist;
+		float k_extra;
+		float d_edge;
+		float d_bend;
+		float d_twist;
+		float d_extra;
+		float length_e;
+		float length_b;
+		float length_t;
+		
 	public:
 		int numStrands;
 		int numParticles;

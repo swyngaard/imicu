@@ -57,6 +57,33 @@ extern "C" void initStrands(int numStrands,
 extern "C"
 void initPositions(int numStrands, int numParticles, const float3* root, const float3* normal, float3* position);
 
+extern "C"
+void updateStrandsNew(int numParticles,
+					  int numStrands,
+					  float dt,
+					  float mass,
+					  float k_edge,
+					  float k_bend,
+					  float k_twist,
+					  float k_extra,
+					  float d_edge,
+					  float d_bend,
+					  float d_twist,
+					  float d_extra,
+					  float length_e,
+					  float length_b,
+					  float length_t,
+					  float3* position,
+					  float3* posc,
+					  float3* posh,
+					  float3* pos,
+					  float3* velocity,
+					  float3* velh,
+					  float3* force,
+					  float* AA,
+					  float* bb,
+					  float* xx);
+
 extern "C" void updateStrands(const int numParticles,
 				   			  float4 &mlgt,
 				   			  const float4 k,
@@ -517,6 +544,19 @@ namespace pilar
 		d.z = d_twist;
 		d.w = d_extra;
 		
+		this->mass = mass;
+		this->k_edge = k_edge;
+		this->k_bend = k_bend;
+		this->k_twist = k_twist;
+		this->k_extra = k_extra;
+		this->d_edge = d_edge;
+		this->d_bend = d_bend;
+		this->d_twist = d_twist;
+		this->d_extra = d_extra;
+		this->length_e = length_e;
+		this->length_b = length_b;
+		this->length_t = length_t;
+		
 		strand = new Strand*[numStrands];
 		
 		for(int i = 0; i < numStrands; i++)
@@ -573,10 +613,10 @@ namespace pilar
 	
 	void Hair::update(float dt)
 	{
-		for(int i = 0; i < numStrands; i++)
-		{
-//			strand[i]->update(dt);
-		}
+		//~ for(int i = 0; i < numStrands; i++)
+		//~ {
+			//~ strand[i]->update(dt);
+		//~ }
 		
 		//TODO update strands on GPU
 		mlgt.w = dt;
@@ -597,6 +637,32 @@ namespace pilar
 				   	  r,
 				   	  p,
 				   	  Ap);
+		
+		updateStrandsNew(numParticles,
+						 numStrands,
+						 dt,
+						 mass,
+						 k_edge,
+						 k_bend,
+						 k_twist,
+						 k_extra,
+						 d_edge,
+						 d_bend,
+						 d_twist,
+						 d_extra,
+						 length_e,
+						 length_b,
+						 length_t,
+						 position_,
+						 posc_,
+						 posh_,
+						 pos_,
+						 velocity_,
+						 velh_,
+						 force_,
+						 AA_,
+						 bb_,
+						 xx_);
 	}
 	
 	//Clean up

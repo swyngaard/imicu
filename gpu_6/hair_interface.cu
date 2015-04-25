@@ -248,6 +248,65 @@ void initPositions(int numStrands, int numParticles, const float3* root, const f
 }
 
 extern "C"
+void updateStrandsNew(int numParticles,
+					  int numStrands,
+					  float dt,
+					  float mass,
+					  float k_edge,
+					  float k_bend,
+					  float k_twist,
+					  float k_extra,
+					  float d_edge,
+					  float d_bend,
+					  float d_twist,
+					  float d_extra,
+					  float length_e,
+					  float length_b,
+					  float length_t,
+					  float3* position,
+					  float3* posc,
+					  float3* posh,
+					  float3* pos,
+					  float3* velocity,
+					  float3* velh,
+					  float3* force,
+					  float* AA,
+					  float* bb,
+					  float* xx)
+{
+	dim3 grid(numStrands, 1, 1);
+	dim3 block(1, 1, 1);
+	
+	update_strands<<<grid,block>>>(numParticles,
+								   numStrands,
+								   dt,
+								   mass,
+								   k_edge,
+								   k_bend,
+								   k_twist,
+								   k_extra,
+								   d_edge,
+								   d_bend,
+								   d_twist,
+								   d_extra,
+								   length_e,
+								   length_b,
+								   length_t,
+								   position,
+								   posc,
+								   posh,
+								   pos,
+								   velocity,
+								   velh,
+								   force,
+								   AA,
+								   bb,
+								   xx);
+	
+	cudaThreadSynchronize();
+}
+
+extern "C"
 void updateStrands(const int numParticles,
 				   float4 &mlgt,
 				   const float4 k,

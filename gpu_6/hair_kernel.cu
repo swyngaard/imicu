@@ -402,6 +402,85 @@ void initialise(int numParticles, const float3* root, const float3* normal, floa
 	}
 }
 
+__device__
+void clearForces_(int numParticles, float3* force)
+{
+	int sid = blockIdx.x;
+	
+	int start = numParticles * sid;
+	int end = start + numParticles;
+	
+	for(int i = start; i < end; i++)
+	{
+		force[i].x = 0.0f;
+		force[i].y = 0.0f;
+		force[i].z = 0.0f;
+	}
+}
+
+__global__
+void update_strands(int numParticles,
+					int numStrands,
+					float dt,
+					float mass,
+					float k_edge,
+					float k_bend,
+					float k_twist,
+					float k_extra,
+					float d_edge,
+					float d_bend,
+					float d_twist,
+					float d_extra,
+					float length_e,
+					float length_b,
+					float length_t,
+					float3* position,
+					float3* posc,
+					float3* posh,
+					float3* pos,
+					float3* velocity,
+					float3* velh,
+					float3* force,
+					float* AA,
+					float* bb,
+					float* xx)
+{
+	//Reset forces on particles
+	clearForces_(numParticles, force);
+			
+	//Calculate candidate velocities
+	//~ calcVelocities(dt);
+			
+	//Calculate and apply spring forces using previous position
+	//~ updateSprings(dt);
+			
+	//Apply gravity
+	//~ applyForce(Vector3f(0.0f, mass*GRAVITY, 0.0f));
+	
+	//Calculate half velocities using forces
+	//~ updateVelocities(dt);
+	
+	//~ applyStrainLimiting(dt);
+	
+	//Calculate half position and new position
+	//~ updatePositions(dt);
+	
+	//Reset forces on particles
+	clearForces_(numParticles, force);
+	
+	//Calculate velocities using half position
+	//~ calcVelocities(dt);
+	
+	//Calculate and apply spring forces using half position
+	//~ updateSprings(dt);
+	
+	//Apply gravity
+	//~ applyForce(Vector3f(0.0f, mass*GRAVITY, 0.0f));
+	
+	//Calculate half velocity and new velocity
+	//~ updateParticles(dt);
+}
+
 __global__
 void update(const int numParticles,
 			float4 mlgt,
