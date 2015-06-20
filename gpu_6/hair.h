@@ -109,7 +109,6 @@ namespace pilar
 		
 		float3 *root_;
 		float3 *normal_;
-		//~ float3 *position_;
 		float3 *pos_;
 		float3 *posc_;
 		float3 *posh_;
@@ -119,6 +118,8 @@ namespace pilar
 		float *AA_;
 		float *bb_;
 		float *xx_;
+		
+		float3 gravity_;
 		
 		float *A;
 		float *b;

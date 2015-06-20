@@ -1,12 +1,7 @@
-//#include <GL/glut.h>
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <iostream>
-
-//#include <cutil_inline.h>
-//#include <cutil_gl_inline.h>
-//#include <cutil_gl_error.h>
 
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
@@ -20,20 +15,14 @@
 #define GLUT_KEY_ESCAPE 27
 #endif
 
-//float angle = 0.0f;
 pilar::Hair* hair = NULL;
 int prevTime;
 
 // vbo variables
-GLuint vbo = 0;
-GLuint vbo2 = 0;
 GLuint strand_vbo = 0;
 GLuint colour_vbo = 0;
-struct cudaGraphicsResource *cuda_vbo_resource = NULL;
-struct cudaGraphicsResource *cuda_vbo_resource2 = NULL;
 struct cudaGraphicsResource *strand_vbo_resource = NULL;
 struct cudaGraphicsResource *colour_vbo_resource = NULL;
-static float* colour = NULL;
 
 void animate(int milli);
 void reshape(int w, int h);
@@ -41,11 +30,8 @@ void render(void);
 void keyboard(unsigned char key, int x, int y);
 
 void init();
-void update(float dt);
 void cleanup();
 
-void createVBO(GLuint* v, int size);
-void deleteVBO(GLuint* v);
 
 int main(int argc, char **argv) {
 
@@ -87,62 +73,8 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-void createVBO(std::vector<pilar::Vector3f> &root)
-{
-	unsigned int size = NUMSTRANDS * NUMPARTICLES * sizeof(float3);
-	
-	float3* position_h = (float3*) malloc(size);
-	
-	for(int i = 0; i < NUMSTRANDS; i++)
-	{
-		for(int j = 0; j < NUMPARTICLES; j++)
-		{
-			int index = i*NUMPARTICLES + j;
-			position_h[index].x = root[i].x + j * LENGTH / 2.0f;
-			position_h[index].y = root[i].y;
-			position_h[index].z = root[i].z;
-			
-//			printf("%f %f %f\n", position_h[index].x, position_h[index].y, position_h[index].z);
-		}
-	}
-
-	//create vertex buffers and register with CUDA
-	glGenBuffers(1,&vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, NUMSTRANDS*NUMPARTICLES*sizeof(float3), (void*)position_h, GL_DYNAMIC_DRAW);
-	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&cuda_vbo_resource, vbo, cudaGraphicsMapFlagsNone));
-	
-	glGenBuffers(1,&vbo2);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo2);
-	glBufferData(GL_ARRAY_BUFFER, NUMPARTICLES*3*sizeof(float), (void*)colour, GL_DYNAMIC_DRAW);
-	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&cuda_vbo_resource2, vbo2, cudaGraphicsMapFlagsNone));
-	
-	free(position_h);
-}
-
-void releaseVBO()
-{
-	//Delete VBO
-	cudaGraphicsUnregisterResource(cuda_vbo_resource);
-	glBindBuffer(1, vbo);
-	glDeleteBuffers(1, &vbo);
-	vbo = 0;
-	
-	cudaGraphicsUnregisterResource(cuda_vbo_resource2);
-	glBindBuffer(1,vbo2);
-	glDeleteBuffers(1, &vbo2);
-	vbo2 = 0;
-}
-
 void init()
 {
-	pilar::Vector3f root;
-	std::vector<pilar::Vector3f> roots;
-	
-	//randomly generate roots on a plane
-	roots.push_back(root);
-	roots.push_back(pilar::Vector3f(-0.025f, 0.0f, 0.0f));
-	
 	//Root positions
 	pilar::Vector3f strand00(0.0f, 0.0f, 0.0f);
 	pilar::Vector3f strand01(-0.025f, 0.0f, 0.0f);
@@ -157,35 +89,6 @@ void init()
 	std::vector<pilar::Vector3f> normals_;
 	normals_.push_back(normal00);
 	normals_.push_back(normal01);
-	
-	colour = new float[NUMPARTICLES*3];
-	
-	for(int i = 0; i < NUMPARTICLES; i++)
-	{
-		switch(i%4)
-		{
-			case 0: //WHITE
-				colour[i*3  ] = 1.0f;
-				colour[i*3+1] = 1.0f;
-				colour[i*3+2] = 1.0f;
-			break;
-			case 1: //RED
-				colour[i*3  ] = 1.0f;
-				colour[i*3+1] = 0.0f;
-				colour[i*3+2] = 0.0f;
-			break;
-			case 2: //GREEN
-				colour[i*3  ] = 0.0f;
-				colour[i*3+1] = 1.0f;
-				colour[i*3+2] = 0.0f;
-			break;
-			case 3: //PINK
-				colour[i*3  ] = 1.0f;
-				colour[i*3+1] = 0.0f;
-				colour[i*3+2] = 1.0f;
-			break;
-		}
-	}
 	
 	//Intialise temp colour buffer
 	float * colour_values = (float*)malloc(NUMSTRANDS*NUMPARTICLES*NUMCOMPONENTS*sizeof(float));
@@ -227,33 +130,23 @@ void init()
 	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&colour_vbo_resource, colour_vbo, cudaGraphicsMapFlagsNone));
 	
 	free(colour_values);
-	
-	createVBO(roots);
-	
-	size_t size;
-	checkCudaErrors(cudaGraphicsMapResources(1, &cuda_vbo_resource, NULL));
-	
-	hair = new pilar::Hair(roots.size(), NUMPARTICLES, NUMCOMPONENTS, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH, LENGTH_EDGE, LENGTH_BEND, LENGTH_TWIST, roots_, normals_);
-	
-	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position, &size, cuda_vbo_resource));
-	
+
+	hair = new pilar::Hair(roots_.size(), NUMPARTICLES, NUMCOMPONENTS, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH, LENGTH_EDGE, LENGTH_BEND, LENGTH_TWIST, roots_, normals_);
+
 	//Create VBO for all strand particles
 	glGenBuffers(1,&strand_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, strand_vbo);
-	unsigned int num_bytes = NUMSTRANDS*NUMPARTICLES*sizeof(float3);
-	glBufferData(GL_ARRAY_BUFFER, num_bytes, (void*)hair->position_, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, NUMSTRANDS*NUMPARTICLES*sizeof(float3), 0, GL_DYNAMIC_DRAW);
 	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&strand_vbo_resource, strand_vbo, cudaGraphicsMapFlagsNone));
-	
+
 	//Map resource, set map flags, write intial data, unmap resource
 	size_t strand_size;
 	checkCudaErrors(cudaGraphicsMapResources(1, &strand_vbo_resource, NULL));
 	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position_, &strand_size, strand_vbo_resource));
-	
+
 	hair->init(roots_, normals_);
-	
+
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &strand_vbo_resource, 0));
-	
-	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_vbo_resource, 0));
 }
 
 void cleanup()
@@ -263,10 +156,6 @@ void cleanup()
 	delete hair;
 	
 	hair = NULL;
-	
-	delete [] colour;
-	
-	colour = NULL;
 	
 	//Release VBO for all strand particles
 	cudaGraphicsUnregisterResource(strand_vbo_resource);
@@ -279,8 +168,6 @@ void cleanup()
 	glBindBuffer(1, colour_vbo);
 	glDeleteBuffers(1, &colour_vbo);
 	colour_vbo = 0;
-	
-	releaseVBO();
 }
 
 void reshape(int w, int h)
@@ -308,10 +195,8 @@ void reshape(int w, int h)
 	glMatrixMode(GL_MODELVIEW);
 }
 
-//float angle = 0.0f;
-
-void render(void) {
-
+void render(void)
+{
 	// Clear Color and Depth Buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -337,22 +222,7 @@ void render(void) {
 		glVertex3f(0.0f, -0.25f, 0.0f);
 	glEnd();
 	
-	// render from the vbo
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexPointer(3, GL_FLOAT, 0, 0);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, vbo2);
-    glColorPointer(3, GL_FLOAT, 0, 0);
-    
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    
-		glDrawArrays(GL_LINE_STRIP, 0, NUMPARTICLES);
-	
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
-	
-	//Render from the VOB for the positions of the all strands
+	//Render from the VBO for the positions of the all strands
 	glBindBuffer(GL_ARRAY_BUFFER, strand_vbo);
     glVertexPointer(3, GL_FLOAT, 0, 0);
     
@@ -381,15 +251,32 @@ void animate(int milli)
 	int currentTime = glutGet(GLUT_ELAPSED_TIME);
 	
 	float dt =  (currentTime - prevTime)/1000.0f;
-	
-	size_t num_bytes;
-	checkCudaErrors(cudaGraphicsMapResources(1, &cuda_vbo_resource, 0));
-	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position, &num_bytes, cuda_vbo_resource));
-	
+
+	size_t strand_size;
+	checkCudaErrors(cudaGraphicsMapResources(1, &strand_vbo_resource, NULL));
+	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position_, &strand_size, strand_vbo_resource));
+
 	hair->update(dt);
-	
-	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_vbo_resource, 0));
-	
+
+	checkCudaErrors(cudaGraphicsUnmapResources(1, &strand_vbo_resource, 0));
+
+	//Calculate frames per second and display in window title
+	static int frames = 0;
+	static int baseTime = 0;
+	static char titleString[32];
+
+	frames++;
+	int diffTime = currentTime - baseTime;
+
+	if(diffTime > 1000)
+	{
+		sprintf(titleString, "Simulation FPS: %.2f", frames*1000.0f/diffTime);
+		baseTime = currentTime;
+		frames = 0;
+	}
+
+	glutSetWindowTitle(titleString);
+
 	glutPostRedisplay();
 	
 	prevTime = currentTime;
@@ -402,4 +289,3 @@ void keyboard(unsigned char key, int x, int y)
 		glutLeaveMainLoop();
 	}
 }
-

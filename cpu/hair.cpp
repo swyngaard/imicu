@@ -8,6 +8,7 @@
 #include <cmath>
 #include <ctime>
 #include <cstdlib>
+#include <iomanip>
 
 namespace pilar
 {
@@ -153,8 +154,23 @@ namespace pilar
 			}
 		}
 		
+		//~ if(!printOnce)
+		//~ {
+			//~ int N = NUMPARTICLES*NUMCOMPONENTS;
+			//~ 
+			//~ std::cout << "root[" << strandID << "]:\t" << root.x << "\t" << root.y << "\t" << root.z << std::endl;
+			//~ std::cout << "normal[" << strandID << "]:\t" << normal.x << "\t" << normal.y << "\t" << normal.z << std::endl;
+			//~ std::cout << "pos[" << strandID*NUMPARTICLES << "]:\t" << particle[0]->pos.x << "\t" << particle[0]->pos.y << "\t" << particle[0]->pos.z << std::endl;  
+			//~ 
+			//~ printOnce = true;
+		//~ }
+		
+		//~ std::cout << particle[0]->pos.x << "\t" << particle[0]->pos.y << "\t" << particle[0]->pos.z << "\t" << std::endl;
+		
 		//Create BVH Tree and save root pointer
-		bvhTree = Node::buildTree(leafNodes);	
+		bvhTree = Node::buildTree(leafNodes);
+		
+		printOnce = false;
 	}
 	
 	void Strand::clearForces()
@@ -294,6 +310,26 @@ namespace pilar
 		du23.unitize();
 		du24.unitize();
 		du25.unitize();
+		
+		//~ if(!printOnce)
+		//~ {
+			//~ 
+			//~ std::cout << "du0R[" << strandID << "]:\t" << du0R.x << "\t" << du0R.y << "\t" << du0R.z << std::endl;
+			//~ std::cout << "du01[" << strandID << "]:\t" << du01.x << "\t" << du01.y << "\t" << du01.z << std::endl;
+			//~ std::cout << "du02[" << strandID << "]:\t" << du02.x << "\t" << du02.y << "\t" << du02.z << std::endl;
+			//~ std::cout << "du03[" << strandID << "]:\t" << du03.x << "\t" << du03.y << "\t" << du03.z << std::endl;
+			//~ std::cout << "du1R[" << strandID << "]:\t" << du1R.x << "\t" << du1R.y << "\t" << du1R.z << std::endl;
+			//~ std::cout << "du10[" << strandID << "]:\t" << du10.x << "\t" << du10.y << "\t" << du10.z << std::endl;
+			//~ std::cout << "du12[" << strandID << "]:\t" << du12.x << "\t" << du12.y << "\t" << du12.z << std::endl;
+			//~ std::cout << "du13[" << strandID << "]:\t" << du13.x << "\t" << du13.y << "\t" << du13.z << std::endl;
+			//~ std::cout << "du14[" << strandID << "]:\t" << du14.x << "\t" << du14.y << "\t" << du14.z << std::endl;
+			//~ std::cout << "du2R[" << strandID << "]:\t" << du2R.x << "\t" << du2R.y << "\t" << du2R.z << std::endl;
+			//~ std::cout << "du20[" << strandID << "]:\t" << du20.x << "\t" << du20.y << "\t" << du20.z << std::endl;
+			//~ std::cout << "du21[" << strandID << "]:\t" << du21.x << "\t" << du21.y << "\t" << du21.z << std::endl;
+			//~ std::cout << "du23[" << strandID << "]:\t" << du23.x << "\t" << du23.y << "\t" << du23.z << std::endl;
+			//~ std::cout << "du24[" << strandID << "]:\t" << du24.x << "\t" << du24.y << "\t" << du24.z << std::endl;
+			//~ std::cout << "du25[" << strandID << "]:\t" << du25.x << "\t" << du25.y << "\t" << du25.z << std::endl;
+		//~ }
 		
 		//Set the non-zero entries for the first 3 particles
 		
@@ -476,9 +512,7 @@ namespace pilar
 		{
 			//Current particle position, particle above and particle below
 			Vector3f ui = particle[i]->pos;
-			Vector3f uu = particle[i-1]->pos;
-			Vector3f ud = particle[i+1]->pos;
-			
+						
 			//Direction vectors for 3 particles above and below the current particle
 			Vector3f uu2 = particle[i-3]->pos;
 			Vector3f uu1 = particle[i-2]->pos;
@@ -499,6 +533,16 @@ namespace pilar
 			dd0.unitize();
 			dd1.unitize();
 			dd2.unitize();
+			
+			//~ if(!printOnce)
+			//~ {
+				//~ std::cout << "du2[" << (strandID*numParticles+i) << "]:\t" << du2.x << "\t" << du2.y << "\t" << du2.z << std::endl; 
+				//~ std::cout << "du1[" << (strandID*numParticles+i) << "]:\t" << du1.x << "\t" << du1.y << "\t" << du1.z << std::endl; 
+				//~ std::cout << "du0[" << (strandID*numParticles+i) << "]:\t" << du0.x << "\t" << du0.y << "\t" << du0.z << std::endl; 
+				//~ std::cout << "dd0[" << (strandID*numParticles+i) << "]:\t" << dd0.x << "\t" << dd0.y << "\t" << dd0.z << std::endl; 
+				//~ std::cout << "dd1[" << (strandID*numParticles+i) << "]:\t" << dd1.x << "\t" << dd1.y << "\t" << dd1.z << std::endl; 
+				//~ std::cout << "dd2[" << (strandID*numParticles+i) << "]:\t" << dd2.x << "\t" << dd2.y << "\t" << dd2.z << std::endl; 
+			//~ }
 			
 			int row0 = i * numParticles * NUMCOMPONENTS *  NUMCOMPONENTS + (i - 3) * NUMCOMPONENTS;
 			int row1 = row0 + numParticles * NUMCOMPONENTS;
@@ -605,6 +649,22 @@ namespace pilar
 		du1N3.unitize();
 		du1N4.unitize();
 		du1N5.unitize();
+		
+		//~ if(!printOnce)
+		//~ {			
+			//~ std::cout << "du3N1[" << strandID << "]:\t" << du3N1.x << "\t" << du3N1.y << "\t" << du3N1.z << std::endl;
+			//~ std::cout << "du3N2[" << strandID << "]:\t" << du3N2.x << "\t" << du3N2.y << "\t" << du3N2.z << std::endl;
+			//~ std::cout << "du3N3[" << strandID << "]:\t" << du3N3.x << "\t" << du3N3.y << "\t" << du3N3.z << std::endl;
+			//~ std::cout << "du3N5[" << strandID << "]:\t" << du3N5.x << "\t" << du3N5.y << "\t" << du3N5.z << std::endl;
+			//~ std::cout << "du3N6[" << strandID << "]:\t" << du3N6.x << "\t" << du3N6.y << "\t" << du3N6.z << std::endl;
+			//~ std::cout << "du2N2[" << strandID << "]:\t" << du2N2.x << "\t" << du2N2.y << "\t" << du2N2.z << std::endl;
+			//~ std::cout << "du2N3[" << strandID << "]:\t" << du2N3.x << "\t" << du2N3.y << "\t" << du2N3.z << std::endl;
+			//~ std::cout << "du2N4[" << strandID << "]:\t" << du2N4.x << "\t" << du2N4.y << "\t" << du2N4.z << std::endl;
+			//~ std::cout << "du2N6[" << strandID << "]:\t" << du2N6.x << "\t" << du2N6.y << "\t" << du2N6.z << std::endl;
+			//~ std::cout << "du1N3[" << strandID << "]:\t" << du1N3.x << "\t" << du1N3.y << "\t" << du1N3.z << std::endl;
+			//~ std::cout << "du1N4[" << strandID << "]:\t" << du1N4.x << "\t" << du1N4.y << "\t" << du1N4.z << std::endl;
+			//~ std::cout << "du1N5[" << strandID << "]:\t" << du1N5.x << "\t" << du1N5.y << "\t" << du1N5.z << std::endl;
+		//~ }
 		
 		int row3N3 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 8*numParticles*NUMCOMPONENTS - 18;
 		int row3N2 = numParticles*NUMCOMPONENTS*numParticles*NUMCOMPONENTS - 7*numParticles*NUMCOMPONENTS - 18;
@@ -778,10 +838,33 @@ namespace pilar
 	
 	void Strand::calcVelocities(float dt)
 	{
+		if(!printOnce)
+		{
+			std::cout << dt << std::endl;
+		}
+		
 		//Calculate the velocities of each particle
 		
 		//Build matrix and vector of coefficients of linear equations		
 		buildAB(dt);
+		
+		//~ if(!printOnce)
+		//~ {
+			//~ int N = NUMPARTICLES*NUMCOMPONENTS;
+			//~ for (int i = 0; i < N; i++)
+			//~ {
+				//~ std::cout << "bb:\t" << (strandID*N+i) << "\t" << bb[i] << std::endl;
+			//~ }
+			
+			//~ int aaOffset = NUMPARTICLES*NUMCOMPONENTS*NUMPARTICLES*NUMCOMPONENTS;
+			//~ 
+			//~ for(int i = 0; i < aaOffset; i++)
+			//~ {
+				//~ std::cout << "AA[" << std::setfill('0') << std::setw(4) << strandID*aaOffset+i << "]:\t" << AA[i] << std::endl;
+			//~ }
+			
+			//~ printOnce = true;
+		//~ }
 		
 		//Set intial solution to previous velocity
 		for(int i = 0; i < numParticles; i++)
@@ -793,6 +876,22 @@ namespace pilar
 		
 		//Solve for velocity using conjugate gradient method
 		conjugate();
+		
+		//~ if(!printOnce)
+		//~ {
+			//~ for (int i = 0; i < numParticles; i++)
+			//~ {
+				//~ int idx0 = i * NUMCOMPONENTS;
+				//~ int idx1 = idx0 + 1;
+				//~ int idx2 = idx1 + 1;
+				//~ 
+				//~ std::cout << "xx[" << std::setfill('0') << std::setw(2) << strandID*numParticles*NUMCOMPONENTS+idx0 << "]:\t" << xx[idx0] << std::endl;
+				//~ std::cout << "xx[" << std::setfill('0') << std::setw(2) << strandID*numParticles*NUMCOMPONENTS+idx1 << "]:\t" << xx[idx1] << std::endl;
+				//~ std::cout << "xx[" << std::setfill('0') << std::setw(2) << strandID*numParticles*NUMCOMPONENTS+idx2 << "]:\t" << xx[idx2] << std::endl;
+			//~ }
+			//~ 
+			//~ printOnce = true;
+		//~ }
 		
 		//Copy solution to half velocity
 		for(int i = 0; i < numParticles; i++)
@@ -978,6 +1077,15 @@ namespace pilar
 						   du1N5*(uu1N5.dot(du1N5)-length_e)*g_e + du1N5*(vu1N5.dot(du1N5))*h_e;
 		
 		particle[numParticles-1]->applyForce(force1N);
+		//~ if(!printOnce)
+		//~ {
+			//~ for (int i = 0; i < numParticles; i++)
+			//~ {
+				//~ std::cout << "force[" << std::setfill('0') << std::setw(2) << (strandID*numParticles+i) << "]\t" << particle[i]->force.x << "\t" << particle[i]->force.y << "\t" << particle[i]->force.z << std::endl;
+			//~ }
+			//~ 
+			//~ printOnce = true;
+		//~ }
 	}
 	
 	void Strand::updateVelocities(float dt)
@@ -1034,13 +1142,13 @@ namespace pilar
 		applyStrainLimiting(dt);
 		
 		//Detect segment collisions, calculate stiction forces and apply stiction to half velocity
-		applyStiction(dt, strand, collision);
+		//~ applyStiction(dt, strand, collision);
 		
 		//Calculate half position and new position
 		updatePositions(dt);
 		
 		//Check geometry collisions and adjust velocities and positions
-		objectCollisions(dt, grid);
+		//~ objectCollisions(dt, grid);
 		
 		//Self collisions
 		
@@ -1061,8 +1169,20 @@ namespace pilar
 		//Calculate half velocity and new velocity
 		updateParticles(dt);
 		
+		if(!printOnce)
+		{
+			for (int i = 0; i < numParticles; i++)
+			{
+				std::cout << "velh[" << std::setfill('0') << std::setw(2) << (strandID*numParticles+i) << "]\t" << particle[i]->velh.x << "\t" << particle[i]->velh.y << "\t" << particle[i]->velh.z << std::endl;
+				std::cout << "velocity[" << std::setfill('0') << std::setw(2) << (strandID*numParticles+i) << "]\t" << particle[i]->velocity.x << "\t" << particle[i]->velocity.y << "\t" << particle[i]->velocity.z << std::endl;
+				std::cout << "pos[" << std::setfill('0') << std::setw(2) << (strandID*numParticles+i) << "]\t" << particle[i]->pos.x << "\t" << particle[i]->pos.y << "\t" << particle[i]->pos.z << std::endl;
+			}
+			
+			printOnce = true;
+		}
+		
 		//Detect segment collisions, calculate stiction forces and apply stiction to velocity
-		applyStiction2(dt, strand, collision);
+		//~ applyStiction2(dt, strand, collision);
 		
 		//FIXME Check when is best to update bounding volumes
 		//FIXME Check if bounding volumes need updating between half time steps

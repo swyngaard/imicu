@@ -81,7 +81,7 @@ namespace pilar
 		
 		float* xx;
 		float* AA;
-		float* bb;
+		
 		
 		std::vector<KDOP*> leafKDOP;
 		Node* bvhTree;
@@ -105,10 +105,13 @@ namespace pilar
 		void buildAB(float dt);
 		void conjugate();
 		
+		bool printOnce;
+		
 	public:
 		int numParticles;
 		Particle** particle;
 		Vector3f root;
+		float* bb;
 		
 		Strand(int numParticles,
 			   int strandID,

@@ -4,8 +4,8 @@
 
 //~ #define DEBUG_KDOP			//Uncomment to enable debug mode
 
-#define NUMSTRANDS			1
-#define NUMPARTICLES		17 // 33
+#define NUMSTRANDS			2
+#define NUMPARTICLES		9//17 // 33
 #define NUMCOMPONENTS		3 // 3D vectors
 #define NUMSEGMENTS			(NUMPARTICLES-1)
 #define MASS				0.002f //0.000000001f particle mass is 0.01mg, total strand weight is 1mg

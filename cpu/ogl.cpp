@@ -131,8 +131,8 @@ void init()
 	
 	//Root positions
 	pilar::Vector3f strand00(0.0f, 0.0f, 0.0f);
-	//~ pilar::Vector3f strand01(-0.025f, 0.0f, 0.0f);
-	pilar::Vector3f strand01(-0.055f, 0.0f, 0.0f);
+	pilar::Vector3f strand01(-0.025f, 0.0f, 0.0f);
+	//~ pilar::Vector3f strand01(-0.055f, 0.0f, 0.0f);
 	
 	std::vector<pilar::Vector3f> roots;
 	roots.push_back(strand00);
@@ -271,7 +271,7 @@ void render(void) {
 		
 	}
 		
-	#ifdef DEBUG_KDOP
+#ifdef DEBUG_KDOP
 	glBegin(GL_LINES);
 	
 	//DEBUG Render KDOP visualisation for each strand from BVH Tree
@@ -293,7 +293,7 @@ void render(void) {
 		}
 	}
 	glEnd();
-	#endif
+#endif
 	
 	//Draw some points for debugging purposes
 	glColor3f(1.0f, 1.0f, 1.0f);

@@ -6,21 +6,21 @@
 #define NUMPARTICLES		9 //Needs to be multiples of 5???
 #define NUMCOMPONENTS		3 // 3D vectors
 #define NUMSEGMENTS			(NUMPARTICLES-1)
-#define MASS				0.000000001f //0.000000001f particle mass is 0.01mg, total strand weight is 1mg
-#define K_EDGE				0.004905f //(stable value) 10000000.0f
-#define K_BEND				0.004905f
-#define K_TWIST				0.004905f
+#define MASS				0.002f //0.000000001f particle mass is 0.01mg, total strand weight is 1mg
+#define K_EDGE				3.2f //(stable value) 10000000.0f
+#define K_BEND				0.08f
+#define K_TWIST				0.08f
 #define K_EXTRA				0.004905f
 #define LENGTH				0.005f //5 millmetres separation between particles
 #define LENGTH_EDGE			0.005f  //length between edge springs
 #define LENGTH_BEND			0.005f //length between bending springs
 #define LENGTH_TWIST		0.005f  //length between twisting springs
 #define LENGTH_EXTRA		0.005f
-#define D_EDGE				0.000000125f
-#define D_BEND				0.000000125f
-#define D_TWIST				0.000000125f
-#define D_EXTRA				0.0000002f
-#define GRAVITY				-0.00981f //(stable value) -0.00981f
+#define D_EDGE				32.0f
+#define D_BEND				2.5f
+#define D_TWIST				2.5f
+#define D_EXTRA				0.125f
+#define GRAVITY				-9.81f //(stable value) -0.00981f
 
 //Stiction constants
 #define K_STIC				0.01f //Stiction spring coefficient
