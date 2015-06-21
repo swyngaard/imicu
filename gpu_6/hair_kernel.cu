@@ -836,6 +836,7 @@ void calcVelocities_(int numParticles,
 	
 	//Solve for velocity using conjugate gradient method
 	conjugate_(numParticles, numComponents, AA, bb, xx);
+//	conjugate_(hair->numParticles, hair->numComponents, hair->AA_, hair->bb_, hair->xx_);
 	
 //	for(int i = startP; i < endP; i++)
 //	{
@@ -1122,7 +1123,7 @@ void updateVelocities_(int numParticles, float dt, float3 *velocity, float3 *vel
 }
 
 __device__
-void updatePositions_(int numParticles, float dt, float3 *position, float3 *posh, float3 *pos, float3 *velh)
+void updatePositions_(int numParticles, float dt, float3 *position, float3 *posh, float3 *pos, float3 *velh, float3* force)
 {
 	int startP = blockIdx.x * numParticles;
 	int endP = startP + numParticles;
@@ -1140,6 +1141,11 @@ void updatePositions_(int numParticles, float dt, float3 *position, float3 *posh
 		
 		//Use half position in current calculations
 		pos[i] = posh[i];
+
+		//Reset forces on particles here
+		force[i].x = 0.0f;
+		force[i].y = 0.0f;
+		force[i].z = 0.0f;
 	}
 }
 
@@ -1160,7 +1166,10 @@ void updateParticles_(int numParticles, float dt, float3* position, float3* pos,
 		//Use previous position in current calculations
 		pos[i] = position[i];
 		
-		//TODO Possibly reset force here
+		//Reset forces on particles
+		force[i].x = 0.0f;
+		force[i].y = 0.0f;
+		force[i].z = 0.0f;
 	}
 }
 
@@ -1224,9 +1233,6 @@ void update_strands(int numParticles,
 {
 	//TODO remove after unit testing
 //	dt = 0.008f;
-
-	//Reset forces on particles
-	clearForces_(numParticles, force);
 	
 	//Calculate candidate velocities
 	calcVelocities_(numParticles, numComponents, dt, mass, k_edge, k_bend, k_twist, d_edge, d_bend, d_twist, length_e, length_b, length_t, gravity, root, pos, velocity, velh, AA, bb, xx);
@@ -1270,7 +1276,7 @@ void update_strands(int numParticles,
 
 
 	//Calculate half position and new position
-	updatePositions_(numParticles, dt, position, posh, pos, velh);
+	updatePositions_(numParticles, dt, position, posh, pos, velh, force);
 
 //	for(int i = startP; i < endP; i++)
 //	{
@@ -1281,17 +1287,7 @@ void update_strands(int numParticles,
 //	{
 //		printf("posh[%02d]:\t%.7f\t%.7f\t%.7f\n", i, posh[i].x, posh[i].y, posh[i].z);
 //	}
-
-
-	//Reset forces on particles
-	clearForces_(numParticles, force);
-
-//	for(int i = startP; i < endP; i++)
-//	{
-//		printf("force[%02d]:\t%.7f\t%.7f\t%.7f\n", i, force[i].x, force[i].y, force[i].z);
-//	}
 	
-
 	//Calculate velocities using half position
 	calcVelocities_(numParticles, numComponents, dt, mass, k_edge, k_bend, k_twist, d_edge, d_bend, d_twist, length_e, length_b, length_t, gravity, root, pos, velocity, velh, AA, bb, xx);
 	

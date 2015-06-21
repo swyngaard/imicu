@@ -56,7 +56,6 @@ void mallocStrands(const int &numStrands,
 	force	 = mallocFloat3(bytes3f1D);
 	
 	AA = mallocFloat(bytes2D);
-	
 	bb = mallocFloat(bytes1D);
 	xx = mallocFloat(bytes1D);
 }
