@@ -21,7 +21,8 @@ void mallocStrands(const int &numStrands,
 				   float3* &force,
 				   float* &AA,
 				   float* &bb,
-				   float* &xx);
+				   float* &xx,
+				   pilar::HairState* &state);
 
 extern "C"
 void freeStrands(float3* &root,
@@ -35,40 +36,42 @@ void freeStrands(float3* &root,
 				 float3* &force,
 				 float* &AA,
 				 float* &bb,
-				 float* &xx);
+				 float* &xx,
+				 pilar::HairState* &state);
 
 extern "C"
-void initPositions(int numStrands, int numParticles, const float3* root, float3* normal, float3* position, float3* posc, float3* pos);
+void initPositions(int numParticles,
+				   int numStrands,
+				   int numComponents,
+				   float mass,
+				   float k_edge,
+				   float k_bend,
+				   float k_twist,
+				   float k_extra,
+				   float d_edge,
+				   float d_bend,
+				   float d_twist,
+				   float d_extra,
+				   float length_e,
+				   float length_b,
+				   float length_t,
+				   float3 gravity,
+				   float3* root,
+				   float3* normal,
+				   float3* position,
+				   float3* posc,
+				   float3* posh,
+				   float3* pos,
+				   float3* velocity,
+				   float3* velh,
+				   float3* force,
+				   float* AA,
+				   float* bb,
+				   float* xx,
+				   pilar::HairState* state);
 
 extern "C"
-void updateStrandsNew(int numParticles,
-					  int numStrands,
-					  int numComponents,
-					  float dt,
-					  float mass,
-					  float k_edge,
-					  float k_bend,
-					  float k_twist,
-					  float k_extra,
-					  float d_edge,
-					  float d_bend,
-					  float d_twist,
-					  float d_extra,
-					  float length_e,
-					  float length_b,
-					  float length_t,
-					  float3 &gravity,
-					  float3* root,
-					  float3* position,
-					  float3* posc,
-					  float3* posh,
-					  float3* pos,
-					  float3* velocity,
-					  float3* velh,
-					  float3* force,
-					  float* AA,
-					  float* bb,
-					  float* xx);
+void updateStrands(float dt, int numStrands, pilar::HairState* state);
 
 extern "C" void copyRoots(int numStrands,
 						  const float3* root3f,
@@ -134,13 +137,41 @@ namespace pilar
 		}
 		
 		//Allocate memory on GPU
-		mallocStrands(numStrands, numParticles, numComponents, root_, normal_, position_, pos_, posc_, posh_, velocity_, velh_, force_, AA_, bb_, xx_);
+		mallocStrands(numStrands, numParticles, numComponents, root_, normal_, position_, pos_, posc_, posh_, velocity_, velh_, force_, AA_, bb_, xx_, state);
 		
 		//Copy root positions and normals to GPU
 		copyRoots(numStrands, root3f, normal3f, root_, normal_);
 		
 		//Intialise particle positions on the GPU
-		initPositions(numStrands, numParticles, root_, normal_, position_, posc_, pos_);
+		initPositions(numParticles,
+					  numStrands,
+					  numComponents,
+					  mass,
+					  k_edge,
+					  k_bend,
+					  k_twist,
+					  k_extra,
+					  d_edge,
+					  d_bend,
+					  d_twist,
+					  d_extra,
+					  length_e,
+					  length_b,
+					  length_t,
+					  gravity_,
+					  root_,
+					  normal_,
+					  position_,
+					  posc_,
+					  posh_,
+					  pos_,
+					  velocity_,
+					  velh_,
+					  force_,
+					  AA_,
+					  bb_,
+					  xx_,
+					  state);
 		
 		free(root3f);
 		free(normal3f);
@@ -148,39 +179,12 @@ namespace pilar
 	
 	void Hair::update(float dt)
 	{
-		updateStrandsNew(numParticles,
-						 numStrands,
-						 numComponents,
-						 dt,
-						 mass,
-						 k_edge,
-						 k_bend,
-						 k_twist,
-						 k_extra,
-						 d_edge,
-						 d_bend,
-						 d_twist,
-						 d_extra,
-						 length_e,
-						 length_b,
-						 length_t,
-						 gravity_,
-						 root_,
-						 position_,
-						 posc_,
-						 posh_,
-						 pos_,
-						 velocity_,
-						 velh_,
-						 force_,
-						 AA_,
-						 bb_,
-						 xx_);
+		updateStrands(dt, numStrands, state);
 	}
 	
 	//Clean up
 	void Hair::release()
 	{
-		freeStrands(root_, normal_, position_, pos_, posc_, posh_, velocity_, velh_, force_, AA_, bb_, xx_);
+		freeStrands(root_, normal_, position_, pos_, posc_, posh_, velocity_, velh_, force_, AA_, bb_, xx_, state);
 	}
 }

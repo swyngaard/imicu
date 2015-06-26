@@ -112,7 +112,7 @@ endif
 endif
 
 # Debug build flags
-ifeq ($(dbg),1)
+ifeq ($(dbg),0)
       NVCCFLAGS += -g -G
       TARGET := debug
 else
@@ -131,7 +131,7 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(LDFLAGS))
 ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 # Common includes and paths for CUDA
-INCLUDES  := -I./inc -I/usr/include/eigen3
+INCLUDES  := -I./inc
 LIBRARIES :=
 
 ################################################################################
