@@ -10,20 +10,21 @@ namespace pilar
 {
 	struct HairState
 	{
-		float3 *root;
-		float3 *normal;
-		float3 *position;
-		float3 *pos;
-		float3 *posc;
-		float3 *posh;
-		float3 *velocity;
-		float3 *velh;
-		float3 *force;
-		float *AA;
-		float *bb;
-		float *xx;
+		float* AA;
+		float* bb;
+		float* xx;
 
-		float3 gravity;
+		Vector3f* root1;
+		Vector3f* normal1;
+		Vector3f* position1;
+		Vector3f* pos1;
+		Vector3f* posc1;
+		Vector3f* posh1;
+		Vector3f* velocity1;
+		Vector3f* velh1;
+		Vector3f* force1;
+
+		Vector3f gravity1;
 
 		int numStrands;
 		int numParticles;
@@ -46,17 +47,17 @@ namespace pilar
 	class Hair
 	{
 	protected:
-		float3 *root_;
-		float3 *normal_;
-		float3 *pos_;
-		float3 *posc_;
-		float3 *posh_;
-		float3 *velocity_;
-		float3 *velh_;
-		float3 *force_;
+		Vector3f gravity1;
 		
-		float3 gravity_;
-		
+		Vector3f* root1;
+		Vector3f* normal1;
+		Vector3f* pos1;
+		Vector3f* posc1;
+		Vector3f* posh1;
+		Vector3f* velocity1;
+		Vector3f* velh1;
+		Vector3f* force1;
+
 		float mass;
 		float k_edge;
 		float k_bend;
@@ -70,16 +71,16 @@ namespace pilar
 		float length_b;
 		float length_t;
 		
-		float *AA_;
-		float *bb_;
-		float *xx_;
+		float* AA_;
+		float* bb_;
+		float* xx_;
 
 	public:
 		int numStrands;
 		int numParticles;
 		int numComponents;
 		
-		float3 *position_;
+		Vector3f* position1;
 		
 		HairState* state;
 
@@ -95,7 +96,6 @@ namespace pilar
 			 float d_bend,
 			 float d_twist,
 			 float d_extra,
-			 float length,
 			 float length_e,
 			 float length_b,
 			 float length_t,

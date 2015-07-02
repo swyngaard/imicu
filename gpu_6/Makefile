@@ -74,7 +74,7 @@ endif
 NVCC := $(CUDA_PATH)/bin/nvcc -ccbin $(GCC)
 
 # internal flags
-NVCCFLAGS   := -m${OS_SIZE} 
+NVCCFLAGS   := -m${OS_SIZE} -rdc=true
 CCFLAGS     := 
 LDFLAGS     :=
 
@@ -132,7 +132,7 @@ ALL_LDFLAGS += $(addprefix -Xlinker ,$(EXTRA_LDFLAGS))
 
 # Common includes and paths for CUDA
 INCLUDES  := -I./inc
-LIBRARIES :=
+LIBRARIES := -lcudadevrt
 
 ################################################################################
 
@@ -150,17 +150,17 @@ ifneq ($(DARWIN),)
  ALL_LDFLAGS += -Xlinker -framework -Xlinker GLUT
 else
  LIBRARIES += -L../../common/lib/$(OSLOWER)/$(OS_ARCH) $(GLLINK)
- LIBRARIES += -lGL -lGLU -lX11 -lXi -lXmu -lglut -lGLEW
+ LIBRARIES += -lGL -lGLU -lX11 -lXi -lXmu -lglut -lGLEW 
 endif
 
 # CUDA code generation flags
 
 #GENCODE_SM20    := -gencode arch=compute_20,code=sm_20
 GENCODE_SM30    := -gencode arch=compute_30,code=sm_30
-GENCODE_SM32    := -gencode arch=compute_32,code=sm_32
-GENCODE_SM35    := -gencode arch=compute_35,code=sm_35
-GENCODE_SM50    := -gencode arch=compute_50,code=sm_50
-GENCODE_SMXX    := -gencode arch=compute_50,code=compute_50
+#GENCODE_SM32    := -gencode arch=compute_32,code=sm_32
+#GENCODE_SM35    := -gencode arch=compute_35,code=sm_35
+#GENCODE_SM50    := -gencode arch=compute_50,code=sm_50
+#GENCODE_SMXX    := -gencode arch=compute_50,code=compute_50
 GENCODE_FLAGS   ?= $(GENCODE_SM20) $(GENCODE_SM30) $(GENCODE_SM32) $(GENCODE_SM35) $(GENCODE_SM50) $(GENCODE_SMXX)
 
 ################################################################################
@@ -175,7 +175,7 @@ build: gl
 hair.o:hair.cpp hair.h
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-tools.o:tools.cpp tools.h
+tools.o:tools.cu tools.h
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 ogl.o:ogl.cpp constants.h

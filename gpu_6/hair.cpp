@@ -10,33 +10,33 @@ extern "C"
 void mallocStrands(const int &numStrands,
 				   const int &numParticles,
 				   const int &numComponents,
-				   float3* &root,
-				   float3* &normal,
-				   float3* &position,
-				   float3* &pos,
-				   float3* &posc,
-				   float3* &posh,
-				   float3* &velocity,
-				   float3* &velh,
-				   float3* &force,
 				   float* &AA,
 				   float* &bb,
 				   float* &xx,
+				   pilar::Vector3f* &root1,
+				   pilar::Vector3f* &normal1,
+				   pilar::Vector3f* &position1,
+				   pilar::Vector3f* &pos1,
+				   pilar::Vector3f* &posc1,
+				   pilar::Vector3f* &posh1,
+				   pilar::Vector3f* &velocity1,
+				   pilar::Vector3f* &velh1,
+				   pilar::Vector3f* &force1,
 				   pilar::HairState* &state);
 
 extern "C"
-void freeStrands(float3* &root,
-				 float3* &normal,
-				 float3* &position,
-				 float3* &pos,
-				 float3* &posc,
-				 float3* &posh,
-				 float3* &velocity,
-				 float3* &velh,
-				 float3* &force,
-				 float* &AA,
+void freeStrands(float* &AA,
 				 float* &bb,
 				 float* &xx,
+				 pilar::Vector3f* &root1,
+				 pilar::Vector3f* &normal1,
+				 pilar::Vector3f* &position1,
+				 pilar::Vector3f* &pos1,
+				 pilar::Vector3f* &posc1,
+				 pilar::Vector3f* &posh1,
+				 pilar::Vector3f* &velocity1,
+				 pilar::Vector3f* &velh1,
+				 pilar::Vector3f* &force1,
 				 pilar::HairState* &state);
 
 extern "C"
@@ -55,29 +55,29 @@ void initPositions(int numParticles,
 				   float length_e,
 				   float length_b,
 				   float length_t,
-				   float3 gravity,
-				   float3* root,
-				   float3* normal,
-				   float3* position,
-				   float3* posc,
-				   float3* posh,
-				   float3* pos,
-				   float3* velocity,
-				   float3* velh,
-				   float3* force,
 				   float* AA,
 				   float* bb,
 				   float* xx,
+				   pilar::Vector3f gravity1,
+				   pilar::Vector3f* root1,
+				   pilar::Vector3f* normal1,
+				   pilar::Vector3f* position1,
+				   pilar::Vector3f* pos1,
+				   pilar::Vector3f* posc1,
+				   pilar::Vector3f* posh1,
+				   pilar::Vector3f* velocity1,
+				   pilar::Vector3f* velh1,
+				   pilar::Vector3f* force1,
 				   pilar::HairState* state);
 
 extern "C"
 void updateStrands(float dt, int numStrands, pilar::HairState* state);
 
 extern "C" void copyRoots(int numStrands,
-						  const float3* root3f,
-						  const float3* normal3f,
-						  float3* root,
-						  float3* normal);
+						  const pilar::Vector3f* root3f,
+						  const pilar::Vector3f* normal3f,
+						  pilar::Vector3f* root1,
+						  pilar::Vector3f* normal1);
 
 namespace pilar
 {
@@ -93,7 +93,6 @@ namespace pilar
 			   float d_bend,
 			   float d_twist,
 			   float d_extra,
-			   float length,
 			   float length_e,
 			   float length_b,
 			   float length_t,
@@ -104,8 +103,8 @@ namespace pilar
 		this->numParticles = numParticles;
 		this->numComponents = numComponents;
 		
-		this->gravity_ = make_float3(0.0f, GRAVITY, 0.0f);
-		
+		this->gravity1 = Vector3f(0.0f, GRAVITY, 0.0f);
+
 		this->mass = mass;
 		this->k_edge = k_edge;
 		this->k_bend = k_bend;
@@ -122,25 +121,36 @@ namespace pilar
 	
 	void Hair::init(std::vector<Vector3f> &root, std::vector<Vector3f> &normal)
 	{
-		float3* root3f = (float3*) calloc(numStrands, sizeof(float3));
-		float3* normal3f = (float3*) calloc(numStrands, sizeof(float3));
+		pilar::Vector3f* root3f = (pilar::Vector3f*) calloc(numStrands, sizeof(pilar::Vector3f));
+		pilar::Vector3f* normal3f = (pilar::Vector3f*) calloc(numStrands, sizeof(pilar::Vector3f));
 		
 		for(int i = 0; i < numStrands; i++)
 		{
-			root3f[i].x = root[i].x;
-			root3f[i].y = root[i].y;
-			root3f[i].z = root[i].z;
+			root3f[i] = root[i];
 			
-			normal3f[i].x = normal[i].x;
-			normal3f[i].y = normal[i].y;
-			normal3f[i].z = normal[i].z;
+			normal3f[i] = normal[i];
 		}
 		
 		//Allocate memory on GPU
-		mallocStrands(numStrands, numParticles, numComponents, root_, normal_, position_, pos_, posc_, posh_, velocity_, velh_, force_, AA_, bb_, xx_, state);
+		mallocStrands(numStrands,
+					  numParticles,
+					  numComponents,
+					  AA_,
+					  bb_,
+					  xx_,
+					  root1,
+					  normal1,
+					  position1,
+					  pos1,
+					  posc1,
+					  posh1,
+					  velocity1,
+					  velh1,
+					  force1,
+					  state);
 		
 		//Copy root positions and normals to GPU
-		copyRoots(numStrands, root3f, normal3f, root_, normal_);
+		copyRoots(numStrands, root3f, normal3f, root1, normal1);
 		
 		//Intialise particle positions on the GPU
 		initPositions(numParticles,
@@ -158,19 +168,19 @@ namespace pilar
 					  length_e,
 					  length_b,
 					  length_t,
-					  gravity_,
-					  root_,
-					  normal_,
-					  position_,
-					  posc_,
-					  posh_,
-					  pos_,
-					  velocity_,
-					  velh_,
-					  force_,
 					  AA_,
 					  bb_,
 					  xx_,
+					  gravity1,
+					  root1,
+					  normal1,
+					  position1,
+					  pos1,
+					  posc1,
+					  posh1,
+					  velocity1,
+					  velh1,
+					  force1,
 					  state);
 		
 		free(root3f);
@@ -185,6 +195,18 @@ namespace pilar
 	//Clean up
 	void Hair::release()
 	{
-		freeStrands(root_, normal_, position_, pos_, posc_, posh_, velocity_, velh_, force_, AA_, bb_, xx_, state);
+		freeStrands(AA_,
+					bb_,
+					xx_,
+					root1,
+					normal1,
+					position1,
+					pos1,
+					posc1,
+					posh1,
+					velocity1,
+					velh1,
+					force1,
+					state);
 	}
 }

@@ -15,64 +15,16 @@
 #define GLUT_KEY_ESCAPE 27
 #endif
 
-pilar::Hair* hair = NULL;
-int prevTime;
+static pilar::Hair* hair = NULL;
+static int prevTime;
 
 // vbo variables
-GLuint strand_vbo = 0;
-GLuint colour_vbo = 0;
-struct cudaGraphicsResource *strand_vbo_resource = NULL;
-struct cudaGraphicsResource *colour_vbo_resource = NULL;
+static GLuint strand_vbo = 0;
+static GLuint colour_vbo = 0;
+static struct cudaGraphicsResource *strand_vbo_resource = NULL;
+static struct cudaGraphicsResource *colour_vbo_resource = NULL;
 
-void animate(int milli);
-void reshape(int w, int h);
-void render(void);
-void keyboard(unsigned char key, int x, int y);
-
-void init();
-void cleanup();
-
-
-int main(int argc, char **argv) {
-
-	// init GLUT and create window
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowPosition(100,100);
-	glutInitWindowSize(1024,768);
-	glutCreateWindow("Simulation");
-	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
-	
-	// register callbacks
-	glutDisplayFunc(render);
-	glutReshapeFunc(reshape);
-	glutKeyboardFunc(keyboard);
-//	glutIdleFunc(render);
-	glutTimerFunc(8, animate, 8);
-	
-	glewInit();
-	
-	cudaGLSetGLDevice( gpuGetMaxGflopsDeviceId() );
-	
-	glPointSize(3.0f);
-	glShadeModel(GL_FLAT);
-	
-	prevTime = glutGet(GLUT_ELAPSED_TIME);
-	
-	//Initialise hair simulation
-	init();
-	
-	// enter GLUT event processing cycle
-	glutMainLoop();
-	
-	//Release hair memory
-	cleanup();	
-	
-	std::cout << "Exiting cleanly..." << std::endl;
-	
-	return 0;
-}
-
+static
 void init()
 {
 	//Root positions
@@ -131,24 +83,25 @@ void init()
 	
 	free(colour_values);
 
-	hair = new pilar::Hair(roots_.size(), NUMPARTICLES, NUMCOMPONENTS, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH, LENGTH_EDGE, LENGTH_BEND, LENGTH_TWIST, roots_, normals_);
-
+	hair = new pilar::Hair(roots_.size(), NUMPARTICLES, NUMCOMPONENTS, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH_EDGE, LENGTH_BEND, LENGTH_TWIST, roots_, normals_);
+	
 	//Create VBO for all strand particles
 	glGenBuffers(1,&strand_vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, strand_vbo);
-	glBufferData(GL_ARRAY_BUFFER, NUMSTRANDS*NUMPARTICLES*sizeof(float3), 0, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, NUMSTRANDS*NUMPARTICLES*sizeof(pilar::Vector3f), 0, GL_DYNAMIC_DRAW);
 	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&strand_vbo_resource, strand_vbo, cudaGraphicsMapFlagsNone));
-
+	
 	//Map resource, set map flags, write intial data, unmap resource
 	size_t strand_size;
 	checkCudaErrors(cudaGraphicsMapResources(1, &strand_vbo_resource, NULL));
-	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position_, &strand_size, strand_vbo_resource));
+	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position1, &strand_size, strand_vbo_resource));
 
 	hair->init(roots_, normals_);
-
+	
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &strand_vbo_resource, 0));
 }
 
+static
 void cleanup()
 {
 	hair->release();
@@ -162,7 +115,7 @@ void cleanup()
 	glBindBuffer(1, strand_vbo);
 	glDeleteBuffers(1, &strand_vbo);
 	strand_vbo = 0;
-	
+
 	//Release VBO for strand colours
 	cudaGraphicsUnregisterResource(colour_vbo_resource);
 	glBindBuffer(1, colour_vbo);
@@ -170,6 +123,7 @@ void cleanup()
 	colour_vbo = 0;
 }
 
+static
 void reshape(int w, int h)
 {
 	// Prevent a divide by zero, when window is too short
@@ -195,7 +149,8 @@ void reshape(int w, int h)
 	glMatrixMode(GL_MODELVIEW);
 }
 
-void render(void)
+static
+void render()
 {
 	// Clear Color and Depth Buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -222,28 +177,31 @@ void render(void)
 		glVertex3f(0.0f, -0.25f, 0.0f);
 	glEnd();
 	
+	//TODO Render line from strand root to first particle
+	
 	//Render from the VBO for the positions of the all strands
 	glBindBuffer(GL_ARRAY_BUFFER, strand_vbo);
-    glVertexPointer(3, GL_FLOAT, 0, 0);
-    
-    glBindBuffer(GL_ARRAY_BUFFER, colour_vbo);
-    glColorPointer(3, GL_FLOAT, 0, 0);
-    
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    
-		//FIXME Investigate glDrawElements
-		for(int i = 0; i < NUMSTRANDS; i++)
-		{
-			glDrawArrays(GL_LINE_STRIP, i*NUMPARTICLES, NUMPARTICLES);
-		}
-	
+	glVertexPointer(3, GL_FLOAT, 0, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, colour_vbo);
+	glColorPointer(3, GL_FLOAT, 0, 0);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+
+	//FIXME Investigate glDrawElements
+	for(int i = 0; i < NUMSTRANDS; i++)
+	{
+		glDrawArrays(GL_LINE_STRIP, i*NUMPARTICLES, NUMPARTICLES);
+	}
+
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
-	
+
 	glutSwapBuffers();
 }
 
+static
 void animate(int milli)
 {
 	glutTimerFunc(milli, animate, milli);
@@ -254,7 +212,7 @@ void animate(int milli)
 
 	size_t strand_size;
 	checkCudaErrors(cudaGraphicsMapResources(1, &strand_vbo_resource, NULL));
-	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position_, &strand_size, strand_vbo_resource));
+	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position1, &strand_size, strand_vbo_resource));
 
 	hair->update(dt);
 
@@ -282,10 +240,51 @@ void animate(int milli)
 	prevTime = currentTime;
 }
 
+static
 void keyboard(unsigned char key, int x, int y)
 {
 	if(key == GLUT_KEY_ESCAPE)
 	{
 		glutLeaveMainLoop();
 	}
+}
+
+int main(int argc, char **argv)
+{
+	// init GLUT and create window
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+	glutInitWindowPosition(100,100);
+	glutInitWindowSize(1024,768);
+	glutCreateWindow("Simulation");
+	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
+	
+	// register callbacks
+	glutDisplayFunc(render);
+	glutReshapeFunc(reshape);
+	glutKeyboardFunc(keyboard);
+//	glutIdleFunc(render);
+	glutTimerFunc(8, animate, 8);
+	
+	glewInit();
+	
+	cudaGLSetGLDevice( gpuGetMaxGflopsDeviceId() );
+	
+	glPointSize(3.0f);
+	glShadeModel(GL_FLAT);
+	
+	prevTime = glutGet(GLUT_ELAPSED_TIME);
+	
+	//Initialise hair simulation
+	init();
+	
+	// enter GLUT event processing cycle
+	glutMainLoop();
+	
+	//Release hair memory
+	cleanup();	
+	
+	std::cout << "Exiting cleanly..." << std::endl;
+	
+	return 0;
 }
