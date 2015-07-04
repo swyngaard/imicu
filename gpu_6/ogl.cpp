@@ -43,7 +43,7 @@ void init()
 	normals_.push_back(normal01);
 	
 	//Intialise temp colour buffer
-	float * colour_values = (float*)malloc(NUMSTRANDS*NUMPARTICLES*NUMCOMPONENTS*sizeof(float));
+	float* colour_values = (float*)malloc(NUMSTRANDS*NUMPARTICLES*NUMCOMPONENTS*sizeof(float));
 	
 	//Set values of colours
 	for(int i = 0; i < NUMSTRANDS*NUMPARTICLES; i++)
@@ -93,10 +93,12 @@ void init()
 	
 	//Map resource, set map flags, write intial data, unmap resource
 	size_t strand_size;
+	pilar::Vector3f* position;
 	checkCudaErrors(cudaGraphicsMapResources(1, &strand_vbo_resource, NULL));
-	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position1, &strand_size, strand_vbo_resource));
+	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&position, &strand_size, strand_vbo_resource));
 
-	hair->init(roots_, normals_);
+	//Initialise positions along normals on the gpu
+	hair->initialise(position);
 	
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &strand_vbo_resource, 0));
 }
@@ -104,8 +106,6 @@ void init()
 static
 void cleanup()
 {
-	hair->release();
-	
 	delete hair;
 	
 	hair = NULL;
@@ -211,10 +211,11 @@ void animate(int milli)
 	float dt =  (currentTime - prevTime)/1000.0f;
 
 	size_t strand_size;
+	pilar::Vector3f* position;
 	checkCudaErrors(cudaGraphicsMapResources(1, &strand_vbo_resource, NULL));
-	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&hair->position1, &strand_size, strand_vbo_resource));
+	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&position, &strand_size, strand_vbo_resource));
 
-	hair->update(dt);
+	hair->update(dt, position);
 
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &strand_vbo_resource, 0));
 

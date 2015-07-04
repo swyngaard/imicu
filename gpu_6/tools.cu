@@ -202,7 +202,8 @@ namespace pilar
 
 		return ff + ss + tt;
 	}
-
+	
+	//FIXME Random vector function
 	//Generate a random vector with component values in the starting at "low" up to "high", exclusive.
 //	__host__ __device__
 //	Vector3f Vector3f::random(float low, float high)

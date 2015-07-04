@@ -6,89 +6,36 @@
 #include "hair.h"
 
 __global__
-void initialise(int numParticles,
-				int numStrands,
-				int numComponents,
-				float mass,
-				float k_edge,
-				float k_bend,
-				float k_twist,
-				float k_extra,
-				float d_edge,
-				float d_bend,
-				float d_twist,
-				float d_extra,
-				float length_e,
-				float length_b,
-				float length_t,
-				float* AA,
-				float* bb,
-				float* xx,
-				pilar::Vector3f gravity1,
-				pilar::Vector3f* root1,
-				pilar::Vector3f* normal1,
-				pilar::Vector3f* position1,
-				pilar::Vector3f* pos1,
-				pilar::Vector3f* posc1,
-				pilar::Vector3f* posh1,
-				pilar::Vector3f* velocity1,
-				pilar::Vector3f* velh1,
-				pilar::Vector3f* force1,
-				pilar::HairState* state)
+void initialise(pilar::HairState* state)
 {
+	pilar::Vector3f* root = state->root;
+	pilar::Vector3f* normal = state->normal;
+	pilar::Vector3f* position = state->position;
+	pilar::Vector3f* pos = state->pos;
+	pilar::Vector3f* posc = state->posc;
+	
 	//Strand ID
 	int sid = blockIdx.x;
 	
-	int start = numParticles * sid;
-	int end = start + numParticles;
+	int start = state->numParticles * sid;
+	int end = start + state->numParticles;
 	
 	for(int i = start, j = 1; i < end; i++, j++)
 	{
-		normal1[sid].unitize();
-		position1[i] = root1[sid] + (normal1[sid] * (0.025f * j));
-		pos1[i] = position1[i];
-		posc1[i] = position1[i];
+		normal[sid].unitize();
+		position[i] = root[sid] + (normal[sid] * (0.025f * j));
+		pos[i] = position[i];
+		posc[i] = position[i];
 	}
-
-	state->numParticles = numParticles;
-	state->numStrands = numStrands;
-	state->numComponents = numComponents;
-	state->mass = mass;
-	state->k_edge = k_edge;
-	state->k_bend = k_bend;
-	state->k_twist = k_twist;
-	state->k_extra = k_extra;
-	state->d_edge = d_edge;
-	state->d_bend = d_bend;
-	state->d_twist = d_twist;
-	state->d_extra = d_extra;
-	state->length_e = length_e;
-	state->length_b = length_b;
-	state->length_t = length_t;
-	
-	state->AA = AA;
-	state->bb = bb;
-	state->xx = xx;
-
-	state->gravity1 = gravity1;
-	state->root1 = root1;
-	state->normal1 = normal1;
-	state->position1 = position1;
-	state->pos1 = pos1;
-	state->posc1 = posc1;
-	state->posh1 = posh1;
-	state->velocity1 = velocity1;
-	state->velh1 = velh1;
-	state->force1 = force1;
 }
 
 __device__
 void buildAB(float dt, pilar::HairState* state)
 {
 	//State pointers
-	pilar::Vector3f* root = state->root1;
-	pilar::Vector3f* pos = state->pos1;
-	pilar::Vector3f* velocity = state->velocity1;
+	pilar::Vector3f* root = state->root;
+	pilar::Vector3f* pos = state->pos;
+	pilar::Vector3f* velocity = state->velocity;
 	float* AA = state->AA;
 	float* bb = state->bb;
 
@@ -329,15 +276,15 @@ void buildAB(float dt, pilar::HairState* state)
 	int endBB = startBB + state->numParticles * state->numComponents;
 
 	//Set the first nine entries of the b vector
-	bb[startBB  ] = velocity[startP  ].x + g_e*((root[sid]-pos[startP  ]).dot(du0R)-state->length_e)*du0R.x + g_e*((pos[startP+1]-pos[startP  ]).dot(du01)-state->length_e)*du01.x + g_b*((pos[startP+2]-pos[startP  ]).dot(du02)-state->length_b)*du02.x + g_t*((pos[startP+3]-pos[startP  ]).dot(du03)-state->length_t)*du03.x + state->gravity1.x*(dt/2.0f);
-	bb[startBB+1] = velocity[startP  ].y + g_e*((root[sid]-pos[startP  ]).dot(du0R)-state->length_e)*du0R.y + g_e*((pos[startP+1]-pos[startP  ]).dot(du01)-state->length_e)*du01.y + g_b*((pos[startP+2]-pos[startP  ]).dot(du02)-state->length_b)*du02.y + g_t*((pos[startP+3]-pos[startP  ]).dot(du03)-state->length_t)*du03.y + state->gravity1.y*(dt/2.0f);
-	bb[startBB+2] = velocity[startP  ].z + g_e*((root[sid]-pos[startP  ]).dot(du0R)-state->length_e)*du0R.z + g_e*((pos[startP+1]-pos[startP  ]).dot(du01)-state->length_e)*du01.z + g_b*((pos[startP+2]-pos[startP  ]).dot(du02)-state->length_b)*du02.z + g_t*((pos[startP+3]-pos[startP  ]).dot(du03)-state->length_t)*du03.z + state->gravity1.z*(dt/2.0f);
-	bb[startBB+3] = velocity[startP+1].x + g_b*((root[sid]-pos[startP+1]).dot(du1R)-state->length_b)*du1R.x + g_e*((pos[startP  ]-pos[startP+1]).dot(du10)-state->length_e)*du10.x + g_e*((pos[startP+2]-pos[startP+1]).dot(du12)-state->length_e)*du12.x + g_b*((pos[startP+3]-pos[startP+1]).dot(du13)-state->length_b)*du13.x + g_t*((pos[startP+4]-pos[startP+1]).dot(du14)-state->length_t)*du14.x + state->gravity1.x*(dt/2.0f);
-	bb[startBB+4] = velocity[startP+1].y + g_b*((root[sid]-pos[startP+1]).dot(du1R)-state->length_b)*du1R.y + g_e*((pos[startP  ]-pos[startP+1]).dot(du10)-state->length_e)*du10.y + g_e*((pos[startP+2]-pos[startP+1]).dot(du12)-state->length_e)*du12.y + g_b*((pos[startP+3]-pos[startP+1]).dot(du13)-state->length_b)*du13.y + g_t*((pos[startP+4]-pos[startP+1]).dot(du14)-state->length_t)*du14.y + state->gravity1.y*(dt/2.0f);
-	bb[startBB+5] = velocity[startP+1].z + g_b*((root[sid]-pos[startP+1]).dot(du1R)-state->length_b)*du1R.z + g_e*((pos[startP  ]-pos[startP+1]).dot(du10)-state->length_e)*du10.z + g_e*((pos[startP+2]-pos[startP+1]).dot(du12)-state->length_e)*du12.z + g_b*((pos[startP+3]-pos[startP+1]).dot(du13)-state->length_b)*du13.z + g_t*((pos[startP+4]-pos[startP+1]).dot(du14)-state->length_t)*du14.z + state->gravity1.z*(dt/2.0f);
-	bb[startBB+6] = velocity[startP+2].x + g_t*((root[sid]-pos[startP+2]).dot(du2R)-state->length_t)*du2R.x + g_b*((pos[startP  ]-pos[startP+2]).dot(du02)-state->length_b)*du20.x + g_e*((pos[startP+1]-pos[startP+2]).dot(du21)-state->length_e)*du21.x + g_e*((pos[startP+3]-pos[startP+2]).dot(du23)-state->length_e)*du23.x + g_b*((pos[startP+4]-pos[startP+2]).dot(du24)-state->length_b)*du24.x + g_t*((pos[startP+5]-pos[startP+2]).dot(du25)-state->length_t)*du25.x + state->gravity1.x*(dt/2.0f);
-	bb[startBB+7] = velocity[startP+2].y + g_t*((root[sid]-pos[startP+2]).dot(du2R)-state->length_t)*du2R.y + g_b*((pos[startP  ]-pos[startP+2]).dot(du02)-state->length_b)*du20.y + g_e*((pos[startP+1]-pos[startP+2]).dot(du21)-state->length_e)*du21.y + g_e*((pos[startP+3]-pos[startP+2]).dot(du23)-state->length_e)*du23.y + g_b*((pos[startP+4]-pos[startP+2]).dot(du24)-state->length_b)*du24.y + g_t*((pos[startP+5]-pos[startP+2]).dot(du25)-state->length_t)*du25.y + state->gravity1.y*(dt/2.0f);
-	bb[startBB+8] = velocity[startP+2].z + g_t*((root[sid]-pos[startP+2]).dot(du2R)-state->length_t)*du2R.z + g_b*((pos[startP  ]-pos[startP+2]).dot(du02)-state->length_b)*du20.z + g_e*((pos[startP+1]-pos[startP+2]).dot(du21)-state->length_e)*du21.z + g_e*((pos[startP+3]-pos[startP+2]).dot(du23)-state->length_e)*du23.z + g_b*((pos[startP+4]-pos[startP+2]).dot(du24)-state->length_b)*du24.z + g_t*((pos[startP+5]-pos[startP+2]).dot(du25)-state->length_t)*du25.z + state->gravity1.z*(dt/2.0f);
+	bb[startBB  ] = velocity[startP  ].x + g_e*((root[sid]-pos[startP  ]).dot(du0R)-state->length_e)*du0R.x + g_e*((pos[startP+1]-pos[startP  ]).dot(du01)-state->length_e)*du01.x + g_b*((pos[startP+2]-pos[startP  ]).dot(du02)-state->length_b)*du02.x + g_t*((pos[startP+3]-pos[startP  ]).dot(du03)-state->length_t)*du03.x + state->gravity.x*(dt/2.0f);
+	bb[startBB+1] = velocity[startP  ].y + g_e*((root[sid]-pos[startP  ]).dot(du0R)-state->length_e)*du0R.y + g_e*((pos[startP+1]-pos[startP  ]).dot(du01)-state->length_e)*du01.y + g_b*((pos[startP+2]-pos[startP  ]).dot(du02)-state->length_b)*du02.y + g_t*((pos[startP+3]-pos[startP  ]).dot(du03)-state->length_t)*du03.y + state->gravity.y*(dt/2.0f);
+	bb[startBB+2] = velocity[startP  ].z + g_e*((root[sid]-pos[startP  ]).dot(du0R)-state->length_e)*du0R.z + g_e*((pos[startP+1]-pos[startP  ]).dot(du01)-state->length_e)*du01.z + g_b*((pos[startP+2]-pos[startP  ]).dot(du02)-state->length_b)*du02.z + g_t*((pos[startP+3]-pos[startP  ]).dot(du03)-state->length_t)*du03.z + state->gravity.z*(dt/2.0f);
+	bb[startBB+3] = velocity[startP+1].x + g_b*((root[sid]-pos[startP+1]).dot(du1R)-state->length_b)*du1R.x + g_e*((pos[startP  ]-pos[startP+1]).dot(du10)-state->length_e)*du10.x + g_e*((pos[startP+2]-pos[startP+1]).dot(du12)-state->length_e)*du12.x + g_b*((pos[startP+3]-pos[startP+1]).dot(du13)-state->length_b)*du13.x + g_t*((pos[startP+4]-pos[startP+1]).dot(du14)-state->length_t)*du14.x + state->gravity.x*(dt/2.0f);
+	bb[startBB+4] = velocity[startP+1].y + g_b*((root[sid]-pos[startP+1]).dot(du1R)-state->length_b)*du1R.y + g_e*((pos[startP  ]-pos[startP+1]).dot(du10)-state->length_e)*du10.y + g_e*((pos[startP+2]-pos[startP+1]).dot(du12)-state->length_e)*du12.y + g_b*((pos[startP+3]-pos[startP+1]).dot(du13)-state->length_b)*du13.y + g_t*((pos[startP+4]-pos[startP+1]).dot(du14)-state->length_t)*du14.y + state->gravity.y*(dt/2.0f);
+	bb[startBB+5] = velocity[startP+1].z + g_b*((root[sid]-pos[startP+1]).dot(du1R)-state->length_b)*du1R.z + g_e*((pos[startP  ]-pos[startP+1]).dot(du10)-state->length_e)*du10.z + g_e*((pos[startP+2]-pos[startP+1]).dot(du12)-state->length_e)*du12.z + g_b*((pos[startP+3]-pos[startP+1]).dot(du13)-state->length_b)*du13.z + g_t*((pos[startP+4]-pos[startP+1]).dot(du14)-state->length_t)*du14.z + state->gravity.z*(dt/2.0f);
+	bb[startBB+6] = velocity[startP+2].x + g_t*((root[sid]-pos[startP+2]).dot(du2R)-state->length_t)*du2R.x + g_b*((pos[startP  ]-pos[startP+2]).dot(du02)-state->length_b)*du20.x + g_e*((pos[startP+1]-pos[startP+2]).dot(du21)-state->length_e)*du21.x + g_e*((pos[startP+3]-pos[startP+2]).dot(du23)-state->length_e)*du23.x + g_b*((pos[startP+4]-pos[startP+2]).dot(du24)-state->length_b)*du24.x + g_t*((pos[startP+5]-pos[startP+2]).dot(du25)-state->length_t)*du25.x + state->gravity.x*(dt/2.0f);
+	bb[startBB+7] = velocity[startP+2].y + g_t*((root[sid]-pos[startP+2]).dot(du2R)-state->length_t)*du2R.y + g_b*((pos[startP  ]-pos[startP+2]).dot(du02)-state->length_b)*du20.y + g_e*((pos[startP+1]-pos[startP+2]).dot(du21)-state->length_e)*du21.y + g_e*((pos[startP+3]-pos[startP+2]).dot(du23)-state->length_e)*du23.y + g_b*((pos[startP+4]-pos[startP+2]).dot(du24)-state->length_b)*du24.y + g_t*((pos[startP+5]-pos[startP+2]).dot(du25)-state->length_t)*du25.y + state->gravity.y*(dt/2.0f);
+	bb[startBB+8] = velocity[startP+2].z + g_t*((root[sid]-pos[startP+2]).dot(du2R)-state->length_t)*du2R.z + g_b*((pos[startP  ]-pos[startP+2]).dot(du02)-state->length_b)*du20.z + g_e*((pos[startP+1]-pos[startP+2]).dot(du21)-state->length_e)*du21.z + g_e*((pos[startP+3]-pos[startP+2]).dot(du23)-state->length_e)*du23.z + g_b*((pos[startP+4]-pos[startP+2]).dot(du24)-state->length_b)*du24.z + g_t*((pos[startP+5]-pos[startP+2]).dot(du25)-state->length_t)*du25.z + state->gravity.z*(dt/2.0f);
 
 	//Build in-between values of matrix A and vector b
 	//Loop from fourth to third last particles only
@@ -437,9 +384,9 @@ void buildAB(float dt, pilar::HairState* state)
 		AA[row2+19] = -h_t*dd2.y*dd2.z;
 		AA[row2+20] = -h_t*dd2.z*dd2.z;
 
-		bb[i*state->numComponents  ] = velocity[i].x + g_t*((uu2-ui).dot(du2)-state->length_t)*du2.x + g_b*((uu1-ui).dot(du1)-state->length_b)*du1.x + g_e*((uu0-ui).dot(du0)-state->length_e)*du0.x + g_e*((ud0-ui).dot(dd0)-state->length_e)*dd0.x + g_b*((ud1-ui).dot(dd1)-state->length_b)*dd1.x + g_t*((ud2-ui).dot(dd2)-state->length_t)*dd2.x + state->gravity1.x*(dt/2.0f);
-		bb[i*state->numComponents+1] = velocity[i].y + g_t*((uu2-ui).dot(du2)-state->length_t)*du2.y + g_b*((uu1-ui).dot(du1)-state->length_b)*du1.y + g_e*((uu0-ui).dot(du0)-state->length_e)*du0.y + g_e*((ud0-ui).dot(dd0)-state->length_e)*dd0.y + g_b*((ud1-ui).dot(dd1)-state->length_b)*dd1.y + g_t*((ud2-ui).dot(dd2)-state->length_t)*dd2.y + state->gravity1.y*(dt/2.0f);
-		bb[i*state->numComponents+2] = velocity[i].z + g_t*((uu2-ui).dot(du2)-state->length_t)*du2.z + g_b*((uu1-ui).dot(du1)-state->length_b)*du1.z + g_e*((uu0-ui).dot(du0)-state->length_e)*du0.z + g_e*((ud0-ui).dot(dd0)-state->length_e)*dd0.z + g_b*((ud1-ui).dot(dd1)-state->length_b)*dd1.z + g_t*((ud2-ui).dot(dd2)-state->length_t)*dd2.z + state->gravity1.z*(dt/2.0f);
+		bb[i*state->numComponents  ] = velocity[i].x + g_t*((uu2-ui).dot(du2)-state->length_t)*du2.x + g_b*((uu1-ui).dot(du1)-state->length_b)*du1.x + g_e*((uu0-ui).dot(du0)-state->length_e)*du0.x + g_e*((ud0-ui).dot(dd0)-state->length_e)*dd0.x + g_b*((ud1-ui).dot(dd1)-state->length_b)*dd1.x + g_t*((ud2-ui).dot(dd2)-state->length_t)*dd2.x + state->gravity.x*(dt/2.0f);
+		bb[i*state->numComponents+1] = velocity[i].y + g_t*((uu2-ui).dot(du2)-state->length_t)*du2.y + g_b*((uu1-ui).dot(du1)-state->length_b)*du1.y + g_e*((uu0-ui).dot(du0)-state->length_e)*du0.y + g_e*((ud0-ui).dot(dd0)-state->length_e)*dd0.y + g_b*((ud1-ui).dot(dd1)-state->length_b)*dd1.y + g_t*((ud2-ui).dot(dd2)-state->length_t)*dd2.y + state->gravity.y*(dt/2.0f);
+		bb[i*state->numComponents+2] = velocity[i].z + g_t*((uu2-ui).dot(du2)-state->length_t)*du2.z + g_b*((uu1-ui).dot(du1)-state->length_b)*du1.z + g_e*((uu0-ui).dot(du0)-state->length_e)*du0.z + g_e*((ud0-ui).dot(dd0)-state->length_e)*dd0.z + g_b*((ud1-ui).dot(dd1)-state->length_b)*dd1.z + g_t*((ud2-ui).dot(dd2)-state->length_t)*dd2.z + state->gravity.z*(dt/2.0f);
 	}
 
 	//Calculate direction vectors for the last three particles
@@ -631,15 +578,15 @@ void buildAB(float dt, pilar::HairState* state)
 	AA[row1N1+11] = 1.0f + h_t*du1N3.z*du1N3.z + h_b*du1N4.z*du1N4.z + h_e*du1N5.x*du1N5.z;
 
 	//Set the last nine entries of the vector b
-	bb[endBB-9] = velocity[endP-3].x + g_t*((pos[endP-6]-pos[endP-3]).dot(du3N1)-state->length_t)*du3N1.x + g_b*((pos[endP-5]-pos[endP-3]).dot(du3N2)-state->length_b)*du3N2.x + g_e*((pos[endP-4]-pos[endP-3]).dot(du3N3)-state->length_e)*du3N3.x + g_e*((pos[endP-2]-pos[endP-3]).dot(du3N5)-state->length_e)*du3N5.x + g_b*((pos[endP-1]-pos[endP-3]).dot(du3N6)-state->length_b)*du3N6.x + state->gravity1.x*(dt/2.0f);
-	bb[endBB-8] = velocity[endP-3].y + g_t*((pos[endP-6]-pos[endP-3]).dot(du3N1)-state->length_t)*du3N1.y + g_b*((pos[endP-5]-pos[endP-3]).dot(du3N2)-state->length_b)*du3N2.y + g_e*((pos[endP-4]-pos[endP-3]).dot(du3N3)-state->length_e)*du3N3.y + g_e*((pos[endP-2]-pos[endP-3]).dot(du3N5)-state->length_e)*du3N5.y + g_b*((pos[endP-1]-pos[endP-3]).dot(du3N6)-state->length_b)*du3N6.y + state->gravity1.y*(dt/2.0f);;
-	bb[endBB-7] = velocity[endP-3].z + g_t*((pos[endP-6]-pos[endP-3]).dot(du3N1)-state->length_t)*du3N1.z + g_b*((pos[endP-5]-pos[endP-3]).dot(du3N2)-state->length_b)*du3N2.z + g_e*((pos[endP-4]-pos[endP-3]).dot(du3N3)-state->length_e)*du3N3.z + g_e*((pos[endP-2]-pos[endP-3]).dot(du3N5)-state->length_e)*du3N5.z + g_b*((pos[endP-1]-pos[endP-3]).dot(du3N6)-state->length_b)*du3N6.z + state->gravity1.z*(dt/2.0f);;
-	bb[endBB-6] = velocity[endP-2].x + g_t*((pos[endP-5]-pos[endP-2]).dot(du2N2)-state->length_t)*du2N2.x + g_b*((pos[endP-4]-pos[endP-2]).dot(du2N3)-state->length_b)*du2N3.x + g_e*((pos[endP-3]-pos[endP-2]).dot(du2N4)-state->length_e)*du2N4.x + g_e*((pos[endP-1]-pos[endP-2]).dot(du2N6)-state->length_e)*du2N6.x + state->gravity1.x*(dt/2.0f);
-	bb[endBB-5] = velocity[endP-2].y + g_t*((pos[endP-5]-pos[endP-2]).dot(du2N2)-state->length_t)*du2N2.y + g_b*((pos[endP-4]-pos[endP-2]).dot(du2N3)-state->length_b)*du2N3.y + g_e*((pos[endP-3]-pos[endP-2]).dot(du2N4)-state->length_e)*du2N4.y + g_e*((pos[endP-1]-pos[endP-2]).dot(du2N6)-state->length_e)*du2N6.y + state->gravity1.y*(dt/2.0f);
-	bb[endBB-4] = velocity[endP-2].z + g_t*((pos[endP-5]-pos[endP-2]).dot(du2N2)-state->length_t)*du2N2.z + g_b*((pos[endP-4]-pos[endP-2]).dot(du2N3)-state->length_b)*du2N3.z + g_e*((pos[endP-3]-pos[endP-2]).dot(du2N4)-state->length_e)*du2N4.z + g_e*((pos[endP-1]-pos[endP-2]).dot(du2N6)-state->length_e)*du2N6.z + state->gravity1.z*(dt/2.0f);
-	bb[endBB-3] = velocity[endP-1].x + g_t*((pos[endP-4]-pos[endP-1]).dot(du1N3)-state->length_t)*du1N3.x + g_b*((pos[endP-3]-pos[endP-1]).dot(du1N4)-state->length_b)*du1N4.x + g_e*((pos[endP-2]-pos[endP-1]).dot(du1N5)-state->length_e)*du1N5.x + state->gravity1.x*(dt/2.0f);
-	bb[endBB-2] = velocity[endP-1].y + g_t*((pos[endP-4]-pos[endP-1]).dot(du1N3)-state->length_t)*du1N3.y + g_b*((pos[endP-3]-pos[endP-1]).dot(du1N4)-state->length_b)*du1N4.y + g_e*((pos[endP-2]-pos[endP-1]).dot(du1N5)-state->length_e)*du1N5.y + state->gravity1.y*(dt/2.0f);
-	bb[endBB-1] = velocity[endP-1].z + g_t*((pos[endP-4]-pos[endP-1]).dot(du1N3)-state->length_t)*du1N3.z + g_b*((pos[endP-3]-pos[endP-1]).dot(du1N4)-state->length_b)*du1N4.z + g_e*((pos[endP-2]-pos[endP-1]).dot(du1N5)-state->length_e)*du1N5.z + state->gravity1.z*(dt/2.0f);
+	bb[endBB-9] = velocity[endP-3].x + g_t*((pos[endP-6]-pos[endP-3]).dot(du3N1)-state->length_t)*du3N1.x + g_b*((pos[endP-5]-pos[endP-3]).dot(du3N2)-state->length_b)*du3N2.x + g_e*((pos[endP-4]-pos[endP-3]).dot(du3N3)-state->length_e)*du3N3.x + g_e*((pos[endP-2]-pos[endP-3]).dot(du3N5)-state->length_e)*du3N5.x + g_b*((pos[endP-1]-pos[endP-3]).dot(du3N6)-state->length_b)*du3N6.x + state->gravity.x*(dt/2.0f);
+	bb[endBB-8] = velocity[endP-3].y + g_t*((pos[endP-6]-pos[endP-3]).dot(du3N1)-state->length_t)*du3N1.y + g_b*((pos[endP-5]-pos[endP-3]).dot(du3N2)-state->length_b)*du3N2.y + g_e*((pos[endP-4]-pos[endP-3]).dot(du3N3)-state->length_e)*du3N3.y + g_e*((pos[endP-2]-pos[endP-3]).dot(du3N5)-state->length_e)*du3N5.y + g_b*((pos[endP-1]-pos[endP-3]).dot(du3N6)-state->length_b)*du3N6.y + state->gravity.y*(dt/2.0f);;
+	bb[endBB-7] = velocity[endP-3].z + g_t*((pos[endP-6]-pos[endP-3]).dot(du3N1)-state->length_t)*du3N1.z + g_b*((pos[endP-5]-pos[endP-3]).dot(du3N2)-state->length_b)*du3N2.z + g_e*((pos[endP-4]-pos[endP-3]).dot(du3N3)-state->length_e)*du3N3.z + g_e*((pos[endP-2]-pos[endP-3]).dot(du3N5)-state->length_e)*du3N5.z + g_b*((pos[endP-1]-pos[endP-3]).dot(du3N6)-state->length_b)*du3N6.z + state->gravity.z*(dt/2.0f);;
+	bb[endBB-6] = velocity[endP-2].x + g_t*((pos[endP-5]-pos[endP-2]).dot(du2N2)-state->length_t)*du2N2.x + g_b*((pos[endP-4]-pos[endP-2]).dot(du2N3)-state->length_b)*du2N3.x + g_e*((pos[endP-3]-pos[endP-2]).dot(du2N4)-state->length_e)*du2N4.x + g_e*((pos[endP-1]-pos[endP-2]).dot(du2N6)-state->length_e)*du2N6.x + state->gravity.x*(dt/2.0f);
+	bb[endBB-5] = velocity[endP-2].y + g_t*((pos[endP-5]-pos[endP-2]).dot(du2N2)-state->length_t)*du2N2.y + g_b*((pos[endP-4]-pos[endP-2]).dot(du2N3)-state->length_b)*du2N3.y + g_e*((pos[endP-3]-pos[endP-2]).dot(du2N4)-state->length_e)*du2N4.y + g_e*((pos[endP-1]-pos[endP-2]).dot(du2N6)-state->length_e)*du2N6.y + state->gravity.y*(dt/2.0f);
+	bb[endBB-4] = velocity[endP-2].z + g_t*((pos[endP-5]-pos[endP-2]).dot(du2N2)-state->length_t)*du2N2.z + g_b*((pos[endP-4]-pos[endP-2]).dot(du2N3)-state->length_b)*du2N3.z + g_e*((pos[endP-3]-pos[endP-2]).dot(du2N4)-state->length_e)*du2N4.z + g_e*((pos[endP-1]-pos[endP-2]).dot(du2N6)-state->length_e)*du2N6.z + state->gravity.z*(dt/2.0f);
+	bb[endBB-3] = velocity[endP-1].x + g_t*((pos[endP-4]-pos[endP-1]).dot(du1N3)-state->length_t)*du1N3.x + g_b*((pos[endP-3]-pos[endP-1]).dot(du1N4)-state->length_b)*du1N4.x + g_e*((pos[endP-2]-pos[endP-1]).dot(du1N5)-state->length_e)*du1N5.x + state->gravity.x*(dt/2.0f);
+	bb[endBB-2] = velocity[endP-1].y + g_t*((pos[endP-4]-pos[endP-1]).dot(du1N3)-state->length_t)*du1N3.y + g_b*((pos[endP-3]-pos[endP-1]).dot(du1N4)-state->length_b)*du1N4.y + g_e*((pos[endP-2]-pos[endP-1]).dot(du1N5)-state->length_e)*du1N5.y + state->gravity.y*(dt/2.0f);
+	bb[endBB-1] = velocity[endP-1].z + g_t*((pos[endP-4]-pos[endP-1]).dot(du1N3)-state->length_t)*du1N3.z + g_b*((pos[endP-3]-pos[endP-1]).dot(du1N4)-state->length_b)*du1N4.z + g_e*((pos[endP-2]-pos[endP-1]).dot(du1N5)-state->length_e)*du1N5.z + state->gravity.z*(dt/2.0f);
 }
 
 __device__
@@ -740,8 +687,8 @@ void calcVelocities(float dt, pilar::HairState* state)
 
 	//State pointers
 	float* xx = state->xx;
-	pilar::Vector3f* velocity = state->velocity1;
-	pilar::Vector3f* velh = state->velh1;
+	pilar::Vector3f* velocity = state->velocity;
+	pilar::Vector3f* velh = state->velh;
 
 	//Build matrix and vector of coefficients of linear equations
 	buildAB(dt, state);
@@ -801,10 +748,10 @@ __device__
 void updateSprings(float dt, pilar::HairState* state)
 {
 	//State pointers
-	pilar::Vector3f* root = state->root1;
-	pilar::Vector3f* pos = state->pos1;
-	pilar::Vector3f* velh = state->velh1;
-	pilar::Vector3f* force = state->force1;
+	pilar::Vector3f* root = state->root;
+	pilar::Vector3f* pos = state->pos;
+	pilar::Vector3f* velh = state->velh;
+	pilar::Vector3f* force = state->force;
 
 	int sid = blockIdx.x;
 
@@ -1027,7 +974,7 @@ void applyForce(pilar::Vector3f appliedForce, pilar::HairState* state)
 
 	for(int i = startP; i < endP; i++)
 	{
-		state->force1[i] = state->force1[i] + appliedForce;
+		state->force[i] += appliedForce;
 	}
 }
 
@@ -1039,7 +986,7 @@ void updateVelocities(float dt, pilar::HairState* state)
 
 	for(int i = startP; i < endP; i++)
 	{
-		state->velh1[i] = state->velocity1[i] + (state->force1[i] * (dt / 2.0f));
+		state->velh[i] = state->velocity[i] + (state->force[i] * (dt / 2.0f));
 	}
 }
 
@@ -1047,11 +994,11 @@ __device__
 void updatePositions(float dt, pilar::HairState* state)
 {
 	//State pointers
-	pilar::Vector3f* position = state->position1;
-	pilar::Vector3f* posh = state->posh1;
-	pilar::Vector3f* pos = state->pos1;
-	pilar::Vector3f* velh = state->velh1;
-	pilar::Vector3f* force = state->force1;
+	pilar::Vector3f* position = state->position;
+	pilar::Vector3f* posh = state->posh;
+	pilar::Vector3f* pos = state->pos;
+	pilar::Vector3f* velh = state->velh;
+	pilar::Vector3f* force = state->force;
 
 	int startP = blockIdx.x * state->numParticles;
 	int endP = startP + state->numParticles;
@@ -1081,11 +1028,11 @@ __device__
 void updateParticles(float dt, pilar::HairState* state)
 {
 	//State pointers
-	pilar::Vector3f* position = state->position1;
-	pilar::Vector3f* pos = state->pos1;
-	pilar::Vector3f* velocity = state->velocity1;
-	pilar::Vector3f* velh = state->velh1;
-	pilar::Vector3f* force = state->force1;
+	pilar::Vector3f* position = state->position;
+	pilar::Vector3f* pos = state->pos;
+	pilar::Vector3f* velocity = state->velocity;
+	pilar::Vector3f* velh = state->velh;
+	pilar::Vector3f* force = state->force;
 
 	int startP = blockIdx.x * state->numParticles;
 	int endP = startP + state->numParticles;
@@ -1111,10 +1058,10 @@ void updateParticles(float dt, pilar::HairState* state)
 __device__
 void applyStrainLimiting(float dt, pilar::HairState* state)
 {
-	pilar::Vector3f* root = state->root1;
-	pilar::Vector3f* posc = state->posc1;
-	pilar::Vector3f* pos = state->pos1;
-	pilar::Vector3f* velh = state->velh1;
+	pilar::Vector3f* root = state->root;
+	pilar::Vector3f* posc = state->posc;
+	pilar::Vector3f* pos = state->pos;
+	pilar::Vector3f* velh = state->velh;
 
 	int sid = blockIdx.x;
 	int startP = blockIdx.x * state->numParticles;
@@ -1170,10 +1117,10 @@ void update(float dt, pilar::HairState* state)
 //	}
 
 	//Mass multiplied by gravity to get gravitational force
-	pilar::Vector3f mgravity1 = state->gravity1 * state->mass;
+	pilar::Vector3f mgravity = state->gravity * state->mass;
 
 	//Apply gravity
-	applyForce(mgravity1, state);
+	applyForce(mgravity, state);
 
 //	int startP = blockIdx.x * state->numParticles;
 //	int endP = startP + state->numParticles;
@@ -1244,7 +1191,7 @@ void update(float dt, pilar::HairState* state)
 //	}
 
 	//Apply gravity
-	applyForce(mgravity1, state);
+	applyForce(mgravity, state);
 
 //	int startP = blockIdx.x * state->numParticles;
 //	int endP = startP + state->numParticles;
