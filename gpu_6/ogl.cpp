@@ -15,7 +15,8 @@
 #define GLUT_KEY_ESCAPE 27
 #endif
 
-static pilar::Hair* hair = NULL;
+static pilar::Hair* hair = 0;
+
 static int prevTime;
 
 // vbo variables
@@ -25,25 +26,20 @@ static struct cudaGraphicsResource *strand_vbo_resource = NULL;
 static struct cudaGraphicsResource *colour_vbo_resource = NULL;
 
 static
-void init()
+void initialise()
 {
 	//Root positions
-	pilar::Vector3f strand00(0.0f, 0.0f, 0.0f);
-	pilar::Vector3f strand01(-0.025f, 0.0f, 0.0f);
+	pilar::Vector3f* roots = new pilar::Vector3f[NUMSTRANDS];
+	roots[0] = pilar::Vector3f(0.0f, 0.0f, 0.0f);
+	roots[1] = pilar::Vector3f(-0.025f, 0.0f, 0.0f);
 	
-	std::vector<pilar::Vector3f> roots_;
-	roots_.push_back(strand00);
-	roots_.push_back(strand01);
-	
-	pilar::Vector3f normal00(1.0f, -1.0f, 0.0f);
-	pilar::Vector3f normal01(-1.0f, -1.0f, 0.0f);
-	
-	std::vector<pilar::Vector3f> normals_;
-	normals_.push_back(normal00);
-	normals_.push_back(normal01);
+	//Normal directions
+	pilar::Vector3f* normals = new pilar::Vector3f[NUMSTRANDS];
+	normals[0] = pilar::Vector3f(1.0f, -1.0f, 0.0f);
+	normals[1] = pilar::Vector3f(-1.0f, -1.0f, 0.0f);
 	
 	//Intialise temp colour buffer
-	float* colour_values = (float*)malloc(NUMSTRANDS*NUMPARTICLES*NUMCOMPONENTS*sizeof(float));
+	float* colour_values = new float[NUMSTRANDS*NUMPARTICLES*NUMCOMPONENTS];
 	
 	//Set values of colours
 	for(int i = 0; i < NUMSTRANDS*NUMPARTICLES; i++)
@@ -81,9 +77,7 @@ void init()
 	glBufferData(GL_ARRAY_BUFFER, NUMSTRANDS*NUMPARTICLES*NUMCOMPONENTS*sizeof(float), (void*)colour_values, GL_DYNAMIC_DRAW);
 	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&colour_vbo_resource, colour_vbo, cudaGraphicsMapFlagsNone));
 	
-	free(colour_values);
-
-	hair = new pilar::Hair(roots_.size(), NUMPARTICLES, NUMCOMPONENTS, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH_EDGE, LENGTH_BEND, LENGTH_TWIST, roots_, normals_);
+	hair = new pilar::Hair(NUMSTRANDS, NUMPARTICLES, NUMCOMPONENTS, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH_EDGE, LENGTH_BEND, LENGTH_TWIST, pilar::Vector3f(0.0f, GRAVITY, 0.0f), roots, normals);
 	
 	//Create VBO for all strand particles
 	glGenBuffers(1,&strand_vbo);
@@ -101,6 +95,10 @@ void init()
 	hair->initialise(position);
 	
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &strand_vbo_resource, 0));
+	
+	delete [] colour_values;
+	delete [] normals;
+	delete [] roots;
 }
 
 static
@@ -157,19 +155,12 @@ void render()
 
 	// Reset transformations
 	glLoadIdentity();
+	
 	// Set the camera
 	//Ideal camera closeup
 	gluLookAt(	0.0f, -0.13f, -0.35f,
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
-	//closeup with damping
-//	gluLookAt(	0.0f, -0.25f, -0.65f,
-//				0.0f, -0.25f,  0.0f,
-//				0.0f, 1.0f,  0.0f);
-	//Closeup without damping, lots of stretching
-//	gluLookAt(	0.0f, -0.4f, -1.0f,
-//				0.0f, -0.4f,  0.0f,
-//				0.0f, 1.0f,  0.0f);
 	
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_POINTS);
@@ -277,7 +268,7 @@ int main(int argc, char **argv)
 	prevTime = glutGet(GLUT_ELAPSED_TIME);
 	
 	//Initialise hair simulation
-	init();
+	initialise();
 	
 	// enter GLUT event processing cycle
 	glutMainLoop();

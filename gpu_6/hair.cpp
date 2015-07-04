@@ -1,10 +1,5 @@
 
 #include "hair.h"
-#include "constants.h"
-
-#include <iostream>
-#include <vector_functions.h>
-#include <stdlib.h>
 
 extern "C"
 void mallocStrands(pilar::HairState* h_state, pilar::HairState* &d_state);
@@ -13,13 +8,13 @@ extern "C"
 void freeStrands(pilar::HairState* h_state, pilar::HairState* d_state);
 
 extern "C"
-void initPositions(pilar::HairState* h_state, pilar::HairState* d_state);
+void initialisePositions(pilar::HairState* h_state, pilar::HairState* d_state);
 
 extern "C"
 void updateStrands(float dt, pilar::HairState* h_state, pilar::HairState* d_state);
 
 extern "C"
-void copyRoots(const pilar::Vector3f* root3f, const pilar::Vector3f* normal3f, pilar::HairState* h_state);
+void copyRoots(pilar::Vector3f* roots, pilar::Vector3f* normals, pilar::HairState* h_state);
 
 extern "C"
 void copyState(pilar::HairState* h_state, pilar::HairState* d_state);
@@ -41,15 +36,16 @@ namespace pilar
 			   float length_e,
 			   float length_b,
 			   float length_t,
-			   std::vector<Vector3f> &roots,
-			   std::vector<Vector3f> &normals)
+			   Vector3f gravity,
+			   Vector3f* roots,
+			   Vector3f* normals)
 	{
 		h_state = new HairState;
 		
 		h_state->numStrands = numStrands;
 		h_state->numParticles = numParticles;
 		h_state->numComponents = numComponents;
-		h_state->gravity = Vector3f(0.0f, GRAVITY, 0.0f);
+		h_state->gravity = gravity;
 		h_state->mass = mass;
 		h_state->k_edge = k_edge;
 		h_state->k_bend = k_bend;
@@ -67,21 +63,9 @@ namespace pilar
 		
 		//Allocate memory on GPU
 		mallocStrands(h_state, d_state);
-		
-		pilar::Vector3f* root3f = (pilar::Vector3f*) calloc(numStrands, sizeof(pilar::Vector3f));
-		pilar::Vector3f* normal3f = (pilar::Vector3f*) calloc(numStrands, sizeof(pilar::Vector3f));
-
-		for(int i = 0; i < numStrands; i++)
-		{
-			root3f[i] = roots[i];
-			normal3f[i] = normals[i];
-		}
 
 		//Copy root positions and normal directions to GPU
-		copyRoots(root3f, normal3f, h_state);
-		
-		free(root3f);
-		free(normal3f);
+		copyRoots(roots, normals, h_state);
 	}
 	
 	Hair::~Hair()
@@ -99,7 +83,7 @@ namespace pilar
 		copyState(h_state, d_state);
 		
 		//Intialise particle positions on the GPU
-		initPositions(h_state, d_state);
+		initialisePositions(h_state, d_state);
 	}
 	
 	void Hair::update(float dt, Vector3f* position)

@@ -2,8 +2,9 @@
 #ifndef _HAIR_KERNEL_H_
 #define _HAIR_KERNEL_H_
 
-#include "constants.h"
 #include "hair.h"
+#include "constants.h"
+
 
 __global__
 void initialise(pilar::HairState* state)

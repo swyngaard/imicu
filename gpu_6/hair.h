@@ -3,8 +3,6 @@
 #define __HAIR_H__
 
 #include "tools.h"
-#include <vector>
-#include <vector_types.h>
 
 namespace pilar
 {
@@ -67,8 +65,9 @@ namespace pilar
 			 float length_e,
 			 float length_b,
 			 float length_t,
-			 std::vector<Vector3f> &roots,
-			 std::vector<Vector3f> &normals);
+			 Vector3f gravity,
+			 Vector3f* roots,
+			 Vector3f* normals);
 		~Hair();
 		
 		void initialise(Vector3f* position);

@@ -1,8 +1,8 @@
 
 #include <helper_cuda.h>
 
-#include "hair_kernel.cu"
 #include "hair.h"
+#include "hair_kernel.cu"
 
 static void* mallocBytes(int bytes)
 {
@@ -58,11 +58,10 @@ void freeStrands(pilar::HairState* h_state, pilar::HairState* d_state)
 }
 
 extern "C"
-void copyRoots(const pilar::Vector3f* root3f, const pilar::Vector3f* normal3f, pilar::HairState* h_state)
+void copyRoots(pilar::Vector3f* roots, pilar::Vector3f* normals, pilar::HairState* h_state)
 {
-	int bytes = h_state->numStrands * sizeof(pilar::Vector3f);
-	checkCudaErrors(cudaMemcpy(h_state->root, root3f, bytes, cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(h_state->normal, normal3f, bytes, cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(h_state->root,   roots,   h_state->numStrands * sizeof(pilar::Vector3f), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(h_state->normal, normals, h_state->numStrands * sizeof(pilar::Vector3f), cudaMemcpyHostToDevice));
 }
 
 extern "C"
@@ -72,7 +71,7 @@ void copyState(pilar::HairState* h_state, pilar::HairState* d_state)
 }
 
 extern "C"
-void initPositions(pilar::HairState* h_state, pilar::HairState* d_state)
+void initialisePositions(pilar::HairState* h_state, pilar::HairState* d_state)
 {
 	dim3 grid(h_state->numStrands, 1, 1);
 	dim3 block(1, 1, 1);
