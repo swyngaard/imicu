@@ -33,7 +33,9 @@ void mallocStrands(pilar::HairState* h_state, pilar::HairState* &d_state)
 	h_state->velocity = (pilar::Vector3f*) mallocBytes(h_state->numParticles * h_state->numStrands * sizeof(pilar::Vector3f));
 	h_state->velh 	  = (pilar::Vector3f*) mallocBytes(h_state->numParticles * h_state->numStrands * sizeof(pilar::Vector3f));
 	h_state->force	  = (pilar::Vector3f*) mallocBytes(h_state->numParticles * h_state->numStrands * sizeof(pilar::Vector3f));
-
+	
+	h_state->rng	  = (curandStatePhilox4_32_10_t*) mallocBytes(h_state->numStrands * sizeof(curandStatePhilox4_32_10_t));
+	
 	d_state = (pilar::HairState*) mallocBytes(sizeof(pilar::HairState));
 }
 
@@ -53,7 +55,9 @@ void freeStrands(pilar::HairState* h_state, pilar::HairState* d_state)
 	checkCudaErrors(cudaFree(h_state->velocity));
 	checkCudaErrors(cudaFree(h_state->velh));
 	checkCudaErrors(cudaFree(h_state->force));
-
+	
+	checkCudaErrors(cudaFree(h_state->rng));
+	
 	checkCudaErrors(cudaFree(d_state));
 }
 

@@ -3,6 +3,7 @@
 #define __HAIR_H__
 
 #include "tools.h"
+#include <curand_kernel.h>
 
 namespace pilar
 {
@@ -40,6 +41,8 @@ namespace pilar
 		float length_e;
 		float length_b;
 		float length_t;
+		
+		curandStatePhilox4_32_10_t* rng;
 	};
 
 	class Hair

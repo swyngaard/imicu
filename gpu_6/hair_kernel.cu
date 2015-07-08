@@ -28,6 +28,9 @@ void initialise(pilar::HairState* state)
 		pos[i] = position[i];
 		posc[i] = position[i];
 	}
+	
+	//Create a random number generator for each strand
+	curand_init(0, sid, 0, &state->rng[sid]);
 }
 
 __device__

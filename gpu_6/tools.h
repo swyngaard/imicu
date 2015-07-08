@@ -2,7 +2,7 @@
 #ifndef __TOOLS_H__
 #define __TOOLS_H__
 
-#include <cuda_runtime.h>
+#include <curand_kernel.h>
 
 namespace pilar
 {
@@ -38,7 +38,8 @@ namespace pilar
 		__host__ __device__ Vector3f cross(const Vector3i &v);
 
 		__host__ __device__ static float determinant(const Vector3f &a, const Vector3f &b, const Vector3f &c);
-//		__host__ __device__ static Vector3f random(float low, float high);
+				 __device__ static Vector3f random(float low, float high, curandStatePhilox4_32_10_t* rng);
+		__host__			static Vector3f random(float low, float high);
 
 		__host__ __device__ float length();
 		__host__ __device__ float length_inverse();

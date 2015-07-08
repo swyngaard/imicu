@@ -1,8 +1,7 @@
 
-//#include <math.h>
-//#include <stdlib.h>
-
 #include "tools.h"
+#include <stdlib.h>
+
 
 namespace pilar
 {
@@ -203,17 +202,27 @@ namespace pilar
 		return ff + ss + tt;
 	}
 	
-	//FIXME Random vector function
 	//Generate a random vector with component values in the starting at "low" up to "high", exclusive.
-//	__host__ __device__
-//	Vector3f Vector3f::random(float low, float high)
-//	{
-//		float x = low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
-//		float y = low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
-//		float z = low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
-//
-//		return Vector3f(x,y,z);
-//	}
+	//Make sure high is greater than low.
+	__device__
+	Vector3f Vector3f::random(float low, float high, curandStatePhilox4_32_10_t* rng)
+	{
+		float x = low + curand_uniform(rng) * (high - low);
+		float y = low + curand_uniform(rng) * (high - low);
+		float z = low + curand_uniform(rng) * (high - low);
+
+		return Vector3f(x,y,z);
+	}
+	
+	__host__
+	Vector3f Vector3f::random(float low, float high)
+	{
+		float x = low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
+		float y = low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
+		float z = low + static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/(high-low)));
+
+		return Vector3f(x,y,z);
+	}
 
 	__host__ __device__
 	Vector3i::Vector3i()
