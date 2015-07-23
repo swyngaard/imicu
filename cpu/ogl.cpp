@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 
 void init()
 {
-	obj.Load("spherehalf.obj");
+	obj.Load("monkey.obj");
 	
 	//Root positions
 	pilar::Vector3f strand00(0.0f, 0.0f, 0.0f);
@@ -523,7 +523,9 @@ int Model_OBJ::Load(const char* filename)
 		objFile.seekg (0, std::ios::end);										// Go to end of the file, 
 		long fileSize = objFile.tellg();									// get file size
 		objFile.seekg (0, std::ios::beg);										// we'll use this to register memory for our 3d model
- 
+		
+		std::cout << fileSize << std::endl;
+		
 		vertexBuffer = (float*) malloc (fileSize);							// Allocate memory for the verteces
 		Faces_Triangles = (float*) malloc(fileSize*sizeof(float));			// Allocate memory for the triangles
 		normals  = (float*) malloc(fileSize*sizeof(float));					// Allocate memory for the normals

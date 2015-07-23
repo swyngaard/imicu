@@ -2,6 +2,8 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <iostream>
+#include <fstream>
+#include <string>
 
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
@@ -22,8 +24,167 @@ static int prevTime;
 // vbo variables
 static GLuint strand_vbo = 0;
 static GLuint colour_vbo = 0;
-static struct cudaGraphicsResource *strand_vbo_resource = NULL;
-static struct cudaGraphicsResource *colour_vbo_resource = NULL;
+static struct cudaGraphicsResource *strand_vbo_resource = 0;
+static struct cudaGraphicsResource *colour_vbo_resource = 0;
+
+struct ModelOBJ
+{
+	float* vertices;
+	float* normals;
+	float* faces;	//Triangles
+	
+	long totalConnectedPoints;
+	long totalConnectedTriangles;
+};
+
+static ModelOBJ* model = 0;
+
+static
+void loadOBJ(const char* filename, ModelOBJ* &obj)
+{
+	std::ifstream file(filename);
+	
+	if(file.is_open())
+	{
+		obj = new ModelOBJ;
+		
+		file.seekg(0, std::ios::end); 
+		long fileSize = file.tellg();
+		file.seekg(0, std::ios::beg);
+		
+		obj->totalConnectedPoints = 0;
+		obj->totalConnectedTriangles = 0;
+		obj->vertices = new float[fileSize/sizeof(float)];
+		obj->normals  = new float[fileSize];
+		obj->faces	  = new float[fileSize];
+		
+		
+		int triangleIndex = 0;
+		int normalIndex = 0;
+		std::string line;
+		
+		int POINTS_PER_VERTEX = 3;
+		int TOTAL_FLOATS_IN_TRIANGLE = 9;
+		
+		while(!file.eof())
+		{
+			getline(file, line);
+			
+			if (line.c_str()[0] == 'v')
+			{
+				line[0] = ' ';
+
+				sscanf(line.c_str(), "%f %f %f ",
+					   &obj->vertices[obj->totalConnectedPoints  ],
+					   &obj->vertices[obj->totalConnectedPoints+1],
+					   &obj->vertices[obj->totalConnectedPoints+2]);
+
+				obj->totalConnectedPoints += POINTS_PER_VERTEX;
+			}
+			
+			if (line.c_str()[0] == 'f')
+			{
+				line[0] = ' ';
+				
+				int vertexNumber[3] = { 0, 0, 0 };
+				sscanf(line.c_str(),"%i%i%i", &vertexNumber[0], &vertexNumber[1], &vertexNumber[2]);
+				
+				vertexNumber[0] -= 1;
+				vertexNumber[1] -= 1;
+				vertexNumber[2] -= 1;
+				
+				int tCounter = 0;
+				for (int i = 0; i < POINTS_PER_VERTEX; i++)					
+				{
+					obj->faces[triangleIndex + tCounter    ] = obj->vertices[3*vertexNumber[i]   ];
+					obj->faces[triangleIndex + tCounter + 1] = obj->vertices[3*vertexNumber[i]+1 ];
+					obj->faces[triangleIndex + tCounter + 2] = obj->vertices[3*vertexNumber[i]+2 ];
+					tCounter += POINTS_PER_VERTEX;
+				}
+				
+				float coord1[3] = {obj->faces[triangleIndex  ], obj->faces[triangleIndex+1], obj->faces[triangleIndex+2]};
+				float coord2[3] = {obj->faces[triangleIndex+3], obj->faces[triangleIndex+4], obj->faces[triangleIndex+5]};
+				float coord3[3] = {obj->faces[triangleIndex+6], obj->faces[triangleIndex+7], obj->faces[triangleIndex+8]};
+				
+				/* calculate Vector1 and Vector2 */
+				float va[3], vb[3], vr[3], val;
+				
+				va[0] = coord1[0] - coord2[0];
+				va[1] = coord1[1] - coord2[1];
+				va[2] = coord1[2] - coord2[2];
+
+				vb[0] = coord1[0] - coord3[0];
+				vb[1] = coord1[1] - coord3[1];
+				vb[2] = coord1[2] - coord3[2];
+
+				/* cross product */
+				vr[0] = va[1] * vb[2] - vb[1] * va[2];
+				vr[1] = vb[0] * va[2] - va[0] * vb[2];
+				vr[2] = va[0] * vb[1] - vb[0] * va[1];
+
+				/* normalization factor */
+				val = sqrtf( vr[0]*vr[0] + vr[1]*vr[1] + vr[2]*vr[2] );
+				
+				float norm[3];
+				norm[0] = vr[0]/val;
+				norm[1] = vr[1]/val;
+				norm[2] = vr[2]/val;
+				
+				tCounter = 0;
+				for (int i = 0; i < POINTS_PER_VERTEX; i++)
+				{
+					obj->normals[normalIndex + tCounter    ] = norm[0];
+					obj->normals[normalIndex + tCounter + 1] = norm[1];
+					obj->normals[normalIndex + tCounter + 2] = norm[2];
+					tCounter += POINTS_PER_VERTEX;
+				}
+				
+				triangleIndex += TOTAL_FLOATS_IN_TRIANGLE;
+				normalIndex += TOTAL_FLOATS_IN_TRIANGLE;
+				obj->totalConnectedTriangles += TOTAL_FLOATS_IN_TRIANGLE;			
+			}
+		}
+		
+		file.close();
+	}
+	else
+	{
+		std::cout << "Unable to open file: " << filename << std::endl;
+	}
+}
+
+static
+void releaseOBJ(ModelOBJ* &obj)
+{
+	if(obj)
+	{
+		delete [] obj->vertices;
+		delete [] obj->normals;
+		delete [] obj->faces;
+		
+		delete obj;
+	}
+}
+
+static
+void renderOBJ(ModelOBJ* &obj)
+{
+	if(obj)
+	{
+		//Unbind any buffers before rendering
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+		glPushMatrix();
+		glEnableClientState(GL_VERTEX_ARRAY);						// Enable vertex arrays
+		glEnableClientState(GL_NORMAL_ARRAY);						// Enable normal arrays
+		glVertexPointer(3,GL_FLOAT,	0, obj->faces);					// Vertex Pointer to triangle array
+		glNormalPointer(GL_FLOAT, 0, obj->normals);						// Normal pointer to normal array
+		glDrawArrays(GL_TRIANGLES, 0, obj->totalConnectedTriangles);		// Draw the triangles
+		glDisableClientState(GL_VERTEX_ARRAY);						// Disable vertex arrays
+		glDisableClientState(GL_NORMAL_ARRAY);						// Disable normal arrays
+		glPopMatrix();
+	}
+}
 
 static
 void initialise()
@@ -37,6 +198,9 @@ void initialise()
 	pilar::Vector3f* normals = new pilar::Vector3f[NUMSTRANDS];
 	normals[0] = pilar::Vector3f(1.0f, -1.0f, 0.0f);
 	normals[1] = pilar::Vector3f(-1.0f, -1.0f, 0.0f);
+	
+	//Load geometry from file
+	loadOBJ("monkey.obj", model);
 	
 	//Intialise temp colour buffer
 	float* colour_values = new float[NUMSTRANDS*NUMPARTICLES*NUMCOMPONENTS];
@@ -108,6 +272,8 @@ void cleanup()
 	
 	hair = NULL;
 	
+	releaseOBJ(model);
+	
 	//Release VBO for all strand particles
 	cudaGraphicsUnregisterResource(strand_vbo_resource);
 	glBindBuffer(1, strand_vbo);
@@ -162,6 +328,8 @@ void render()
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
+	renderOBJ(model);
+	
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_POINTS);
 		glVertex3f(0.0f, 0.0f, 0.0f);
@@ -188,7 +356,7 @@ void render()
 
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
-
+	
 	glutSwapBuffers();
 }
 
