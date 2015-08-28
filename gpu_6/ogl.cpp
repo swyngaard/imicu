@@ -27,28 +27,16 @@ static GLuint colour_vbo = 0;
 static struct cudaGraphicsResource *strand_vbo_resource = 0;
 static struct cudaGraphicsResource *colour_vbo_resource = 0;
 
-struct ModelOBJ
-{
-	float* vertices;
-	float* normals;
-	float* faces;	//Triangles
-	
-	long totalConnectedPoints;
-	long totalConnectedTriangles;
-};
-
-static ModelOBJ* model = 0;
+static ModelOBJ model = {};
 
 static
-void loadOBJ(const char* filename, ModelOBJ* &obj)
+void loadOBJ(const char* filename, ModelOBJ* obj)
 {
 	std::ifstream file(filename);
 	
 	if(file.is_open())
 	{
-		obj = new ModelOBJ;
-		
-		file.seekg(0, std::ios::end); 
+		file.seekg(0, std::ios::end);
 		long fileSize = file.tellg();
 		file.seekg(0, std::ios::beg);
 		
@@ -57,7 +45,7 @@ void loadOBJ(const char* filename, ModelOBJ* &obj)
 		obj->vertices = new float[fileSize/sizeof(float)];
 		obj->normals  = new float[fileSize];
 		obj->faces	  = new float[fileSize];
-		
+		obj->bytes	  = fileSize;
 		
 		int triangleIndex = 0;
 		int normalIndex = 0;
@@ -154,20 +142,18 @@ void loadOBJ(const char* filename, ModelOBJ* &obj)
 }
 
 static
-void releaseOBJ(ModelOBJ* &obj)
+void releaseOBJ(ModelOBJ* obj)
 {
 	if(obj)
 	{
 		delete [] obj->vertices;
 		delete [] obj->normals;
 		delete [] obj->faces;
-		
-		delete obj;
 	}
 }
 
 static
-void renderOBJ(ModelOBJ* &obj)
+void renderOBJ(ModelOBJ* obj)
 {
 	if(obj)
 	{
@@ -199,8 +185,11 @@ void initialise()
 	normals[0] = pilar::Vector3f(1.0f, -1.0f, 0.0f);
 	normals[1] = pilar::Vector3f(-1.0f, -1.0f, 0.0f);
 	
+	//Gravity
+	pilar::Vector3f gravity(0.0f, GRAVITY, 0.0f);
+	
 	//Load geometry from file
-	loadOBJ("monkey.obj", model);
+	loadOBJ("monkey.obj", &model);
 	
 	//Intialise temp colour buffer
 	float* colour_values = new float[NUMSTRANDS*NUMPARTICLES*NUMCOMPONENTS];
@@ -241,7 +230,14 @@ void initialise()
 	glBufferData(GL_ARRAY_BUFFER, NUMSTRANDS*NUMPARTICLES*NUMCOMPONENTS*sizeof(float), (void*)colour_values, GL_DYNAMIC_DRAW);
 	checkCudaErrors(cudaGraphicsGLRegisterBuffer(&colour_vbo_resource, colour_vbo, cudaGraphicsMapFlagsNone));
 	
-	hair = new pilar::Hair(NUMSTRANDS, NUMPARTICLES, NUMCOMPONENTS, MASS, K_EDGE, K_BEND, K_TWIST, K_EXTRA, D_EDGE, D_BEND, D_TWIST, D_EXTRA, LENGTH_EDGE, LENGTH_BEND, LENGTH_TWIST, pilar::Vector3f(0.0f, GRAVITY, 0.0f), roots, normals);
+	hair = new pilar::Hair(NUMSTRANDS, NUMPARTICLES, NUMCOMPONENTS, MASS,
+						   K_EDGE, K_BEND, K_TWIST, K_EXTRA,
+						   D_EDGE, D_BEND, D_TWIST, D_EXTRA,
+						   LENGTH_EDGE, LENGTH_BEND, LENGTH_TWIST,
+						   gravity,
+						   roots,
+						   normals,
+						   &model);
 	
 	//Create VBO for all strand particles
 	glGenBuffers(1,&strand_vbo);
@@ -256,7 +252,9 @@ void initialise()
 	checkCudaErrors(cudaGraphicsResourceGetMappedPointer((void**)&position, &strand_size, strand_vbo_resource));
 
 	//Initialise positions along normals on the gpu
+	
 	hair->initialise(position);
+	
 	
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &strand_vbo_resource, 0));
 	
@@ -272,7 +270,7 @@ void cleanup()
 	
 	hair = NULL;
 	
-	releaseOBJ(model);
+	releaseOBJ(&model);
 	
 	//Release VBO for all strand particles
 	cudaGraphicsUnregisterResource(strand_vbo_resource);
@@ -328,7 +326,7 @@ void render()
 				0.0f, -0.13f,  0.0f,
 				0.0f, 1.0f,  0.0f);
 	
-	renderOBJ(model);
+	renderOBJ(&model);
 	
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_POINTS);

@@ -2,7 +2,7 @@
 #include "hair.h"
 
 extern "C"
-void mallocStrands(pilar::HairState* h_state, pilar::HairState* &d_state);
+void mallocStrands(pilar::HairState* h_state, pilar::HairState* &d_state, int modelBytes);
 
 extern "C"
 void freeStrands(pilar::HairState* h_state, pilar::HairState* d_state);
@@ -18,6 +18,9 @@ void copyRoots(pilar::Vector3f* roots, pilar::Vector3f* normals, pilar::HairStat
 
 extern "C"
 void copyState(pilar::HairState* h_state, pilar::HairState* d_state);
+
+extern "C"
+void copyModel(ModelOBJ* model, pilar::HairState* h_state);
 
 namespace pilar
 {
@@ -38,7 +41,8 @@ namespace pilar
 			   float length_t,
 			   Vector3f gravity,
 			   Vector3f* roots,
-			   Vector3f* normals)
+			   Vector3f* normals,
+			   ModelOBJ* model)
 	{
 		h_state = new HairState;
 		
@@ -62,10 +66,13 @@ namespace pilar
 		d_state = 0;
 		
 		//Allocate memory on GPU
-		mallocStrands(h_state, d_state);
+		mallocStrands(h_state, d_state, model->bytes);
 
 		//Copy root positions and normal directions to GPU
 		copyRoots(roots, normals, h_state);
+		
+		//Copy object model data to GPU
+		copyModel(model, h_state);
 	}
 	
 	Hair::~Hair()

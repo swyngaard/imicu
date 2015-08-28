@@ -4,7 +4,8 @@
 #include "hair.h"
 #include "hair_kernel.cu"
 
-static void* mallocBytes(int bytes)
+static
+void* mallocBytes(int bytes)
 {
 	void* pointer;
 	
@@ -13,12 +14,12 @@ static void* mallocBytes(int bytes)
 	
 	//Set memory to zero
 	checkCudaErrors(cudaMemset(pointer, 0, bytes));
-
+	
 	return pointer;
 }
 
 extern "C"
-void mallocStrands(pilar::HairState* h_state, pilar::HairState* &d_state)
+void mallocStrands(pilar::HairState* h_state, pilar::HairState* &d_state, int modelBytes)
 {
 	h_state->AA = (float*) mallocBytes(h_state->numParticles * h_state->numStrands * h_state->numComponents * h_state->numParticles * h_state->numStrands * h_state->numComponents * sizeof(float));
 	h_state->bb = (float*) mallocBytes(h_state->numParticles * h_state->numStrands * h_state->numComponents * sizeof(float));
@@ -35,6 +36,11 @@ void mallocStrands(pilar::HairState* h_state, pilar::HairState* &d_state)
 	h_state->force	  = (pilar::Vector3f*) mallocBytes(h_state->numParticles * h_state->numStrands * sizeof(pilar::Vector3f));
 	
 	h_state->rng	  = (curandStatePhilox4_32_10_t*) mallocBytes(h_state->numStrands * sizeof(curandStatePhilox4_32_10_t));
+	
+	h_state->vertices = (float*) mallocBytes(modelBytes);
+	h_state->normals  = (float*) mallocBytes(modelBytes*sizeof(float));
+	h_state->faces	  = (float*) mallocBytes(modelBytes*sizeof(float));
+	h_state->model	  = (ModelOBJ*) mallocBytes(sizeof(ModelOBJ));
 	
 	d_state = (pilar::HairState*) mallocBytes(sizeof(pilar::HairState));
 }
@@ -58,20 +64,34 @@ void freeStrands(pilar::HairState* h_state, pilar::HairState* d_state)
 	
 	checkCudaErrors(cudaFree(h_state->rng));
 	
+	checkCudaErrors(cudaFree(h_state->vertices));
+	checkCudaErrors(cudaFree(h_state->normals));
+	checkCudaErrors(cudaFree(h_state->faces));
+	checkCudaErrors(cudaFree(h_state->model));
+	
 	checkCudaErrors(cudaFree(d_state));
 }
 
 extern "C"
 void copyRoots(pilar::Vector3f* roots, pilar::Vector3f* normals, pilar::HairState* h_state)
 {
-	checkCudaErrors(cudaMemcpy(h_state->root,   roots,   h_state->numStrands * sizeof(pilar::Vector3f), cudaMemcpyHostToDevice));
-	checkCudaErrors(cudaMemcpy(h_state->normal, normals, h_state->numStrands * sizeof(pilar::Vector3f), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(h_state->root,   roots,   h_state->numStrands * sizeof(*roots), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(h_state->normal, normals, h_state->numStrands * sizeof(*normals), cudaMemcpyHostToDevice));
 }
 
 extern "C"
 void copyState(pilar::HairState* h_state, pilar::HairState* d_state)
 {
-	checkCudaErrors(cudaMemcpy(d_state, h_state, sizeof(pilar::HairState), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(d_state, h_state, sizeof(*h_state), cudaMemcpyHostToDevice));
+}
+
+extern "C"
+void copyModel(ModelOBJ* model, pilar::HairState* h_state)
+{
+	checkCudaErrors(cudaMemcpy(h_state->model,	  model,		   sizeof(*model), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(h_state->vertices, model->vertices, model->bytes,			   cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(h_state->normals,  model->normals,  model->bytes*sizeof(float), cudaMemcpyHostToDevice));
+	checkCudaErrors(cudaMemcpy(h_state->faces,	  model->faces,    model->bytes*sizeof(float), cudaMemcpyHostToDevice));
 }
 
 extern "C"

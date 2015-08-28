@@ -5,6 +5,17 @@
 #include "tools.h"
 #include <curand_kernel.h>
 
+struct ModelOBJ
+{
+	float* vertices;
+	float* normals;
+	float* faces;	//Triangles
+	
+	long bytes;
+	long totalConnectedPoints;
+	long totalConnectedTriangles;
+};
+
 namespace pilar
 {
 	struct HairState
@@ -42,6 +53,11 @@ namespace pilar
 		float length_b;
 		float length_t;
 		
+		ModelOBJ* model;
+		float* vertices;
+		float* normals;
+		float* faces;
+		
 		curandStatePhilox4_32_10_t* rng;
 	};
 
@@ -70,7 +86,8 @@ namespace pilar
 			 float length_t,
 			 Vector3f gravity,
 			 Vector3f* roots,
-			 Vector3f* normals);
+			 Vector3f* normals,
+			 ModelOBJ* model);
 		~Hair();
 		
 		void initialise(Vector3f* position);

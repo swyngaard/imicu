@@ -172,6 +172,7 @@ all: build
 
 build: gl
 
+
 hair.o:hair.cpp hair.h
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
@@ -181,7 +182,7 @@ tools.o:tools.cu tools.h
 ogl.o:ogl.cpp constants.h
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
-hair_interface.o:hair_interface.cu hair_kernel.cu
+hair_interface.o:hair_interface.cu hair_kernel.cu ogl.o
 	$(EXEC) $(NVCC) $(INCLUDES) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
 
 gl: ogl.o hair.o tools.o hair_interface.o  

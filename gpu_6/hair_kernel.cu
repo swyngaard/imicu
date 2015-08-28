@@ -14,6 +14,7 @@ void initialise(pilar::HairState* state)
 	pilar::Vector3f* position = state->position;
 	pilar::Vector3f* pos = state->pos;
 	pilar::Vector3f* posc = state->posc;
+	ModelOBJ* model = state->model;
 	
 	//Strand ID
 	int sid = blockIdx.x;
@@ -28,6 +29,10 @@ void initialise(pilar::HairState* state)
 		pos[i] = position[i];
 		posc[i] = position[i];
 	}
+	
+	model->vertices = state->vertices;
+	model->normals = state->normals;
+	model->faces = state->faces;
 	
 	//Create a random number generator for each strand
 	curand_init(0, sid, 0, &state->rng[sid]);
