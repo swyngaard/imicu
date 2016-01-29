@@ -11,7 +11,7 @@ Imicu is a real-time hair simulation that makes use of a [mass-spring](https://e
 * Object Collision Detection using a Distance Field
 * GPU version written in [CUDA](https://en.wikipedia.org/wiki/CUDA)
 
-![screencast](https://raw.github.com/swyngaard/imicu/master/demo.gif)
+![screencast](https://github.com/swyngaard/imicu/raw/master/demo.gif)
 
 ### Prerequisites for Building
 
