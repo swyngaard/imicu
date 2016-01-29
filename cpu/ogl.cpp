@@ -93,8 +93,8 @@ int main(int argc, char **argv)
 	// init GLUT and create window
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-	glutInitWindowPosition(100,100);
-	glutInitWindowSize(1024,768);
+	glutInitWindowPosition(0,0);
+	glutInitWindowSize(1920,1080);
 	glutCreateWindow("Pilar");
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 	
@@ -130,8 +130,8 @@ void init()
 	obj.Load("monkey.obj");
 	
 	//Root positions
-	pilar::Vector3f strand00(0.0f, 0.0f, 0.0f);
-	pilar::Vector3f strand01(-0.025f, 0.0f, 0.0f);
+	pilar::Vector3f strand00(0.05f, 0.0f, 0.0f);
+	pilar::Vector3f strand01(-0.075f, 0.0f, 0.0f);
 	//~ pilar::Vector3f strand01(-0.055f, 0.0f, 0.0f);
 	
 	std::vector<pilar::Vector3f> roots;
@@ -524,7 +524,7 @@ int Model_OBJ::Load(const char* filename)
 		long fileSize = objFile.tellg();									// get file size
 		objFile.seekg (0, std::ios::beg);										// we'll use this to register memory for our 3d model
 		
-		std::cout << fileSize << std::endl;
+		//~ std::cout << fileSize << std::endl;
 		
 		vertexBuffer = (float*) malloc (fileSize);							// Allocate memory for the verteces
 		Faces_Triangles = (float*) malloc(fileSize*sizeof(float));			// Allocate memory for the triangles

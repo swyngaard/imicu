@@ -838,10 +838,10 @@ namespace pilar
 	
 	void Strand::calcVelocities(float dt)
 	{
-		if(!printOnce)
-		{
-			std::cout << dt << std::endl;
-		}
+		//~ if(!printOnce)
+		//~ {
+			//~ std::cout << dt << std::endl;
+		//~ }
 		
 		//Calculate the velocities of each particle
 		
@@ -1142,7 +1142,7 @@ namespace pilar
 		applyStrainLimiting(dt);
 		
 		//Detect segment collisions, calculate stiction forces and apply stiction to half velocity
-		//~ applyStiction(dt, strand, collision);
+		applyStiction(dt, strand, collision);
 		
 		//Calculate half position and new position
 		updatePositions(dt);
@@ -1169,20 +1169,20 @@ namespace pilar
 		//Calculate half velocity and new velocity
 		updateParticles(dt);
 		
-		if(!printOnce)
-		{
-			for (int i = 0; i < numParticles; i++)
-			{
-				std::cout << "velh[" << std::setfill('0') << std::setw(2) << (strandID*numParticles+i) << "]\t" << particle[i]->velh.x << "\t" << particle[i]->velh.y << "\t" << particle[i]->velh.z << std::endl;
-				std::cout << "velocity[" << std::setfill('0') << std::setw(2) << (strandID*numParticles+i) << "]\t" << particle[i]->velocity.x << "\t" << particle[i]->velocity.y << "\t" << particle[i]->velocity.z << std::endl;
-				std::cout << "pos[" << std::setfill('0') << std::setw(2) << (strandID*numParticles+i) << "]\t" << particle[i]->pos.x << "\t" << particle[i]->pos.y << "\t" << particle[i]->pos.z << std::endl;
-			}
+		//~ if(!printOnce)
+		//~ {
+			//~ for (int i = 0; i < numParticles; i++)
+			//~ {
+				//~ std::cout << "velh[" << std::setfill('0') << std::setw(2) << (strandID*numParticles+i) << "]\t" << particle[i]->velh.x << "\t" << particle[i]->velh.y << "\t" << particle[i]->velh.z << std::endl;
+				//~ std::cout << "velocity[" << std::setfill('0') << std::setw(2) << (strandID*numParticles+i) << "]\t" << particle[i]->velocity.x << "\t" << particle[i]->velocity.y << "\t" << particle[i]->velocity.z << std::endl;
+				//~ std::cout << "pos[" << std::setfill('0') << std::setw(2) << (strandID*numParticles+i) << "]\t" << particle[i]->pos.x << "\t" << particle[i]->pos.y << "\t" << particle[i]->pos.z << std::endl;
+			//~ }
 			
-			printOnce = true;
-		}
+			//~ printOnce = true;
+		//~ }
 		
 		//Detect segment collisions, calculate stiction forces and apply stiction to velocity
-		//~ applyStiction2(dt, strand, collision);
+		applyStiction2(dt, strand, collision);
 		
 		//FIXME Check when is best to update bounding volumes
 		//FIXME Check if bounding volumes need updating between half time steps
